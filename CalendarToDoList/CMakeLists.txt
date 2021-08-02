@@ -29,7 +29,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(Qt6 COMPONENTS NetworkAuth REQUIRED)
 
 set(TS_FILES CalendarToDoList_en_US.ts)
-
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp

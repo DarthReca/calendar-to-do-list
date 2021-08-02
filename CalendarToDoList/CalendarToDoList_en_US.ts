@@ -10,11 +10,16 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="27"/>
-        <source>PushButton</source>
+        <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="42"/>
+        <location filename="mainwindow.ui" line="40"/>
+        <source>NotConnected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="55"/>
         <source>Main</source>
         <translation type="unfinished"></translation>
     </message>

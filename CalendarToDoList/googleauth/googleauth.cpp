@@ -1,10 +1,11 @@
 #include "googleauth.h"
-#include <QtNetworkAuth>
 #include <QDesktopServices>
+
+const QString base_path = "https://www.googleapis.com/calendar/v3";
 
 GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 {
-   auto google = new QOAuth2AuthorizationCodeFlow;
+   google = new QOAuth2AuthorizationCodeFlow;
 
    // Permessi richiesti a google. Vedi https://developers.google.com/identity/protocols/oauth2/scopes
    google->setScope("https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events");
@@ -22,9 +23,13 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google->setClientIdentifierSharedKey(settingsObject["client_secret"].toString());
    google->setAccessTokenUrl(QUrl(settingsObject["token_uri"].toString()));
 
-   auto port = static_cast<quint16>(QUrl(settingsObject["redirect_uris"].toArray()[0].toString()).port());
+   quint16 port = static_cast<quint16>(QUrl(settingsObject["redirect_uris"].toArray()[0].toString()).port());
    auto replyHandler = new QOAuthHttpServerReplyHandler(port, this);
    google->setReplyHandler(replyHandler);
 
    google->grant();
+}
+
+GoogleAuth::~GoogleAuth() {
+    delete google;
 }
