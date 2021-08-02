@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <iostream>
+#include "googleauth/googleauth.h"
 
 using namespace std;
 
@@ -9,7 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    cout << "Starting...";
+    qDebug() << "Starting...";
+    GoogleAuth(this);
 }
 
 MainWindow::~MainWindow()
@@ -18,8 +20,8 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::on_dial_valueChanged(int value)
+void MainWindow::on_pushButton_clicked()
 {
-    cout << "New Value" << value << "\n";
+
 }
 

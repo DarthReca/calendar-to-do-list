@@ -26,6 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS NetworkAuth REQUIRED)
 
 set(TS_FILES CalendarToDoList_en_US.ts)
 
@@ -34,6 +35,8 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        googleauth/googleauth.h
+        googleauth/googleauth.cpp
         ${TS_FILES}
 )
 
@@ -59,6 +62,7 @@ else()
 endif()
 
 target_link_libraries(CalendarToDoList PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(CalendarToDoList PRIVATE Qt6::NetworkAuth)
 
 set_target_properties(CalendarToDoList PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
