@@ -1,14 +1,12 @@
 #include "googleauth.h"
 #include <QDesktopServices>
 
-const QString base_path = "https://www.googleapis.com/calendar/v3";
-
 GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 {
    google = new QOAuth2AuthorizationCodeFlow;
 
    // Permessi richiesti a google. Vedi https://developers.google.com/identity/protocols/oauth2/scopes
-   google->setScope("https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events");
+   google->setScope("https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.settings.readonly");
 
    connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 

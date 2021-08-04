@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtNetworkAuth>
+#include <QFuture>
 
 class GoogleAuth : public QObject
 {
@@ -13,6 +14,8 @@ public:
 
     QOAuth2AuthorizationCodeFlow* google;
 signals:
+
+public slots:
 
 private:
 
