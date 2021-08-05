@@ -1,5 +1,6 @@
 #include "googleauth.h"
 #include <QDesktopServices>
+#include <QDomDocument>
 
 GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 {
@@ -21,11 +22,14 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google->setClientIdentifierSharedKey(settingsObject["client_secret"].toString());
    google->setAccessTokenUrl(QUrl(settingsObject["token_uri"].toString()));
 
-   quint16 port = static_cast<quint16>(QUrl(settingsObject["redirect_uris"].toArray()[0].toString()).port());
+   quint16 port = 8001;//static_cast<quint16>(QUrl(settingsObject["redirect_uris"].toArray()[0].toString()).port());
    auto replyHandler = new QOAuthHttpServerReplyHandler(port, this);
    google->setReplyHandler(replyHandler);
 
    google->grant();
+   connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
+       qDebug() << google->token();
+   });
 }
 
 GoogleAuth::~GoogleAuth() {

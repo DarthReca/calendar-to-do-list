@@ -25,6 +25,5 @@ MainWindow::~MainWindow()
 void MainWindow::on_loginButton_clicked()
 {
     auth = new GoogleAuth(this);
-    connect(auth->google, &QOAuth2AuthorizationCodeFlow::granted, auth->google, []() { auth->get_calendar_ids(); } );
 }
 
