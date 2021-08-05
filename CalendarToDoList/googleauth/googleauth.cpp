@@ -28,7 +28,10 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 
    google->grant();
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
-       qDebug() << google->token();
+       auto reply = google->get(QUrl("https://apidata.googleusercontent.com/caldav/v2/darthreca@gmail.com/events"));
+       connect(reply, &QNetworkReply::finished, [reply]() {
+           qDebug() << reply->readAll();
+       });
    });
 }
 
