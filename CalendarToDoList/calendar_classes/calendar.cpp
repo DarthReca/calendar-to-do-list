@@ -65,7 +65,7 @@ void Calendar::LoadFromReply(QNetworkReply& reply)
                     if (new_event->uid_.isEmpty())
                         new_event->uid_ = QChar(no_uid++);
 
-                    Events.push_back(new_event);
+                    events_.push_back(new_event);
                     current_component = VCALENDAR;
                 }
                 break;

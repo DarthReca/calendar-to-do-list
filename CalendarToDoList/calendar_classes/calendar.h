@@ -17,6 +17,9 @@ public:
     void AddEvent(Event *NewEvent);
     void DeleteEvent(Event *DeletedEvent);
     void ModifyEvent(Event *ModifiedEvent);
+
+    class Query;
+
 private:
     QString GetProperty(const QString &line) const {
         // if VALUE=DATE or VALUE=DATE-TIME used, then the date is not directly
@@ -40,9 +43,24 @@ private:
         line += "\r\n";
     }
 
-    QList<Event *> Events;
-signals:
+    QList<Event *> events_;
 
 };
 
+class Calendar::Query {
+public:
+    Query(Calendar *calendar): calendar_(calendar), events_iterator_(calendar->events_.begin()) {}
+    void ResetPosition() {
+        recurrent_events_.clear();
+        events_iterator_ = calendar_->events_.begin();
+    }
+    Event* GetNextEvent(bool WithAlarm = false);
+
+    EventsCriteria Criteria;
+
+private:
+    Calendar *calendar_;
+    QVector<Event *> recurrent_events_;
+    QVector<Event *>::iterator events_iterator_;
+};
 #endif // CALENDAR_H

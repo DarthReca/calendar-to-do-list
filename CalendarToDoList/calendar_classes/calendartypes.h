@@ -3,11 +3,6 @@
 
 #include <QDate>
 
-struct DeleteItem {
-    template <typename T>
-    void operator()(T *ptr) { delete ptr; }
-};
-
 typedef enum { VCALENDAR, VEVENT, VALARM } Component;
 typedef enum { DISPLAY=0, PROCEDURE, AUDIO, EMAIL } AlarmAction;
 typedef enum { YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEK } TimeUnit;
