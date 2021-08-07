@@ -6,38 +6,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>909</width>
+    <height>619</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Calendar</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="loginButton">
+   <widget class="QCalendarWidget" name="calendarWidget">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>220</y>
-      <width>75</width>
-      <height>23</height>
+      <x>590</x>
+      <y>0</y>
+      <width>312</width>
+      <height>183</height>
      </rect>
-    </property>
-    <property name="text">
-     <string>Login</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="connectionLabel">
-    <property name="geometry">
-     <rect>
-      <x>300</x>
-      <y>200</y>
-      <width>71</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>NotConnected</string>
     </property>
    </widget>
   </widget>
@@ -46,18 +36,24 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>909</width>
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMain">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>Main</string>
+     <string>File</string>
     </property>
+    <addaction name="actionLogin"/>
    </widget>
-   <addaction name="menuMain"/>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLogin">
+   <property name="text">
+    <string>Login</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

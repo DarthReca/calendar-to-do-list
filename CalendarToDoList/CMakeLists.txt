@@ -36,8 +36,7 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         googleauth/googleauth.h googleauth/googleauth.cpp
-        calendar_classes/calendar.h calendar_classes/calendar.cpp
-        calendar_classes/calendartypes.h
+        calendar_classes/calendarevent.h calendar_classes/calendarevent.cpp
         ${TS_FILES}
 )
 

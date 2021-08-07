@@ -21,8 +21,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-void MainWindow::on_loginButton_clicked()
+void MainWindow::on_actionLogin_triggered()
 {
     auth = new GoogleAuth(this);
 }

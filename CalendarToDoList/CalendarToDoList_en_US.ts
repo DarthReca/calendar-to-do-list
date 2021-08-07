@@ -4,23 +4,18 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="mainwindow.ui" line="14"/>
-        <source>MainWindow</source>
+        <location filename="mainwindow.ui" line="20"/>
+        <source>Calendar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="27"/>
+        <location filename="mainwindow.ui" line="54"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="40"/>
-        <source>NotConnected</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="55"/>
-        <source>Main</source>
+        <location filename="mainwindow.ui" line="45"/>
+        <source>File</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

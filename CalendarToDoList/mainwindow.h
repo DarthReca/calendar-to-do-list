@@ -16,7 +16,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_loginButton_clicked();
+    void on_actionLogin_triggered();
 
 private:
     Ui::MainWindow *ui;
