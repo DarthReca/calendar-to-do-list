@@ -50,11 +50,13 @@ public:
   // Read-only boolean property which is set, if the event represents a specific occurrence and an EXDATE value applies
   Q_PROPERTY(bool isCanceled READ getIsCanceled NOTIFY isCanceledChanged)
 
-  explicit CalendarEvent(QObject* parent);
+  CalendarEvent(QObject* parent);
+  CalendarEvent(const QString& href, QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
-  CalendarEvent& operator=(const CalendarEvent& other);
+  QString ToICalendarObject();
 
+  CalendarEvent& operator=(const CalendarEvent& other);
   bool operator<(const CalendarEvent& other) const;
 
   void copyFrom(const CalendarEvent& other);
@@ -122,20 +124,20 @@ public slots:
   void setCalendarPointer(QObject* ptr);
 
 protected:
-  QString m_Color;
-  QString m_calendarName;
-  QString m_Name;
-  QString m_Location;
-  QString m_Description;
-  QDateTime m_StartDateTime;
-  QDateTime m_EndDateTime;
-  QString m_RRULE;
-  QString m_Exdates;
-  QString m_Categories;
-  QString m_UID;
-  QString m_HREF;
-  bool m_IsCanceled;
-  QObject* m_CalendarPointer;
+  QString color_;
+  QString calendar_name_;
+  QString name_;
+  QString location_;
+  QString description_;
+  QDateTime start_date_time_;
+  QDateTime end_date_time_;
+  QString RRULE_;
+  QString exdates_;
+  QString categories_;
+  QString UID_;
+  QString HREF_;
+  bool is_canceled_;
+  QObject* calendar_pointer_;
 
 };
 
