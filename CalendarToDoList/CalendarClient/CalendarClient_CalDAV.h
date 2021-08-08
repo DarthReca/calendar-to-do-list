@@ -21,6 +21,7 @@
 /* Library includes                                                           */
 /******************************************************************************/
 #include <QObject>
+#include "googleauth/googleauth.h"
 
 /******************************************************************************/
 /* Own includes                                                               */
@@ -155,13 +156,14 @@ public slots:
   /**
    * @brief Gets all events from the calDAV server.
    */
-  void getAllEvents();
+  void getAllEvents(QOAuth2AuthorizationCodeFlow google);
   /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveEvent(QString uid,
+  void saveEvent(QOAuth2AuthorizationCodeFlow google,
+                 QString uid,
                  QString summary,
                  QString location,
                  QString description,
@@ -173,7 +175,7 @@ public slots:
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(QString href);
+  void deleteEvent(QOAuth2AuthorizationCodeFlow google, QString href);
 
 /******************************************************************************/
 /* Protected slots                                                            */
@@ -229,7 +231,7 @@ protected:
 
   bool m_bRecoveredFromError;
 
-  QNetworkAccessManager m_UploadNetworkManager;
+  //QNetworkAccessManager m_UploadNetworkManager;
   QNetworkReply* m_pUploadReply;
   QTimer m_UploadRequestTimeoutTimer;
 

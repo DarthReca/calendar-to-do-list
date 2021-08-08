@@ -20,6 +20,7 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QString>
+#include <QMap>
 
 /******************************************************************************/
 /* Own includes                                                               */
@@ -185,7 +186,7 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   }
 }*/
 
-void CalendarClient_CalDAV::getAllEvents(){
+void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow google){
 
     if (NULL != m_pUploadReply)
     {
@@ -205,19 +206,20 @@ void CalendarClient_CalDAV::getAllEvents(){
     request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
     request.setRawHeader("Content-Length", 0);
 
-    m_pUploadReply = m_UploadNetworkManager.get(request);
+    m_pUploadReply = google.get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events") /*parameters*/);
     qDebug() << "Get request sent";
     qDebug() << m_pUploadReply->readAll();
 }
 
-void CalendarClient_CalDAV::saveEvent(QString uid,
-                                QString summary,
-                                QString location,
-                                QString description,
-                                QString rrule,
-                                QString exdate,
-                                QDateTime startDateTime,
-                                QDateTime endDateTime)
+void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow google,
+                                      QString uid,
+                                      QString summary,
+                                      QString location,
+                                      QString description,
+                                      QString rrule,
+                                      QString exdate,
+                                      QDateTime startDateTime,
+                                      QDateTime endDateTime)
 {
   QDEBUG << "saving event" << summary;
 
@@ -286,7 +288,10 @@ void CalendarClient_CalDAV::saveEvent(QString uid,
   //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
   //request.setSslConfiguration(conf);
 
-  m_pUploadReply = m_UploadNetworkManager.put(request, buffer);
+  m_pUploadReply = google.put(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"
+                              /*request e buffer*/));
+
+
   qDebug() << "Put request sent";
 
   if (NULL != m_pUploadReply)
@@ -308,7 +313,7 @@ void CalendarClient_CalDAV::saveEvent(QString uid,
 }
 
 
-void CalendarClient_CalDAV::deleteEvent(QString href)
+void CalendarClient_CalDAV::deleteEvent(QOAuth2AuthorizationCodeFlow google, QString href)
 {
   if (href.isEmpty())
   {
@@ -342,7 +347,7 @@ void CalendarClient_CalDAV::deleteEvent(QString href)
   //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
   //request.setSslConfiguration(conf);
 
-  m_pUploadReply = m_UploadNetworkManager.deleteResource(request);
+  m_pUploadReply = google.deleteResource(/*request*/);
 
   if (NULL != m_pUploadReply)
   {
