@@ -152,7 +152,10 @@ public slots:
   void stopSynchronization(void);
   void recover(void);
 
-
+  /**
+   * @brief Gets all events from the calDAV server.
+   */
+  void getAllEvents();
   /**
    * @brief Saves a event to the calDAV server.
    *

@@ -48,7 +48,6 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
        event.setStartDateTime(qt);
        qt.addDays(1);
        event.setEndDateTime(qt);
-
        CalendarClient_CalDAV calendarClient;
        calendarClient.saveEvent(event.getUID(), "Prova",
                                 event.location(),
@@ -57,6 +56,7 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
                                 event.getExdates(),
                                 event.getStartDateTime(),
                                 event.getEndDateTime());
+       calendarClient.getAllEvents();
    });
 }
 

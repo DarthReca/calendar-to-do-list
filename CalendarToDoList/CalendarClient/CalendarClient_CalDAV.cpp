@@ -185,6 +185,30 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   }
 }*/
 
+void CalendarClient_CalDAV::getAllEvents(){
+
+    if (NULL != m_pUploadReply)
+    {
+      QDEBUG<< "cleaning up m_pUploadReply";
+      m_pUploadReply->abort();
+      m_pUploadReply->disconnect();
+    }
+
+    QString authorization = "Basic ";
+
+    QNetworkRequest request;
+    request.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
+    request.setRawHeader("User-Agent", "CalendarClient_CalDAV");
+    request.setRawHeader("Authorization", authorization.toUtf8());
+    request.setRawHeader("Depth", "0");
+    request.setRawHeader("Prefer", "return-minimal");
+    request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
+    request.setRawHeader("Content-Length", 0);
+
+    m_pUploadReply = m_UploadNetworkManager.get(request);
+    qDebug() << "Get request sent";
+    qDebug() << m_pUploadReply->readAll();
+}
 
 void CalendarClient_CalDAV::saveEvent(QString uid,
                                 QString summary,
@@ -195,12 +219,11 @@ void CalendarClient_CalDAV::saveEvent(QString uid,
                                 QDateTime startDateTime,
                                 QDateTime endDateTime)
 {
-  //QDEBUG << m_DisplayName << ": " << "saving event" << summary;
-
+  QDEBUG << "saving event" << summary;
 
   if (NULL != m_pUploadReply)
   {
-    //QDEBUG << m_DisplayName << ": " << "cleaning up m_pUploadReply";
+    QDEBUG<< "cleaning up m_pUploadReply";
     m_pUploadReply->abort();
     m_pUploadReply->disconnect();
   }
@@ -210,7 +233,6 @@ void CalendarClient_CalDAV::saveEvent(QString uid,
 
   QBuffer* buffer = new QBuffer();
   buffer->open(QIODevice::ReadWrite);
-
 
   if (uid.isEmpty())
   {
@@ -265,7 +287,7 @@ void CalendarClient_CalDAV::saveEvent(QString uid,
   //request.setSslConfiguration(conf);
 
   m_pUploadReply = m_UploadNetworkManager.put(request, buffer);
-  qDebug() << "Request sent";
+  qDebug() << "Put request sent";
 
   if (NULL != m_pUploadReply)
   {
@@ -314,7 +336,6 @@ void CalendarClient_CalDAV::deleteEvent(QString href)
   request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
   request.setRawHeader("Content-Length", 0);
 
-
   QDEBUG << "deleting" << request.url();
 
   //QSslConfiguration conf = request.sslConfiguration();
@@ -335,7 +356,7 @@ void CalendarClient_CalDAV::deleteEvent(QString href)
   }
   else
   {
-    //QDEBUG << m_DisplayName << ": " << "ERROR: Invalid reply pointer when requesting URL.";
+    QDEBUG << "ERROR: Invalid reply pointer when requesting URL.";
     //emit error("Invalid reply pointer when requesting URL.");
   }
 

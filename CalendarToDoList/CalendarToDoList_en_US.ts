@@ -9,12 +9,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="54"/>
+        <location filename="mainwindow.ui" line="43"/>
+        <source>Aggiungi evento</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="67"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="45"/>
+        <location filename="mainwindow.ui" line="58"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
