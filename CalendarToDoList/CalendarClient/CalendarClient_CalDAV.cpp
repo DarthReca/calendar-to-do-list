@@ -1,62 +1,20 @@
-/*********************************************//*!@addtogroup file Files*//*@{*/
-/*!
- *******************************************************************************
-* File identification:      $Id: CalendarClient_CalDAV.cpp 18 2017-01-26 17:33:06Z cypax $
-* Revision of last commit:  $Rev: 18 $
-* Author of last commit:    $Author: cypax $
-* Date of last commit:      $Date: 2017-01-26 18:33:06 +0100 (Do, 26 Jan 2017) $
- *******************************************************************************
- *
- * @file          CalendarClient_CalDAV.cpp
- * @author        Cypax (cypax.net)
- *
- * @brief         Implementation file of class CalendarClient_CalDAV.
- */
-/************************************************************************//*@}*/
-
-/******************************************************************************/
-/* Library includes                                                           */
-/******************************************************************************/
-#include <QDebug>
 #include <QByteArray>
 #include <QString>
 #include <QMap>
 
-/******************************************************************************/
-/* Own includes                                                               */
-/******************************************************************************/
 #include "CalendarClient_CalDAV.h"
-#include "calendar_classes/calendarevent.h"
 
-/******************************************************************************/
-/* Namespace                                                                 */
-/******************************************************************************/
+#define REQUEST_URL "https://apidata.googleusercontent.com/caldav/v2/k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events"
 
-/******************************************************************************/
-/* Constants (#define)                                                        */
-/***************************************//*!@addtogroup define Constants*//*@{*/
-
-#define DEBUG_CALENDARCLIENT_CALDAV 0
-#if DEBUG_CALENDARCLIENT_CALDAV
-#define QDEBUG qDebug()
-#else
-#define QDEBUG if (0) qDebug()
-#endif
-
-/***** End of: define Constants *****************************************//*@}*/
-
-/******************************************************************************/
-/* Constructors                                                               */
-/**********************************//*!@addtogroup constrc Constructors *//*@{*/
 CalendarClient_CalDAV::CalendarClient_CalDAV(QObject* parent)
 {
-  m_pUploadReply = NULL;
+  upload_reply_ = NULL;
   m_Username = "";
   m_Password = "";
   m_syncToken = "";
   m_cTag = "";
-  m_Year = 1;
-  m_Month = 1;
+  year_ = 1;
+  month_ = 1;
   m_YearToBeRequested = QDate::currentDate().year();;
   m_MonthToBeRequested = QDate::currentDate().month();
   lastSyncYear = -1;
@@ -64,46 +22,32 @@ CalendarClient_CalDAV::CalendarClient_CalDAV(QObject* parent)
   m_bRecoveredFromError = false;
 }
 
-/***** End of: constrc Constructors *************************************//*@}*/
-
-/******************************************************************************/
-/* Deconstructor                                                              */
-/******************************//*!@addtogroup deconstrc Deconstructors *//*@{*/
 CalendarClient_CalDAV::~CalendarClient_CalDAV()
 {
   //m_SynchronizationTimer.stop();
 }
 
-/***** End of: deconstrc Constructors ***********************************//*@}*/
-
-/******************************************************************************/
-/* Public functions                                                           */
-/*****************************//*!@addtogroup pubfunct Public functions *//*@{*/
-/***** End of: pubfunct Public functions ********************************//*@}*/
-
-/******************************************************************************/
-/* Protected functions                                                        */
-/*************************//*!@addtogroup protfunct Protected functions *//*@{*/
-/***** End of: protfunct Protected functions ****************************//*@}*/
-
-/******************************************************************************/
-/* Private functions                                                          */
-/*************************//*!@addtogroup privfunct Private functions   *//*@{*/
-/***** End of: privfunct Private functions ******************************//*@}*/
-
-/******************************************************************************/
-/* Public slots                                                               */
-/*************************//*!@addtogroup pubslots Public slots         *//*@{*/
-
 int CalendarClient_CalDAV::getYear() const
 {
-  return m_Year;
+    return year_;
+}
+
+void CalendarClient_CalDAV::setYear(const int &year)
+{
+    year_ = year;
+    emit yearChanged(year_);
 }
 
 
 int CalendarClient_CalDAV::getMonth() const
 {
-  return m_Month;
+    return month_;
+}
+
+void CalendarClient_CalDAV::setMonth(const int &month)
+{
+   month_ = month;
+   emit monthChanged(month_);
 }
 
 void CalendarClient_CalDAV::setUsername(const QString username)
@@ -130,7 +74,7 @@ QString CalendarClient_CalDAV::getPassword(void) const
 
 /*void CalendarClient_CalDAV::startSynchronization(void)
 {
-  QDEBUG << m_DisplayName << ": " << "!!!forcing synchronization!!!";
+  qDebug() << m_DisplayName << ": " << "!!!forcing synchronization!!!";
   emit forceSynchronization();
 }*/
 
@@ -141,7 +85,7 @@ void CalendarClient_CalDAV::stopSynchronization(void)
 
 /*void CalendarClient_CalDAV::recover(void)
 {
-  QDEBUG << m_DisplayName << ": " << "trying to recover from EEROR state";
+  qDebug() << m_DisplayName << ": " << "trying to recover from EEROR state";
   m_bRecoveredFromError = true;
   emit recoverSignal();
 }*/
@@ -152,7 +96,7 @@ void CalendarClient_CalDAV::stopSynchronization(void)
   {
     if (m_Year != year)
     {
-      QDEBUG << m_DisplayName << ": " << "Year changed from" << m_Year << "to" << year;
+      qDebug() << m_DisplayName << ": " << "Year changed from" << m_Year << "to" << year;
       m_Year = year;
       emit yearChanged(m_Year);
       m_YearToBeRequested = year;
@@ -161,7 +105,7 @@ void CalendarClient_CalDAV::stopSynchronization(void)
   }
   else
   {
-    QDEBUG << m_DisplayName << ": " << "requested Year changed from" << m_YearToBeRequested << "to" << year;
+    qDebug() << m_DisplayName << ": " << "requested Year changed from" << m_YearToBeRequested << "to" << year;
     m_YearToBeRequested = year;
   }
 }
@@ -172,7 +116,7 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   {
     if (m_Month != month)
     {
-      QDEBUG << m_DisplayName << ": " << "Month changed from" << m_Month << "to" << month;
+      qDebug() << m_DisplayName << ": " << "Month changed from" << m_Month << "to" << month;
       m_Month = month;
       emit monthChanged(m_Month);
       m_MonthToBeRequested = month;
@@ -181,204 +125,116 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   }
   else
   {
-    QDEBUG << m_DisplayName << ": " << "requested Month changed from" << m_MonthToBeRequested << "to" << month;
+    qDebug() << m_DisplayName << ": " << "requested Month changed from" << m_MonthToBeRequested << "to" << month;
     m_MonthToBeRequested = month;
   }
 }*/
 
-void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow google){
+void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
+{
+    QHttpPart cal_part;
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "0");
 
-    if (NULL != m_pUploadReply)
-    {
-      QDEBUG<< "cleaning up m_pUploadReply";
-      m_pUploadReply->abort();
-      m_pUploadReply->disconnect();
-    }
+    QHttpMultiPart multi_part;
+    multi_part.append(cal_part);
 
-    QString authorization = "Basic ";
-
-    QNetworkRequest request;
-    request.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
-    request.setRawHeader("User-Agent", "CalendarClient_CalDAV");
-    request.setRawHeader("Authorization", authorization.toUtf8());
-    request.setRawHeader("Depth", "0");
-    request.setRawHeader("Prefer", "return-minimal");
-    request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
-    request.setRawHeader("Content-Length", 0);
-
-    m_pUploadReply = google.get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events") /*parameters*/);
+    auto reply = google.get(QUrl(REQUEST_URL));
     qDebug() << "Get request sent";
-    qDebug() << m_pUploadReply->readAll();
+
+    connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << reply->readAll();
+    });
 }
 
-void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow google,
-                                      QString uid,
-                                      QString summary,
-                                      QString location,
-                                      QString description,
-                                      QString rrule,
-                                      QString exdate,
-                                      QDateTime startDateTime,
-                                      QDateTime endDateTime)
+void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
+                                      CalendarEvent event)
 {
-  QDEBUG << "saving event" << summary;
+  qDebug() << "saving event" << event.getUID();
 
-  if (NULL != m_pUploadReply)
+  if (NULL != upload_reply_)
   {
-    QDEBUG<< "cleaning up m_pUploadReply";
-    m_pUploadReply->abort();
-    m_pUploadReply->disconnect();
+    qDebug()<< "cleaning up m_pUploadReply";
+    upload_reply_->abort();
+    upload_reply_->disconnect();
   }
 
-  QString authorization = "Basic ";
-  //authorization.append(encodeBase64(m_Username + ":" + m_Password));
-
-  QBuffer* buffer = new QBuffer();
-  buffer->open(QIODevice::ReadWrite);
-
-  if (uid.isEmpty())
+  if (event.getUID().isEmpty())
   {
-    uid = QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" + startDateTime.toString("yyyyMMddHHMM");
+    event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" + event.getStartDateTime().toString("yyyyMMddHHMM"));
   }
 
-  QString requestString = "BEGIN:VCALENDAR\r\n"
-                          "BEGIN:VEVENT\r\n"
-                          "UID:" + uid + "\r\n"
-                          "VERSION:2.0\r\n"
-                          "DTSTAMP:" + QDateTime::currentDateTime().toString("yyyyMMddTHHmmssZ") + "\r\n"
-                          "SUMMARY:" + summary + "\r\n"
-                          "DTSTART:" + startDateTime.toString("yyyyMMddTHHmmss") + "\r\n"
-                          "DTEND:" + endDateTime.toString("yyyyMMddTHHmmss") + "\r\n"
-                          "LOCATION:" + location + "\r\n"
-                          "DESCRIPTION:" + description + "\r\n"
-                          "TRANSP:OPAQUE\r\n"
-                          "END:VEVENT"
-                          "END:VCALENDAR";
+  QByteArray request_string = ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n").toUtf8();
 
-  if (!rrule.isEmpty())
-  {
-    requestString.append("RRULE:" + rrule + "\r\n");
-  }
+  QHttpPart cal_part;
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, request_string.size());
+  cal_part.setRawHeader("Prefer", "return-minimal");
+  cal_part.setRawHeader("Depth", "0");
+  cal_part.setBody(request_string);
 
-  if (!exdate.isEmpty())
-  {
-    requestString.append("EXDATE:" + exdate + "\r\n");
-  }
-
-  requestString.append("END:VEVENT\r\nEND:VCALENDAR");
-
-  int buffersize = buffer->write(requestString.toUtf8());
-  buffer->seek(0);
-  buffer->size();
-
-  //QByteArray contentlength;
-  //contentlength.append(QString::number(buffersize));
-
-  QNetworkRequest request;
-  request.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
-  request.setRawHeader("User-Agent", "CalendarClient_CalDAV");
-  request.setRawHeader("Authorization", authorization.toUtf8());
-  request.setRawHeader("Depth", "0");
-  request.setRawHeader("Prefer", "return-minimal");
-  request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
-  //request.setRawHeader("Content-Length", contentlength);
-
+  QHttpMultiPart multi_part;
+  multi_part.append(cal_part);
+  //Autorizzazione forse non serve
+  //request.setRawHeader("Authorization", authorization.toUtf8());
 
   //QSslConfiguration conf = request.sslConfiguration();
   //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
   //request.setSslConfiguration(conf);
 
-  m_pUploadReply = google.put(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"
-                              /*request e buffer*/));
-
+  //Bisogna ottenere il .ics corretto (/home/lisa/calendars/events/qwue23489.ics)
+  auto reply = google.put(QUrl(REQUEST_URL), request_string);
 
   qDebug() << "Put request sent";
 
-  if (NULL != m_pUploadReply)
-  {
-    connect(m_pUploadReply, SIGNAL(error(QNetworkReply::NetworkError)),
-            this, SLOT(handleUploadHTTPError()));
-
-    connect(m_pUploadReply, SIGNAL(finished()),
-            this, SLOT(handleUploadFinished()));
-
-    //m_UploadRequestTimeoutTimer.start(m_RequestTimeoutMS);
-  }
-  else
-  {
-    QDEBUG << "ERROR: Invalid reply pointer when requesting URL.";
-    //emit error("Invalid reply pointer when requesting URL.");
-  }
-
+  connect(reply, &QNetworkReply::finished, [reply]() {
+    qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
+  });
 }
 
 
-void CalendarClient_CalDAV::deleteEvent(QOAuth2AuthorizationCodeFlow google, QString href)
+void CalendarClient_CalDAV::deleteEvent(QOAuth2AuthorizationCodeFlow& google, QString href)
 {
   if (href.isEmpty())
   {
     return;
   }
 
-  QDEBUG << "deleting event with HREF" << href;
+  qDebug() << "deleting event with HREF" << href;
 
-  if (NULL != m_pUploadReply)
-  {
-    QDEBUG << "cleaning up m_pUploadReply";
-    m_pUploadReply->abort();
-    m_pUploadReply->disconnect();
-  }
+  QHttpPart cal_part;
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+  cal_part.setRawHeader("Prefer", "return-minimal");
+  cal_part.setRawHeader("Depth", "0");
 
-  QString authorization = "Basic ";
-  //authorization.append(encodeBase64(m_Username + ":" + m_Password));
+  QHttpMultiPart multi_part;
+  multi_part.append(cal_part);
 
-  QNetworkRequest request;
-  request.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
-  request.setRawHeader("User-Agent", "CalendarClient_CalDAV");
-  request.setRawHeader("Authorization", authorization.toUtf8());
-  request.setRawHeader("Depth", "0");
-  request.setRawHeader("Prefer", "return-minimal");
-  request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
-  request.setRawHeader("Content-Length", 0);
+  auto reply = google.deleteResource(QUrl(REQUEST_URL));
 
-  QDEBUG << "deleting" << request.url();
+  connect(reply, &QNetworkReply::finished, []() {
 
-  //QSslConfiguration conf = request.sslConfiguration();
-  //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-  //request.setSslConfiguration(conf);
-
-  m_pUploadReply = google.deleteResource(/*request*/);
-
-  if (NULL != m_pUploadReply)
-  {
-    connect(m_pUploadReply, SIGNAL(error(QNetworkReply::NetworkError)),
-            this, SLOT(handleUploadHTTPError()));
-
-    connect(m_pUploadReply, SIGNAL(finished()),
-            this, SLOT(handleUploadFinished()));
-
-    //m_UploadRequestTimeoutTimer.start(m_RequestTimeoutMS);
-  }
-  else
-  {
-    QDEBUG << "ERROR: Invalid reply pointer when requesting URL.";
-    //emit error("Invalid reply pointer when requesting URL.");
-  }
-
+  });
 }
 
-
+/*
 void CalendarClient_CalDAV::handleUploadHTTPError(void)
 {
-  m_UploadRequestTimeoutTimer.stop();
-  if (NULL != m_pUploadReply)
+  upload_request_timeout_timer_.stop();
+  if (NULL != upload_reply_)
   {
-    QDEBUG << "HTTP upload error:" << m_pUploadReply->errorString();
+    qDebug() << "HTTP upload error:" << upload_reply_->errorString();
     //emit error(m_pUploadReply->errorString());
   }
   else
   {
-    QDEBUG << "ERROR: Invalid reply pointer when handling HTTP error.";
+    qDebug() << "ERROR: Invalid reply pointer when handling HTTP error.";
     //emit error("Invalid reply pointer when handling HTTP error.");
   }
 
@@ -386,18 +242,18 @@ void CalendarClient_CalDAV::handleUploadHTTPError(void)
 
 void CalendarClient_CalDAV::handleUploadFinished(void)
 {
-  m_UploadRequestTimeoutTimer.stop();
+  upload_request_timeout_timer_.stop();
 
-  QDEBUG << "HTTP upload finished";
+  qDebug() << "HTTP upload finished";
 
-  if (NULL != m_pUploadReply)
+  if (NULL != upload_reply_)
   {
-    QDEBUG << "received:\r\n" << m_pUploadReply->readAll();
+    qDebug() << "received:\r\n" << upload_reply_->readAll();
     //emit forceSynchronization();
   }
 }
 
-
+*/
 /***** End of: pubslots Public slots ************************************//*@}*/
 
 /******************************************************************************/

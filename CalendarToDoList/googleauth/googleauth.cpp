@@ -38,7 +38,7 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
            qDebug() << reply->readAll();
        });*/
 
-       CalendarEvent event(NULL);
+       CalendarEvent event(nullptr);
        event.setUID("Jonny");
        event.setLocation("Office");
        event.setDescription("Prova");
@@ -46,20 +46,14 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
        event.setExdates("");
        QDateTime qt = QDateTime::currentDateTime();
        event.setStartDateTime(qt);
-       qt.addDays(1);
-       event.setEndDateTime(qt);
+       event.setEndDateTime(qt.addSecs(60*60));
        CalendarClient_CalDAV calendarClient;
-       calendarClient.saveEvent(event.getUID(), "Prova",
-                                event.location(),
-                                event.description(),
-                                event.getRRULE(),
-                                event.getExdates(),
-                                event.getStartDateTime(),
-                                event.getEndDateTime());
-       calendarClient.getAllEvents();
+       //calendarClient.saveEvent(*google, event);
+       calendarClient.getAllEvents(*google);
    });
 }
 
 GoogleAuth::~GoogleAuth() {
+    google->disconnect();
     delete google;
 }
