@@ -1,6 +1,9 @@
 #include "googleauth.h"
+#include "calendar_classes/calendarevent.h"
+#include "CalendarClient/CalendarClient_CalDAV.h"
 #include <QDesktopServices>
 #include <QDomDocument>
+#include <QDateTime>
 
 GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 {
@@ -27,11 +30,33 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google->setReplyHandler(replyHandler);
 
    google->grant();
+
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
-       auto reply = google->get(QUrl("https://apidata.googleusercontent.com/caldav/v2/darthreca@gmail.com/events"));
+
+       /*auto reply = google->get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
        connect(reply, &QNetworkReply::finished, [reply]() {
            qDebug() << reply->readAll();
-       });
+       });*/
+
+       CalendarEvent event(NULL);
+       event.setUID("Jonny");
+       event.setLocation("Office");
+       event.setDescription("Prova");
+       event.setRRULE("");
+       event.setExdates("");
+       QDateTime qt = QDateTime::currentDateTime();
+       event.setStartDateTime(qt);
+       qt.addDays(1);
+       event.setEndDateTime(qt);
+
+       CalendarClient_CalDAV calendarClient;
+       calendarClient.saveEvent(event.getUID(), "Prova",
+                                event.location(),
+                                event.description(),
+                                event.getRRULE(),
+                                event.getExdates(),
+                                event.getStartDateTime(),
+                                event.getEndDateTime());
    });
 }
 

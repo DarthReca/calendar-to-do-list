@@ -28,6 +28,7 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(Qt6 COMPONENTS NetworkAuth REQUIRED)
 find_package(Qt6 COMPONENTS Xml REQUIRED)
+find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(TS_FILES CalendarToDoList_en_US.ts)
 set(PROJECT_SOURCES
@@ -38,6 +39,8 @@ set(PROJECT_SOURCES
         googleauth/googleauth.h googleauth/googleauth.cpp
         calendar_classes/calendarevent.h calendar_classes/calendarevent.cpp
         calendar_classes/calendar.h calendar_classes/calendar.cpp
+        CalendarClient/CalendarClient_CalDAV.cpp
+        CalendarClient/CalendarClient_CalDAV.h
         ${TS_FILES}
 )
 
@@ -64,6 +67,7 @@ endif()
 
 target_link_libraries(CalendarToDoList PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(CalendarToDoList PRIVATE Qt6::NetworkAuth Qt6::Xml)
+target_link_libraries(CalendarToDoList PRIVATE Qt6::Core)
 
 set_target_properties(CalendarToDoList PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
