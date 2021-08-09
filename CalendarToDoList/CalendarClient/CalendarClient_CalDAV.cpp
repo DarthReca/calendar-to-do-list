@@ -132,17 +132,16 @@ void CalendarClient_CalDAV::setMonth(const int& month)
 
 void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
 {
-    QHttpPart cal_part;
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
-    QHttpMultiPart multi_part;
-    multi_part.append(cal_part);
-
-    auto reply = google.get(QUrl(REQUEST_URL));
+    auto reply = google.networkAccessManager()->get(cal_part);
     qDebug() << "Get request sent";
 
     connect(reply, &QNetworkReply::finished, [reply]() {
@@ -169,25 +168,21 @@ void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
 
   QByteArray request_string = ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n").toUtf8();
 
-  QHttpPart cal_part;
+  QNetworkRequest cal_part;
+  cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+  cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/3nopsjhsq7dtugtjspkd1tlv91@google.com.ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, request_string.size());
   cal_part.setRawHeader("Prefer", "return-minimal");
   cal_part.setRawHeader("Depth", "0");
-  cal_part.setBody(request_string);
-
-  QHttpMultiPart multi_part;
-  multi_part.append(cal_part);
-  //Autorizzazione forse non serve
-  //request.setRawHeader("Authorization", authorization.toUtf8());
 
   //QSslConfiguration conf = request.sslConfiguration();
   //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
   //request.setSslConfiguration(conf);
 
   //Bisogna ottenere il .ics corretto (/home/lisa/calendars/events/qwue23489.ics)
-  auto reply = google.put(QUrl(REQUEST_URL), request_string);
+  auto reply = google.networkAccessManager()->put(cal_part, request_string);
 
   qDebug() << "Put request sent";
 
