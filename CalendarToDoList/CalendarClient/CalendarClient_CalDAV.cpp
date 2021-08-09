@@ -195,18 +195,7 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow google){
       m_pUploadReply->disconnect();
     }
 
-    QString authorization = "Basic ";
-
-    QNetworkRequest request;
-    request.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
-    request.setRawHeader("User-Agent", "CalendarClient_CalDAV");
-    request.setRawHeader("Authorization", authorization.toUtf8());
-    request.setRawHeader("Depth", "0");
-    request.setRawHeader("Prefer", "return-minimal");
-    request.setRawHeader("Content-Type", "text/calendar; charset=utf-8");
-    request.setRawHeader("Content-Length", 0);
-
-    m_pUploadReply = google.get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events") /*parameters*/);
+    m_pUploadReply = google.get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
     qDebug() << "Get request sent";
     qDebug() << m_pUploadReply->readAll();
 }
