@@ -117,7 +117,7 @@ QString CalendarEvent::ToICalendarObject()
                             "UID:" + UID_ + "\r\n"
                             "VERSION:2.0\r\n"
                             "DTSTAMP:" + QDateTime::currentDateTime().toString("yyyyMMddTHHmmssZ") + "\r\n"
-                            "SUMMARY:" + description_ + "\r\n"
+                            "SUMMARY:" + name_ + "\r\n"
                             "DTSTART:" + start_date_time_.toString("yyyyMMddTHHmmss") + "\r\n"
                             "DTEND:" + end_date_time_.toString("yyyyMMddTHHmmss") + "\r\n"
                             "LOCATION:" + location_ + "\r\n"

@@ -1,100 +1,25 @@
-/*********************************************//*!@addtogroup file Files*//*@{*/
-/*!
- *******************************************************************************
-* File identification:      $Id: CalendarClient_CalDAV.h 17 2017-01-26 17:25:48Z cypax $
-* Revision of last commit:  $Rev: 17 $
-* Author of last commit:    $Author: cypax $
-* Date of last commit:      $Date: 2017-01-26 18:25:48 +0100 (Do, 26 Jan 2017) $
- *******************************************************************************
- *
- * @file          CalendarClient_CalDAV.h
- * @author        Cypax (cypax.net)
- *
- * @brief         CalDAV based calendar client.
- */
-/************************************************************************//*@}*/
-
 #ifndef CALENDARCLIENT_CALDAV_H
 #define CALENDARCLIENT_CALDAV_H
 
-/******************************************************************************/
-/* Library includes                                                           */
-/******************************************************************************/
 #include <QObject>
+
 #include "googleauth/googleauth.h"
+#include "calendar_classes/calendarevent.h"
 
-/******************************************************************************/
-/* Own includes                                                               */
-/******************************************************************************/
-#include "CalendarClient.h"
-#include "CalendarEvent.h"
-
-/******************************************************************************/
-/* Namespace                                                                 */
-/******************************************************************************/
-
-/******************************************************************************/
-/* Constants (#define)                                                        */
-/***************************************//*!@addtogroup define Constants*//*@{*/
-/***** End of: define Constants *****************************************//*@}*/
-
-/******************************************************************************/
-/* Class                                                                      */
-/******************************************//*!@addtogroup class Classes*//*@{*/
-/**
-* @brief Calendar class which obtains CalendarEvent objects from a CalDAV server.
-*
-* The CalendarClient_CalDAV class works with owncloud, nextcloud and possibly
-* with other calDAv based servers.
-* The URL property can be in the style
-* https://server.tld/owncloud/remote.php/dav/calendars/username/calendarname/
-* It is highly recommended to use HTTPS to protect your personal data.
-*
-* @note CalendarClient_CalDAV uses the year and month properties to limit the
-* list of events to a specific month.
-**/
 class CalendarClient_CalDAV: public QObject
 {
   Q_OBJECT
 
-/******************************************************************************/
-/* Types (typedef)                                                            */
-/******************************************//*!@addtogroup typedef Types*//*@{*/
 public:
-
-/***** End of: typedef Types ********************************************//*@}*/
-
-/******************************************************************************/
-/* Properties (Q_PROPERTY)                                                    */
-/**********************************//*!@addtogroup Q_PROPERTY Properties*//*@{*/
   Q_PROPERTY(int year READ getYear WRITE setYear NOTIFY yearChanged)
   Q_PROPERTY(int month READ getMonth WRITE setMonth NOTIFY monthChanged)
   Q_PROPERTY(QString  username  READ  getUsername   WRITE setUsername NOTIFY usernameChanged)
   Q_PROPERTY(QString  password  READ  getPassword   WRITE setPassword NOTIFY passwordChanged)
 
-
-/***** End of: Q_PROPERTY Properties ************************************//*@}*/
-
-/******************************************************************************/
-/* Constructors                                                               */
-/******************************************************************************/
-public:
   CalendarClient_CalDAV(QObject* parent = NULL);
 
-/******************************************************************************/
-/* Destructor                                                                 */
-/******************************************************************************/
-public:
   ~CalendarClient_CalDAV();
 
-/******************************************************************************/
-/* Public function prototypes                                                 */
-/******************************************************************************/
-public:
-
-/******************************************************************************/
-/* Protected function prototypes                                                */
-/******************************************************************************/
 protected:
 
   /**
@@ -112,14 +37,6 @@ protected:
 
   void setupStateMachine(void);
 
-/******************************************************************************/
-/* Private function prototypes                                                */
-/******************************************************************************/
-private:
-
-/******************************************************************************/
-/* Signals                                                                    */
-/******************************************************************************/
 signals:
   void yearChanged(const int& year);
   void monthChanged(const int& month);
@@ -132,9 +49,6 @@ signals:
   void calendarHasNotChanged(void);
   void calendarUpdateRequired(void); // emitted when the sync token has changed or the year/month since the last synchronization
 
-/******************************************************************************/
-/* Public slots                                                               */
-/******************************************************************************/
 public slots:
 
   int getYear() const;
@@ -149,38 +63,29 @@ public slots:
   void setPassword(const QString password);
   QString getPassword(void) const;
 
-  void startSynchronization(void);
+  //void startSynchronization(void);
   void stopSynchronization(void);
-  void recover(void);
+  //void recover(void);
 
   /**
    * @brief Gets all events from the calDAV server.
    */
-  void getAllEvents(QOAuth2AuthorizationCodeFlow google);
+  void getAllEvents(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveEvent(QOAuth2AuthorizationCodeFlow google,
-                 QString uid,
-                 QString summary,
-                 QString location,
-                 QString description,
-                 QString rrule,
-                 QString exdate,
-                 QDateTime startDateTime,
-                 QDateTime endDateTime);
+  void saveEvent(QOAuth2AuthorizationCodeFlow& google,
+                 CalendarEvent event);
 
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(QOAuth2AuthorizationCodeFlow google, QString href);
+  void deleteEvent(QOAuth2AuthorizationCodeFlow& google, QString href);
 
-/******************************************************************************/
-/* Protected slots                                                            */
-/******************************************************************************/
 protected slots:
+  /*
   void handleHTTPError(void);
 
   void handleRequestSyncTokenFinished(void);
@@ -205,24 +110,16 @@ protected slots:
 
   void handleUploadHTTPError(void);
   void handleUploadFinished(void);
+  */
 
-
-/******************************************************************************/
-/* Private slots                                                               */
-/******************************************************************************/
-private slots:
-
-/******************************************************************************/
-/* Protected attributes                                                         */
-/******************************************************************************/
 protected:
   int lastSyncYear;
   int lastSyncMonth;
 
   int m_YearToBeRequested;
   int m_MonthToBeRequested;
-  int m_Year;
-  int m_Month;
+  int year_;
+  int month_;
   QString m_Username;
   QString m_Password;
 
@@ -232,22 +129,9 @@ protected:
   bool m_bRecoveredFromError;
 
   //QNetworkAccessManager m_UploadNetworkManager;
-  QNetworkReply* m_pUploadReply;
-  QTimer m_UploadRequestTimeoutTimer;
-
-/******************************************************************************/
-/* Private attributes                                                         */
-/******************************************************************************/
-private:
+  QNetworkReply* upload_reply_;
+  QTimer upload_request_timeout_timer_;
 
 };
 
-/***** End of: Classes **************************************************//*@}*/
-
 #endif // CALENDARCLIENT_CALDAV_H
-/**** Last line of source code                                             ****/
-
-
-
-
-
