@@ -9,25 +9,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="57"/>
-        <location filename="widgets/createeventform.ui" line="71"/>
-        <location filename="widgets/createeventform.ui" line="92"/>
-        <source>TextLabel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widgets/createeventform.ui" line="64"/>
+        <location filename="widgets/createeventform.ui" line="47"/>
         <source>Aggiungi Titolo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="80"/>
+        <location filename="widgets/createeventform.ui" line="56"/>
         <source>Tutto il giorno</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="70"/>
+        <source>-</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="92"/>
+        <source>Posizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="widgets/createeventform.ui" line="99"/>
         <source>Aggiungi posizione</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="124"/>
+        <source>Salva</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="137"/>
+        <source>Elimina</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

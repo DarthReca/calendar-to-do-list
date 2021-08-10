@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     qDebug() << "Starting...\n";
+    adjustSize();
 }
 
 MainWindow::~MainWindow()
@@ -31,12 +32,17 @@ void MainWindow::on_request_event_ui(CalendarEvent event)
 {
 
 }
-void MainWindow::on_addButton_clicked()
+
+void MainWindow::on_pushButton_clicked()
 {
-   CalendarEvent event(nullptr);
-   event.setDescription("Random Desc");
-   event.setStartDateTime(QDateTime::currentDateTime());
-   event.setEndDateTime(QDateTime::currentDateTime().addSecs(60*60));
-   on_request_event_ui(event);
+    editing_event_ = new CalendarEvent(nullptr);
+    CreateEventForm form(editing_event_, this);
+    form.exec();
+    /*
+    event.setDescription("Random Desc");
+    event.setStartDateTime(QDateTime::currentDateTime());
+    event.setEndDateTime(QDateTime::currentDateTime().addSecs(60*60));
+    on_request_event_ui(event);
+    */
 }
 
