@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1029</width>
+    <width>1068</width>
     <height>619</height>
    </rect>
   </property>
@@ -26,9 +26,9 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>260</x>
       <y>20</y>
-      <width>791</width>
+      <width>801</width>
       <height>411</height>
      </rect>
     </property>
@@ -198,7 +198,7 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>-10</x>
+      <x>0</x>
       <y>60</y>
       <width>250</width>
       <height>239</height>
@@ -214,12 +214,11 @@
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 255);
-border-color: rgb(122, 122, 122);
-font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
+        <string notr="true">font: 8pt &quot;Bahnschrift SemiLight&quot;;
+background-color: rgb(43, 191, 67);</string>
        </property>
        <property name="text">
-        <string>Crea</string>
+        <string>Crea attività</string>
        </property>
       </widget>
      </item>
@@ -240,7 +239,11 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
       </spacer>
      </item>
      <item>
-      <widget class="QCalendarWidget" name="calendarWidget"/>
+      <widget class="QCalendarWidget" name="monthlyCalendar">
+       <property name="styleSheet">
+        <string notr="true">border-color: rgb(59, 0, 176);</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -250,7 +253,7 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1029</width>
+     <width>1068</width>
      <height>21</height>
     </rect>
    </property>
@@ -266,13 +269,14 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
       <x>242</x>
       <y>95</y>
       <width>138</width>
-      <height>72</height>
+      <height>96</height>
      </rect>
     </property>
     <property name="title">
      <string>File</string>
     </property>
     <addaction name="actionLogin"/>
+    <addaction name="actionCrea_attivit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -280,6 +284,11 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
   <action name="actionLogin">
    <property name="text">
     <string>Login</string>
+   </property>
+  </action>
+  <action name="actionCrea_attivit">
+   <property name="text">
+    <string>Crea attività</string>
    </property>
   </action>
  </widget>

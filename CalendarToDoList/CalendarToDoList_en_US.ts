@@ -164,17 +164,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="222"/>
-        <source>Crea</source>
+        <location filename="mainwindow.ui" line="221"/>
+        <location filename="mainwindow.ui" line="291"/>
+        <source>Crea attività</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="282"/>
+        <location filename="mainwindow.ui" line="286"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="273"/>
+        <location filename="mainwindow.ui" line="276"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
