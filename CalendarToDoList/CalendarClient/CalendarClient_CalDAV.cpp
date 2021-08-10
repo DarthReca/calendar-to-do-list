@@ -149,6 +149,25 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
     });
 }
 
+/*void CalendarClient_CalDAV::getEvent(QOAuth2AuthorizationCodeFlow& google)
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "0");
+
+    auto reply = google.networkAccessManager()->get(cal_part);
+    qDebug() << "Get request sent";
+
+    connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << reply->readAll();
+    });
+}*/
+
 void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
                                       CalendarEvent event)
 {
@@ -201,17 +220,16 @@ void CalendarClient_CalDAV::deleteEvent(QOAuth2AuthorizationCodeFlow& google, QS
 
   qDebug() << "deleting event with HREF" << href;
 
-  QHttpPart cal_part;
+  QNetworkRequest cal_part;
+  cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+  cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/3nopsjhsq7dtugtjspkd1tlv91@google.com.ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
   cal_part.setRawHeader("Prefer", "return-minimal");
   cal_part.setRawHeader("Depth", "0");
 
-  QHttpMultiPart multi_part;
-  multi_part.append(cal_part);
-
-  auto reply = google.deleteResource(QUrl(REQUEST_URL));
+  auto reply = google.networkAccessManager()->deleteResource(cal_part);
 
   connect(reply, &QNetworkReply::finished, []() {
 

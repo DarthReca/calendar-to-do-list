@@ -29,9 +29,7 @@ void MainWindow::on_actionLogin_triggered()
 
 void MainWindow::on_request_event_ui(CalendarEvent event)
 {
-    auto layout = ui->gridLayout;
-    EventWidget *event_button = new EventWidget(event, this);
-    layout->addWidget(event_button);
+
 }
 void MainWindow::on_addButton_clicked()
 {
