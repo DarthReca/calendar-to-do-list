@@ -41,6 +41,8 @@ set(PROJECT_SOURCES
         calendar_classes/calendar.h calendar_classes/calendar.cpp
         CalendarClient/CalendarClient_CalDAV.cpp
         CalendarClient/CalendarClient_CalDAV.h
+        widgets/eventwidget.h widgets/eventwidget.cpp
+        widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
         ${TS_FILES}
 )
 

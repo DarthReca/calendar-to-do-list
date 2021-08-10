@@ -15,11 +15,16 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="67"/>
+        <source>PushButton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="91"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="58"/>
+        <location filename="mainwindow.ui" line="82"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
