@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
@@ -36,11 +37,6 @@ void MainWindow::on_actionLogin_triggered()
     auth = new GoogleAuth(this);
 }
 
-void MainWindow::on_request_event_ui(CalendarEvent event)
-{
-
-}
-
 void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
@@ -58,5 +54,41 @@ void MainWindow::on_createEvent_clicked()
 void MainWindow::on_receiveChanges_clicked()
 {
     CalendarClient_CalDAV::receiveChanges(*auth->google);
+}
+
+
+void MainWindow::on_actionGiorno_triggered()
+{
+   ui->calendarTable->setColumnCount(1);
+}
+
+
+void MainWindow::on_actionSettimanale_triggered()
+{
+  ui->calendarTable->setColumnCount(7);
+}
+
+
+void MainWindow::on_calendarWidget_clicked(const QDate &date)
+{
+  QDate d(date);
+  for(int i = 0; i < ui->calendarTable->columnCount(); i++)
+  {
+      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("dd"));
+      ui->calendarTable->setHorizontalHeaderItem(i, item);
+  }
+}
+
+const QList<CalendarEvent *> &MainWindow::showing_events() const
+{
+    return showing_events_;
+}
+
+void MainWindow::setShowing_events(const QList<CalendarEvent *> &newShowing_events)
+{
+    if (showing_events_ == newShowing_events)
+        return;
+    showing_events_ = newShowing_events;
+    emit showing_eventsChanged();
 }
 

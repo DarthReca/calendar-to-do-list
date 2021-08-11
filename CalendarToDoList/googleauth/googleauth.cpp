@@ -50,9 +50,11 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
        CalendarClient_CalDAV calendarClient;
 
        auto reply = calendarClient.getCTag(*google);
+       /*
        connect(reply, &QNetworkReply::finished, [&calendarClient]() {
            calendarClient.getAllEvents(google);
        });
+       */
        //calendarClient.saveEvent(*google, event);
        //calendarClient.receiveChanges(*google);
    });
