@@ -7,8 +7,6 @@
 #include <QDomDocument>
 #include "CalendarClient/CalendarClient_CalDAV.h"
 
-using namespace std;
-
 GoogleAuth* auth;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -62,17 +60,20 @@ void MainWindow::on_createEvent_clicked()
     });
 }*/
 
+void MainWindow::on_receiveChanges_clicked()
+{
 
+}
 
 
 void MainWindow::on_seeIfChanged_clicked()
 {
-    auto reply = CalendarClient_CalDAV::getCTag(*auth->google);
+    auto reply = CalendarClient_CalDAV::obtainCTag(*auth->google);
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
         QDomDocument q;
         q.setContent(reply->readAll());
         QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();;
-        if(CalendarClient_CalDAV::cTag.text().compare(thisCTag.text())==0){
+        if(CalendarClient_CalDAV::getCTag().text().compare(thisCTag.text())==0){
             CalendarClient_CalDAV::lookForChanges(*auth->google);
         }
     });
