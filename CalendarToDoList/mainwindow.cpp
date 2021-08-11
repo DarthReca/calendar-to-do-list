@@ -4,6 +4,7 @@
 #include "googleauth/googleauth.h"
 #include "widgets/eventwidget.h"
 #include <QLabel>
+#include "CalendarClient/CalendarClient_CalDAV.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ void MainWindow::on_request_event_ui(CalendarEvent event)
 
 }
 
-void MainWindow::on_creaEvento_clicked()
+void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
     editing_event_->setUID("3nopsjhsq7dtugtjspkd1tlv91@google.com");
@@ -45,5 +46,11 @@ void MainWindow::on_creaEvento_clicked()
     event.setEndDateTime(QDateTime::currentDateTime().addSecs(60*60));
     on_request_event_ui(event);
     */
+}
+
+
+void MainWindow::on_receiveChanges_clicked()
+{
+    CalendarClient_CalDAV::receiveChanges(*auth->google);
 }
 

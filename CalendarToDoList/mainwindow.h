@@ -29,6 +29,10 @@ private slots:
 
     void on_creaEvento_clicked();
 
+    void on_createEvent_clicked();
+
+    void on_receiveChanges_clicked();
+
 private:
     Ui::MainWindow *ui;
     CalendarEvent* editing_event_;
