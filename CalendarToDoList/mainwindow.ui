@@ -290,7 +290,20 @@ background-color: rgb(37, 255, 99);</string>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>receiveChanges</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="seeIfChanged">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>380</y>
+      <width>80</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>seeIfChanged</string>
     </property>
    </widget>
   </widget>
@@ -312,9 +325,9 @@ background-color: rgb(37, 255, 99);</string>
    <widget class="QMenu" name="menuFile">
     <property name="geometry">
      <rect>
-      <x>339</x>
-      <y>100</y>
-      <width>135</width>
+      <x>242</x>
+      <y>95</y>
+      <width>138</width>
       <height>72</height>
      </rect>
     </property>

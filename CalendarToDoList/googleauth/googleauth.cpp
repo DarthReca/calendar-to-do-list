@@ -5,6 +5,8 @@
 #include <QDomDocument>
 #include <QDateTime>
 
+QDomElement cTag;
+
 GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 {
    google = new QOAuth2AuthorizationCodeFlow;
@@ -32,31 +34,13 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google->grant();
 
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
-
-       /*auto reply = google->get(QUrl("https://apidata.googleusercontent.com/caldav/v2/jonnymarsiano@gmail.com/events"));
-       connect(reply, &QNetworkReply::finished, [reply]() {
-           qDebug() << reply->readAll();
-       });*/
-
-       CalendarEvent event(nullptr);
-       event.setUID("Jonny");
-       event.setLocation("Office");
-       event.setDescription("Prova");
-       event.setRRULE("");
-       event.setExdates("");
-       QDateTime qt = QDateTime::currentDateTime();
-       event.setStartDateTime(qt);
-       event.setEndDateTime(qt.addSecs(60*60));
-       CalendarClient_CalDAV calendarClient;
-
-       auto reply = calendarClient.getCTag(*google);
-       /*
-       connect(reply, &QNetworkReply::finished, [&calendarClient]() {
-           calendarClient.getAllEvents(google);
+       auto reply = CalendarClient_CalDAV::getCTag(*google);
+       connect(reply, &QNetworkReply::finished, [this, reply]() {
+           QDomDocument q;
+           q.setContent(reply->readAll());
+           CalendarClient_CalDAV::cTag = q.elementsByTagName("cs:getctag").at(0).toElement();
+           CalendarClient_CalDAV::getAllEvents(*this->google);
        });
-       */
-       //calendarClient.saveEvent(*google, event);
-       //calendarClient.receiveChanges(*google);
    });
 }
 
