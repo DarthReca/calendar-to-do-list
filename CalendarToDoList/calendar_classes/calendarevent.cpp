@@ -12,8 +12,8 @@ CalendarEvent::CalendarEvent(QObject *parent) : QObject(parent)
   name_            = "";
   location_        = "";
   description_     = "";
-  start_date_time_   = QDateTime();
-  end_date_time_     = QDateTime();
+  start_date_time_   = QDateTime().currentDateTime();
+  end_date_time_     = QDateTime().currentDateTime().addSecs(60*60);
   categories_      = "";
   exdates_         = "";
   RRULE_           = "";

@@ -2,6 +2,49 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>CreateEventForm</name>
+    <message>
+        <location filename="widgets/createeventform.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="47"/>
+        <source>Aggiungi Titolo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="56"/>
+        <source>Tutto il giorno</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="70"/>
+        <source>-</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="92"/>
+        <source>Posizione</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="99"/>
+        <source>Aggiungi posizione</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="124"/>
+        <source>Salva</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="137"/>
+        <source>Elimina</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="mainwindow.ui" line="20"/>
