@@ -31,6 +31,8 @@ private slots:
 
     void on_receiveChanges_clicked();
 
+    void on_seeIfChanged_clicked();
+
 private:
     Ui::MainWindow *ui;
     CalendarEvent* editing_event_;

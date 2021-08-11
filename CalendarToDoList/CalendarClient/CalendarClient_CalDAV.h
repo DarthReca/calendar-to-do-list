@@ -2,6 +2,7 @@
 #define CALENDARCLIENT_CALDAV_H
 
 #include <QObject>
+#include <QDomDocument>
 
 #include "googleauth/googleauth.h"
 #include "calendar_classes/calendarevent.h"
@@ -15,6 +16,8 @@ public:
   Q_PROPERTY(int month READ getMonth WRITE setMonth NOTIFY monthChanged)
   Q_PROPERTY(QString  username  READ  getUsername   WRITE setUsername NOTIFY usernameChanged)
   Q_PROPERTY(QString  password  READ  getPassword   WRITE setPassword NOTIFY passwordChanged)
+
+  static QDomElement cTag;
 
   CalendarClient_CalDAV(QObject* parent = NULL);
 
@@ -70,23 +73,27 @@ public slots:
   /**
    * @brief Gets the ctag from the server.
    */
-  QNetworkReply* getCTag(QOAuth2AuthorizationCodeFlow& google);
+  static QNetworkReply* getCTag(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Gets all events from the calDAV server.
    */
-  void getAllEvents(QOAuth2AuthorizationCodeFlow& google);
+  static void getAllEvents(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Gets all events in a specific time range.
    */
-  void getDateRangeEvents(QOAuth2AuthorizationCodeFlow& google, QDateTime start, QDateTime end);
+  static void getDateRangeEvents(QOAuth2AuthorizationCodeFlow& google, QDateTime start, QDateTime end);
   /**
    * @brief Requests the token to receive changes in the server.
    */
-  static void requestSyncToken(QOAuth2AuthorizationCodeFlow& google);
+  static QNetworkReply* requestSyncToken(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Receives the changes done in the server.
    */
-  static void receiveChanges(QOAuth2AuthorizationCodeFlow& google);
+  static void receiveChanges(QOAuth2AuthorizationCodeFlow& google, QString syncToken);
+  /**
+   * @brief Looks for changes done in the server.
+   */
+  static void lookForChanges(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Saves a event to the calDAV server.
    *

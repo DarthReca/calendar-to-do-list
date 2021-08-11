@@ -138,7 +138,6 @@ QNetworkReply* CalendarClient_CalDAV::getCTag(QOAuth2AuthorizationCodeFlow& goog
     cal_part.setUrl(QUrl(REQUEST_URL));
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
@@ -154,9 +153,9 @@ QNetworkReply* CalendarClient_CalDAV::getCTag(QOAuth2AuthorizationCodeFlow& goog
 
     auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
 
-    /*connect(reply, &QNetworkReply::finished, [reply]() {
+    connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();
-    });*/
+    });
 
     return reply;
 }
@@ -168,7 +167,6 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
     cal_part.setUrl(QUrl(REQUEST_URL));
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "1");
 
@@ -190,7 +188,49 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
     auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 
     connect(reply, &QNetworkReply::finished, [reply]() {
-      qDebug() << reply->readAll();
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        auto lista = res.elementsByTagName("D:prop");
+        for(int i=0; i<lista.size(); i++){
+            qDebug() << lista.at(i).toElement().text();
+            qDebug() << "\n";
+        }
+    });
+}
+
+void CalendarClient_CalDAV::lookForChanges(QOAuth2AuthorizationCodeFlow& google){
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "1");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("c:calendar-query");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    root.appendChild(tagProp);
+    QDomElement tagFilter = xml.createElement("c:filter");
+    QDomElement tagCompFilter = xml.createElement("c:comp-filter");
+    tagCompFilter.setAttribute("name", "VCALENDAR");
+    tagFilter.appendChild(tagCompFilter);
+    root.appendChild(tagFilter);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
+
+    connect(reply, &QNetworkReply::finished, [reply]() {
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        auto lista = res.elementsByTagName("D:prop");
+        for(int i=0; i<lista.size(); i++){
+            qDebug() << lista.at(i).toElement().text();
+            qDebug() << "\n";
+        }
     });
 }
 
@@ -231,14 +271,13 @@ void CalendarClient_CalDAV::getDateRangeEvents(QOAuth2AuthorizationCodeFlow& goo
     });
 }
 
-void CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& google)
+/*QNetworkReply* CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& google)
 {
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
     cal_part.setUrl(QUrl(REQUEST_URL));
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
@@ -255,26 +294,23 @@ void CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& googl
 
     auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
 
-    /*connect(reply, &QNetworkReply::finished, [reply]() {
+    connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();
-    });*/
-}
+    });
 
-void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
+    return reply;
+}*/
+
+/*void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google, QString syncToken)
 {
-    CalendarClient_CalDAV::requestSyncToken(google);
-
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
-    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events/sync"));
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
-    cal_part.setRawHeader("Prefer", "return-minimal");
-    cal_part.setRawHeader("Depth", "0");
 
     QDomDocument xml;
-    QDomElement root = xml.createElement("xml");
+    QDomElement root = xml.createElement("?xml");
     root.setAttribute("version", "1.0");
     root.setAttribute("encoding", "utf-8");
     xml.appendChild(root);
@@ -282,7 +318,7 @@ void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
     tagCollection.setAttribute("xmlns:d", "DAV:");
     xml.appendChild(tagCollection);
     QDomElement tagToken = xml.createElement("d:sync-token");
-    tagToken.appendChild(xml.createTextNode(google.token().toUtf8()));
+    tagToken.appendChild(xml.createTextNode("https://apidata.googleusercontent.com" + syncToken));
     tagCollection.appendChild(tagToken);
     QDomElement tagLevel = xml.createElement("d:sync-level");
     tagLevel.appendChild(xml.createTextNode("1"));
@@ -291,17 +327,19 @@ void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
     tagProp.appendChild(xml.createElement("d:getetag"));
     tagCollection.appendChild(tagProp);
 
+    qDebug() << xml.toString();
+
     auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 
     connect(reply, &QNetworkReply::finished, [reply]() {
-      qDebug() << reply->readAll();
+      qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
     });
-}
+}*/
 
 void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
                                       CalendarEvent event)
 {
-  qDebug() << "saving event" << event.getUID();
+  qDebug() << "saving new event" << event.getUID();
 
   if (event.getUID().isEmpty())
   {

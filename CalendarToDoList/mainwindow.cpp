@@ -4,6 +4,7 @@
 #include "googleauth/googleauth.h"
 #include "widgets/eventwidget.h"
 #include <QLabel>
+#include <QDomDocument>
 #include "CalendarClient/CalendarClient_CalDAV.h"
 
 using namespace std;
@@ -55,8 +56,32 @@ void MainWindow::on_createEvent_clicked()
 }
 
 
-void MainWindow::on_receiveChanges_clicked()
+/*void MainWindow::on_receiveChanges_clicked()
 {
-    CalendarClient_CalDAV::receiveChanges(*auth->google);
+    auto reply = CalendarClient_CalDAV::requestSyncToken(*auth->google);
+    connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+        QDomDocument q;
+        q.setContent(reply->readAll());
+        CalendarClient_CalDAV::receiveChanges(*auth->google, q.elementsByTagName("D:sync-token").at(0).toElement().text());
+    });
+}*/
+
+
+
+
+void MainWindow::on_seeIfChanged_clicked()
+{
+    auto reply = CalendarClient_CalDAV::getCTag(*auth->google);
+    connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+        QDomDocument q;
+        q.setContent(reply->readAll());
+        QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();;
+        if(CalendarClient_CalDAV::cTag.text().compare(thisCTag.text())==0){
+            CalendarClient_CalDAV::lookForChanges(*auth->google);
+        }
+    });
 }
+
+
+
 
