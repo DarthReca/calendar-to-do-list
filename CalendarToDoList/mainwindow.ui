@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1029</width>
+    <width>1112</width>
     <height>619</height>
    </rect>
   </property>
@@ -26,8 +26,8 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>20</y>
+      <x>320</x>
+      <y>30</y>
       <width>791</width>
       <height>411</height>
      </rect>
@@ -250,7 +250,7 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1029</width>
+     <width>1112</width>
      <height>21</height>
     </rect>
    </property>
@@ -265,7 +265,7 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
      <rect>
       <x>242</x>
       <y>95</y>
-      <width>135</width>
+      <width>138</width>
       <height>72</height>
      </rect>
     </property>

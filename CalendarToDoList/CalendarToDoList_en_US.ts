@@ -207,18 +207,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="221"/>
-        <location filename="mainwindow.ui" line="291"/>
-        <source>Crea attività</source>
+        <location filename="mainwindow.ui" line="222"/>
+        <source>Crea</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="286"/>
+        <location filename="mainwindow.ui" line="282"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="276"/>
+        <location filename="mainwindow.ui" line="273"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
