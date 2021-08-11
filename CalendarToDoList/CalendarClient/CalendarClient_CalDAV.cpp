@@ -131,38 +131,167 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   }
 }*/
 
-void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
+QNetworkReply* CalendarClient_CalDAV::getCTag(QOAuth2AuthorizationCodeFlow& google)
 {
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
     cal_part.setUrl(QUrl(REQUEST_URL));
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
-    auto reply = google.networkAccessManager()->get(cal_part);
-    qDebug() << "Get request sent";
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:cs", REQUEST_URL);
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:displayname"));
+    tagProp.appendChild(xml.createElement("cs:getctag"));
+    root.appendChild(tagProp);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+
+    /*connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << reply->readAll();
+    });*/
+
+    return reply;
+}
+
+void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "1");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("c:calendar-query");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    tagProp.appendChild(xml.createElement("c:calendar-data"));
+    root.appendChild(tagProp);
+    QDomElement tagFilter = xml.createElement("c:filter");
+    QDomElement tagCompFilter = xml.createElement("c:comp-filter");
+    tagCompFilter.setAttribute("name", "VCALENDAR");
+    tagFilter.appendChild(tagCompFilter);
+    root.appendChild(tagFilter);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 
     connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();
     });
 }
 
-void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
+void CalendarClient_CalDAV::getDateRangeEvents(QOAuth2AuthorizationCodeFlow& google, QDateTime start, QDateTime end)
 {
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
     cal_part.setUrl(QUrl(REQUEST_URL));
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "1");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("c:calendar-query");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    tagProp.appendChild(xml.createElement("c:calendar-data"));
+    root.appendChild(tagProp);
+    QDomElement tagFilter = xml.createElement("c:filter");
+    QDomElement tagCompFilter = xml.createElement("c:comp-filter");
+    tagCompFilter.setAttribute("name", "VCALENDAR");
+    tagFilter.appendChild(tagCompFilter);
+    QDomElement tagTime = xml.createElement("c:time-range");
+    tagTime.setAttribute("start", start.toUTC().toString());
+    tagTime.setAttribute("end", end.toUTC().toString());
+    tagCompFilter.appendChild(tagTime);
+    root.appendChild(tagFilter);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
+
+    connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << reply->readAll();
+    });
+}
+
+void CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& google)
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
-    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"));
-    qDebug() << "Get request sent";
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:cs", REQUEST_URL);
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:displayname"));
+    tagProp.appendChild(xml.createElement("cs:getctag"));
+    tagProp.appendChild(xml.createElement("d:sync-token"));
+    root.appendChild(tagProp);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+
+    /*connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << reply->readAll();
+    });*/
+}
+
+void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
+{
+    CalendarClient_CalDAV::requestSyncToken(google);
+
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, 0);
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "0");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("xml");
+    root.setAttribute("version", "1.0");
+    root.setAttribute("encoding", "utf-8");
+    xml.appendChild(root);
+    QDomElement tagCollection = xml.createElement("d:sync-collection");
+    tagCollection.setAttribute("xmlns:d", "DAV:");
+    xml.appendChild(tagCollection);
+    QDomElement tagToken = xml.createElement("d:sync-token");
+    tagToken.appendChild(xml.createTextNode(google.token().toUtf8()));
+    tagCollection.appendChild(tagToken);
+    QDomElement tagLevel = xml.createElement("d:sync-level");
+    tagLevel.appendChild(xml.createTextNode("1"));
+    tagCollection.appendChild(tagLevel);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    tagCollection.appendChild(tagProp);
+
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 
     connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();

@@ -68,13 +68,25 @@ public slots:
   //void recover(void);
 
   /**
+   * @brief Gets the ctag from the server.
+   */
+  QNetworkReply* getCTag(QOAuth2AuthorizationCodeFlow& google);
+  /**
    * @brief Gets all events from the calDAV server.
    */
   void getAllEvents(QOAuth2AuthorizationCodeFlow& google);
   /**
+   * @brief Gets all events in a specific time range.
+   */
+  void getDateRangeEvents(QOAuth2AuthorizationCodeFlow& google, QDateTime start, QDateTime end);
+  /**
+   * @brief Requests the token to receive changes in the server.
+   */
+  static void requestSyncToken(QOAuth2AuthorizationCodeFlow& google);
+  /**
    * @brief Receives the changes done in the server.
    */
-  void receiveChanges(QOAuth2AuthorizationCodeFlow& google);
+  static void receiveChanges(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Saves a event to the calDAV server.
    *
