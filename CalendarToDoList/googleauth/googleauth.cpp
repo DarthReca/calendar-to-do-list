@@ -48,7 +48,7 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
        event.setStartDateTime(qt);
        event.setEndDateTime(qt.addSecs(60*60));
        CalendarClient_CalDAV calendarClient;
-       calendarClient.saveEvent(*google, event);
+       //calendarClient.saveEvent(*google, event);
        calendarClient.getAllEvents(*google);
    });
 }

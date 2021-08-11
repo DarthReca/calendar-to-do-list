@@ -17,6 +17,9 @@ public:
     explicit CreateEventForm(CalendarEvent* event, QOAuth2AuthorizationCodeFlow& google, QWidget *parent = nullptr);
     ~CreateEventForm();
 
+private slots:
+    void on_allDayBox_stateChanged(int arg1);
+
 private:
     Ui::CreateEventForm *ui;
     CalendarEvent* event_;

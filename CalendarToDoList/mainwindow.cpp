@@ -15,11 +15,18 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     qDebug() << "Starting...\n";
-    adjustSize();
+
+    // Force user to authenticate
+    if(auth == nullptr)
+        auth = new GoogleAuth(this);
+    QEventLoop loop;
+    connect(auth->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
+    loop.exec();
 }
 
 MainWindow::~MainWindow()
 {
+    delete auth;
     delete ui;
 }
 
@@ -36,7 +43,6 @@ void MainWindow::on_request_event_ui(CalendarEvent event)
 void MainWindow::on_creaEvento_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
-    editing_event_->setUID("3nopsjhsq7dtugtjspkd1tlv91@google.com");
     CreateEventForm form(editing_event_, *auth->google,  this);
     form.exec();
     /*

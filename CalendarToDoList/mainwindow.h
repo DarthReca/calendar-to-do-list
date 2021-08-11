@@ -23,9 +23,7 @@ signals:
 private slots:
     void on_actionLogin_triggered();
     void on_request_event_ui(CalendarEvent event);
-    void on_addButton_clicked();
 
-    void on_pushButton_clicked();
 
     void on_creaEvento_clicked();
 

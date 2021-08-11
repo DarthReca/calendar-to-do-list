@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>564</width>
-    <height>152</height>
+    <height>244</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>10</x>
      <y>20</y>
      <width>326</width>
-     <height>113</height>
+     <height>219</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -44,7 +44,7 @@
     <item row="0" column="1">
      <widget class="QLineEdit" name="titleEdit">
       <property name="placeholderText">
-       <string>Aggiungi Titolo</string>
+       <string>Aggiungi titolo</string>
       </property>
      </widget>
     </item>
@@ -88,8 +88,26 @@
     </item>
     <item row="2" column="0">
      <widget class="QLabel" name="label">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
       <property name="text">
-       <string>Posizione</string>
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="../icons/icons.qrc">:/baseline_place_black_24dp.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -97,6 +115,38 @@
      <widget class="QLineEdit" name="locationEdit">
       <property name="placeholderText">
        <string>Aggiungi posizione</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QTextEdit" name="descriptionEdit">
+      <property name="placeholderText">
+       <string>Aggiungi descrizione</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="../icons/icons.qrc">:/round_notes_black_24dp.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -141,6 +191,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

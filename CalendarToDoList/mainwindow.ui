@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1128</width>
-    <height>414</height>
+    <width>1156</width>
+    <height>509</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,13 +28,16 @@
      <rect>
       <x>320</x>
       <y>30</y>
-      <width>791</width>
+      <width>801</width>
       <height>411</height>
      </rect>
     </property>
     <property name="styleSheet">
      <string notr="true">border-color: rgb(159, 159, 159);
 </string>
+    </property>
+    <property name="rowCount">
+     <number>25</number>
     </property>
     <attribute name="horizontalHeaderCascadingSectionResizes">
      <bool>false</bool>
@@ -159,6 +162,7 @@
       <string>23:00 - 00:00</string>
      </property>
     </row>
+    <row/>
     <column>
      <property name="text">
       <string>Lun</string>
@@ -240,7 +244,11 @@ background-color: rgb(37, 255, 99);</string>
       </spacer>
      </item>
      <item>
-      <widget class="QCalendarWidget" name="calendarWidget"/>
+      <widget class="QCalendarWidget" name="calendarWidget">
+       <property name="gridVisible">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -250,7 +258,7 @@ background-color: rgb(37, 255, 99);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1128</width>
+     <width>1156</width>
      <height>21</height>
     </rect>
    </property>
@@ -265,7 +273,7 @@ background-color: rgb(37, 255, 99);</string>
      <rect>
       <x>242</x>
       <y>95</y>
-      <width>138</width>
+      <width>135</width>
       <height>72</height>
      </rect>
     </property>

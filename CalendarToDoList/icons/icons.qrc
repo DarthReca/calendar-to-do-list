@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>baseline_place_black_24dp.png</file>
+        <file>round_notes_black_24dp.png</file>
+    </qresource>
+</RCC>

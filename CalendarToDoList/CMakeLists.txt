@@ -43,6 +43,8 @@ set(PROJECT_SOURCES
         CalendarClient/CalendarClient_CalDAV.h
         widgets/eventwidget.h widgets/eventwidget.cpp
         widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
+        icons/icons.qrc
+        widgets/calendartable.h widgets/calendartable.cpp widgets/calendartable.ui
         ${TS_FILES}
 )
 
