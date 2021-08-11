@@ -1,6 +1,7 @@
 #include <QByteArray>
 #include <QString>
 #include <QMap>
+#include <QDomDocument>
 
 #include "CalendarClient_CalDAV.h"
 
@@ -149,7 +150,7 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
     });
 }
 
-/*void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
+void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google)
 {
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
@@ -160,25 +161,18 @@ void CalendarClient_CalDAV::getAllEvents(QOAuth2AuthorizationCodeFlow& google)
     cal_part.setRawHeader("Prefer", "return-minimal");
     cal_part.setRawHeader("Depth", "0");
 
-    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, "REPORT", multipart);
+    auto reply = google.networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"));
     qDebug() << "Get request sent";
 
     connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();
     });
-}*/
+}
 
 void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
                                       CalendarEvent event)
 {
   qDebug() << "saving event" << event.getUID();
-
-  if (NULL != upload_reply_)
-  {
-    qDebug()<< "cleaning up m_pUploadReply";
-    upload_reply_->abort();
-    upload_reply_->disconnect();
-  }
 
   if (event.getUID().isEmpty())
   {

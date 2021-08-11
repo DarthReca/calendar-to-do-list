@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1112</width>
-    <height>619</height>
+    <width>1128</width>
+    <height>414</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -206,7 +206,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="creaEvento">
        <property name="minimumSize">
         <size>
          <width>248</width>
@@ -214,9 +214,9 @@
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 255);
-border-color: rgb(122, 122, 122);
-font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
+        <string notr="true">border-color: rgb(122, 122, 122);
+font: 8pt &quot;Bahnschrift SemiLight&quot;;
+background-color: rgb(37, 255, 99);</string>
        </property>
        <property name="text">
         <string>Crea</string>
@@ -250,7 +250,7 @@ font: 8pt &quot;Bahnschrift SemiLight&quot;;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1112</width>
+     <width>1128</width>
      <height>21</height>
     </rect>
    </property>

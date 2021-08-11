@@ -74,13 +74,13 @@ public slots:
   /**
    * @brief Receives the changes done in the server.
    */
-  //void receiveChanges(QOAuth2AuthorizationCodeFlow& google);
+  void receiveChanges(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveEvent(QOAuth2AuthorizationCodeFlow& google,
+  static void saveEvent(QOAuth2AuthorizationCodeFlow& google,
                  CalendarEvent event);
 
   /**

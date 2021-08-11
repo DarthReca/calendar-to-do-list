@@ -33,10 +33,11 @@ void MainWindow::on_request_event_ui(CalendarEvent event)
 
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_creaEvento_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
-    CreateEventForm form(editing_event_, this);
+    editing_event_->setUID("3nopsjhsq7dtugtjspkd1tlv91@google.com");
+    CreateEventForm form(editing_event_, *auth->google,  this);
     form.exec();
     /*
     event.setDescription("Random Desc");

@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "calendar_classes/calendarevent.h"
+#include <QOAuth2AuthorizationCodeFlow>
 
 namespace Ui {
 class CreateEventForm;
@@ -13,15 +14,13 @@ class CreateEventForm : public QDialog
     Q_OBJECT
 
 public:
-    explicit CreateEventForm(CalendarEvent* event, QWidget *parent = nullptr);
+    explicit CreateEventForm(CalendarEvent* event, QOAuth2AuthorizationCodeFlow& google, QWidget *parent = nullptr);
     ~CreateEventForm();
-
-private slots:
-    void on_titleEdit_textChanged(const QString &arg1);
 
 private:
     Ui::CreateEventForm *ui;
     CalendarEvent* event_;
+    QOAuth2AuthorizationCodeFlow *google_;
 };
 
 #endif // CREATEEVENTFORM_H
