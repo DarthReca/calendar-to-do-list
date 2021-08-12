@@ -37,6 +37,7 @@ private slots:
 
     void on_calendarWidget_clicked(const QDate &date);
     void on_seeIfChanged_clicked();
+    void on_showing_events_changed();
 
 private:
     Ui::MainWindow *ui;

@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QDomDocument>
 #include "CalendarClient/CalendarClient_CalDAV.h"
+#include <QApplication>
 
 GoogleAuth* auth;
 
@@ -18,11 +19,15 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
+    /*
     if(auth == nullptr)
         auth = new GoogleAuth(this);
     QEventLoop loop;
     connect(auth->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
     loop.exec();
+    */
+
+    connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
 }
 
 MainWindow::~MainWindow()
@@ -38,6 +43,14 @@ void MainWindow::on_actionLogin_triggered()
 
 void MainWindow::on_createEvent_clicked()
 {
+    CalendarEvent ev1(this);
+    ev1.setName("SomeName");
+    QList<CalendarEvent *> list;
+    list.append(&ev1);
+
+    setShowing_events(list);
+    return;
+
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *auth->google,  this);
     form.exec();
@@ -77,6 +90,26 @@ void MainWindow::on_seeIfChanged_clicked()
             CalendarClient_CalDAV::lookForChanges(*auth->google);
         }
     });
+}
+
+void MainWindow::on_showing_events_changed()
+{
+   auto children = ui->calendarTable->children();
+   int column_width = ui->calendarTable->columnWidth(0);
+   int row_heigth = ui->calendarTable->rowHeight(0);
+
+   int header_height = ui->calendarTable->horizontalHeader()->height();
+   int header_width = ui->calendarTable->verticalHeader()->width();
+
+   qDebug() << header_width;
+
+   for(const auto& r : showing_events_)
+   {
+       EventWidget* widget = new EventWidget(r, ui->calendarTable);
+       widget->resize(column_width, row_heigth);
+       widget->move(0, header_height);
+       ui->centralwidget->layout()->addWidget(widget);
+   }
 }
 
 

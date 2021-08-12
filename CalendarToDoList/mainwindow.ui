@@ -66,6 +66,12 @@
     <attribute name="horizontalHeaderStretchLastSection">
      <bool>true</bool>
     </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>true</bool>
+    </attribute>
+    <attribute name="verticalHeaderMinimumSectionSize">
+     <number>30</number>
+    </attribute>
     <row>
      <property name="text">
       <string/>
@@ -327,7 +333,7 @@ background-color: rgb(37, 255, 99);</string>
      <rect>
       <x>242</x>
       <y>95</y>
-      <width>138</width>
+      <width>135</width>
       <height>72</height>
      </rect>
     </property>
