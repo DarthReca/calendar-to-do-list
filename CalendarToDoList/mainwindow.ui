@@ -331,7 +331,7 @@ background-color: rgb(37, 255, 99);</string>
    <widget class="QMenu" name="menuFile">
     <property name="geometry">
      <rect>
-      <x>242</x>
+      <x>244</x>
       <y>95</y>
       <width>135</width>
       <height>72</height>
