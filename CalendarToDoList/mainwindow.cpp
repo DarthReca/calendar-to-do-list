@@ -7,8 +7,6 @@
 #include <QDomDocument>
 #include "CalendarClient/CalendarClient_CalDAV.h"
 
-using namespace std;
-
 GoogleAuth* auth;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -16,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
@@ -35,11 +34,6 @@ MainWindow::~MainWindow()
 void MainWindow::on_actionLogin_triggered()
 {
     auth = new GoogleAuth(this);
-}
-
-void MainWindow::on_request_event_ui(CalendarEvent event)
-{
-
 }
 
 void MainWindow::on_createEvent_clicked()
@@ -66,22 +60,58 @@ void MainWindow::on_createEvent_clicked()
     });
 }*/
 
+void MainWindow::on_receiveChanges_clicked()
+{
 
+}
 
 
 void MainWindow::on_seeIfChanged_clicked()
 {
-    auto reply = CalendarClient_CalDAV::getCTag(*auth->google);
+    auto reply = CalendarClient_CalDAV::obtainCTag(*auth->google);
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
         QDomDocument q;
         q.setContent(reply->readAll());
         QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();;
-        if(CalendarClient_CalDAV::cTag.text().compare(thisCTag.text())==0){
+        if(CalendarClient_CalDAV::getCTag().text().compare(thisCTag.text())==0){
             CalendarClient_CalDAV::lookForChanges(*auth->google);
         }
     });
 }
 
 
+void MainWindow::on_actionGiorno_triggered()
+{
+   ui->calendarTable->setColumnCount(1);
+}
 
+
+void MainWindow::on_actionSettimanale_triggered()
+{
+  ui->calendarTable->setColumnCount(7);
+}
+
+
+void MainWindow::on_calendarWidget_clicked(const QDate &date)
+{
+  QDate d(date);
+  for(int i = 0; i < ui->calendarTable->columnCount(); i++)
+  {
+      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("dd"));
+      ui->calendarTable->setHorizontalHeaderItem(i, item);
+  }
+}
+
+const QList<CalendarEvent *> &MainWindow::showing_events() const
+{
+    return showing_events_;
+}
+
+void MainWindow::setShowing_events(const QList<CalendarEvent *> &newShowing_events)
+{
+    if (showing_events_ == newShowing_events)
+        return;
+    showing_events_ = newShowing_events;
+    emit showing_eventsChanged();
+}
 

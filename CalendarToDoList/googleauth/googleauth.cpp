@@ -34,11 +34,11 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google->grant();
 
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
-       auto reply = CalendarClient_CalDAV::getCTag(*google);
+       auto reply = CalendarClient_CalDAV::obtainCTag(*google);
        connect(reply, &QNetworkReply::finished, [this, reply]() {
            QDomDocument q;
            q.setContent(reply->readAll());
-           CalendarClient_CalDAV::cTag = q.elementsByTagName("cs:getctag").at(0).toElement();
+           CalendarClient_CalDAV::setCTag(q.elementsByTagName("cs:getctag").at(0).toElement());
            CalendarClient_CalDAV::getAllEvents(*this->google);
        });
    });

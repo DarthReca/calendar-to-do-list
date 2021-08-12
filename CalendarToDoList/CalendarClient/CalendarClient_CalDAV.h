@@ -16,12 +16,18 @@ public:
   Q_PROPERTY(int month READ getMonth WRITE setMonth NOTIFY monthChanged)
   Q_PROPERTY(QString  username  READ  getUsername   WRITE setUsername NOTIFY usernameChanged)
   Q_PROPERTY(QString  password  READ  getPassword   WRITE setPassword NOTIFY passwordChanged)
-
-  static QDomElement cTag;
+  Q_PROPERTY(QDomElement cTag_ READ getCTag WRITE setCTag)
 
   CalendarClient_CalDAV(QObject* parent = NULL);
 
   ~CalendarClient_CalDAV();
+
+  /**
+   * @brief Obtain the ctag from the server.
+   */
+  static QNetworkReply* obtainCTag(QOAuth2AuthorizationCodeFlow& google);
+  static const QDomElement &getCTag() { return cTag_ ;};
+  static void setCTag(const QDomElement &new_cTag) { cTag_ = new_cTag; };
 
 protected:
 
@@ -70,10 +76,6 @@ public slots:
   void stopSynchronization(void);
   //void recover(void);
 
-  /**
-   * @brief Gets the ctag from the server.
-   */
-  static QNetworkReply* getCTag(QOAuth2AuthorizationCodeFlow& google);
   /**
    * @brief Gets all events from the calDAV server.
    */
@@ -141,13 +143,16 @@ protected:
 
   int m_YearToBeRequested;
   int m_MonthToBeRequested;
+
   int year_;
   int month_;
+  static QDomElement cTag_;
+
   QString m_Username;
   QString m_Password;
 
-  QString m_cTag;
-  QString m_syncToken;
+  //QString m_cTag;
+  //QString m_syncToken;
 
   bool m_bRecoveredFromError;
 

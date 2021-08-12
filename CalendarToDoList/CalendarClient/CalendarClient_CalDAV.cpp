@@ -7,13 +7,15 @@
 
 #define REQUEST_URL "https://apidata.googleusercontent.com/caldav/v2/k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events"
 
+QDomElement CalendarClient_CalDAV::cTag_;
+
 CalendarClient_CalDAV::CalendarClient_CalDAV(QObject* parent)
 {
   upload_reply_ = NULL;
   m_Username = "";
   m_Password = "";
-  m_syncToken = "";
-  m_cTag = "";
+  //m_syncToken = "";
+  //m_cTag = "";
   year_ = 1;
   month_ = 1;
   m_YearToBeRequested = QDate::currentDate().year();;
@@ -131,7 +133,7 @@ void CalendarClient_CalDAV::setMonth(const int& month)
   }
 }*/
 
-QNetworkReply* CalendarClient_CalDAV::getCTag(QOAuth2AuthorizationCodeFlow& google)
+QNetworkReply* CalendarClient_CalDAV::obtainCTag(QOAuth2AuthorizationCodeFlow& google)
 {
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
@@ -271,8 +273,9 @@ void CalendarClient_CalDAV::getDateRangeEvents(QOAuth2AuthorizationCodeFlow& goo
     });
 }
 
-/*QNetworkReply* CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& google)
+QNetworkReply* CalendarClient_CalDAV::requestSyncToken(QOAuth2AuthorizationCodeFlow& google)
 {
+    /*
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
     cal_part.setUrl(QUrl(REQUEST_URL));
@@ -297,12 +300,13 @@ void CalendarClient_CalDAV::getDateRangeEvents(QOAuth2AuthorizationCodeFlow& goo
     connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->readAll();
     });
+    */
+    return nullptr;
+}
 
-    return reply;
-}*/
-
-/*void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google, QString syncToken)
+void CalendarClient_CalDAV::receiveChanges(QOAuth2AuthorizationCodeFlow& google, QString syncToken)
 {
+    /*
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+google.token()).toUtf8());
     cal_part.setUrl(QUrl("https://apidata.googleusercontent.com/caldav/v2/k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events/sync"));
@@ -334,7 +338,8 @@ void CalendarClient_CalDAV::getDateRangeEvents(QOAuth2AuthorizationCodeFlow& goo
     connect(reply, &QNetworkReply::finished, [reply]() {
       qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
     });
-}*/
+    */
+}
 
 void CalendarClient_CalDAV::saveEvent(QOAuth2AuthorizationCodeFlow& google,
                                       CalendarEvent event)
