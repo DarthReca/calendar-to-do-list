@@ -29,10 +29,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>30</y>
+      <x>340</x>
+      <y>0</y>
       <width>801</width>
-      <height>411</height>
+      <height>481</height>
      </rect>
     </property>
     <property name="sizePolicy">

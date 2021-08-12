@@ -43,14 +43,6 @@ void MainWindow::on_actionLogin_triggered()
 
 void MainWindow::on_createEvent_clicked()
 {
-    CalendarEvent ev1(this);
-    ev1.setName("SomeName");
-    QList<CalendarEvent *> list;
-    list.append(&ev1);
-
-    setShowing_events(list);
-    return;
-
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *auth->google,  this);
     form.exec();
@@ -94,21 +86,26 @@ void MainWindow::on_seeIfChanged_clicked()
 
 void MainWindow::on_showing_events_changed()
 {
-   auto children = ui->calendarTable->children();
+   //Delete all previous widgets
+   for(auto child : ui->calendarTable->children())
+      if(qobject_cast<EventWidget *>(child) != nullptr)
+        child->deleteLater();
+
    int column_width = ui->calendarTable->columnWidth(0);
    int row_heigth = ui->calendarTable->rowHeight(0);
 
-   int header_height = ui->calendarTable->horizontalHeader()->height();
-   int header_width = ui->calendarTable->verticalHeader()->width();
+   QDate selected_date = ui->calendarWidget->selectedDate();
 
-   qDebug() << header_width;
-
-   for(const auto& r : showing_events_)
+   for(auto& event : showing_events_)
    {
-       EventWidget* widget = new EventWidget(r, ui->calendarTable);
+       EventWidget* widget = new EventWidget(*event, ui->calendarTable->viewport());
        widget->resize(column_width, row_heigth);
-       widget->move(0, header_height);
-       ui->centralwidget->layout()->addWidget(widget);
+
+       int x_pos = column_width*selected_date.daysTo(event->getStartDateTime().date());
+       int y_pos = row_heigth + row_heigth*event->getStartDateTime().time().hour();
+       widget->move(x_pos, y_pos);
+
+       widget->show();
    }
 }
 
@@ -118,7 +115,7 @@ void MainWindow::on_actionGiorno_triggered()
    ui->calendarTable->setColumnCount(1);
    QDate d;
    d = ui->calendarWidget->selectedDate();
-   QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd dd MMMM yyyy"));
+   QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd\ndd"));
    ui->calendarTable->setHorizontalHeaderItem(0, item);
 }
 
@@ -126,13 +123,12 @@ void MainWindow::on_actionGiorno_triggered()
 void MainWindow::on_actionSettimanale_triggered()
 {
   ui->calendarTable->setColumnCount(7);
-  /*QDate d;
-  d = ui->calendarWidget->firstDayOfWeek();
+  QDate d = ui->calendarWidget->selectedDate();
   for(int i = 0; i < ui->calendarTable->columnCount(); i++)
   {
-      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd dd MMMM yyyy"));
+      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
       ui->calendarTable->setHorizontalHeaderItem(i, item);
-  }*/
+  }
 }
 
 
@@ -141,13 +137,13 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
   QDate d(date);
   QTableWidgetItem *item;
   if(ui->calendarTable->columnCount()==1){
-    item = new QTableWidgetItem(d.toString("ddd dd MMMM yyyy"));
+    item = new QTableWidgetItem(d.toString("ddd\ndd"));
     ui->calendarTable->setHorizontalHeaderItem(0, item);
   }
   else{
     for(int i = 0; i < ui->calendarTable->columnCount(); i++)
     {
-        item = new QTableWidgetItem(d.addDays(i).toString("dd"));
+        item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
         ui->calendarTable->setHorizontalHeaderItem(i, item);
     }
   }

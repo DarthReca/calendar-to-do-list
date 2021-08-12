@@ -9,7 +9,7 @@ class EventWidget : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit EventWidget(CalendarEvent event, QWidget *parent = nullptr);
+    explicit EventWidget(CalendarEvent& event, QWidget *parent = nullptr);
 
 signals:
 
