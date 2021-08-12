@@ -83,22 +83,40 @@ void MainWindow::on_seeIfChanged_clicked()
 void MainWindow::on_actionGiorno_triggered()
 {
    ui->calendarTable->setColumnCount(1);
+   QDate d;
+   d = ui->calendarWidget->selectedDate();
+   QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd dd MMMM yyyy"));
+   ui->calendarTable->setHorizontalHeaderItem(0, item);
 }
 
 
 void MainWindow::on_actionSettimanale_triggered()
 {
   ui->calendarTable->setColumnCount(7);
+  /*QDate d;
+  d = ui->calendarWidget->firstDayOfWeek();
+  for(int i = 0; i < ui->calendarTable->columnCount(); i++)
+  {
+      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd dd MMMM yyyy"));
+      ui->calendarTable->setHorizontalHeaderItem(i, item);
+  }*/
 }
 
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
   QDate d(date);
-  for(int i = 0; i < ui->calendarTable->columnCount(); i++)
-  {
-      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("dd"));
-      ui->calendarTable->setHorizontalHeaderItem(i, item);
+  QTableWidgetItem *item;
+  if(ui->calendarTable->columnCount()==1){
+    item = new QTableWidgetItem(d.toString("ddd dd MMMM yyyy"));
+    ui->calendarTable->setHorizontalHeaderItem(0, item);
+  }
+  else{
+    for(int i = 0; i < ui->calendarTable->columnCount(); i++)
+    {
+        item = new QTableWidgetItem(d.addDays(i).toString("dd"));
+        ui->calendarTable->setHorizontalHeaderItem(i, item);
+    }
   }
 }
 
