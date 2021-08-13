@@ -19,13 +19,11 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
-    /*
     if(auth == nullptr)
         auth = new GoogleAuth(this);
     QEventLoop loop;
     connect(auth->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
     loop.exec();
-    */
 
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
 }
@@ -36,22 +34,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_actionLogin_triggered()
-{
-    auth = new GoogleAuth(this);
-}
-
 void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *auth->google,  this);
     form.exec();
-    /*
-    event.setDescription("Random Desc");
-    event.setStartDateTime(QDateTime::currentDateTime());
-    event.setEndDateTime(QDateTime::currentDateTime().addSecs(60*60));
-    on_request_event_ui(event);
-    */
 }
 
 
@@ -64,12 +51,6 @@ void MainWindow::on_createEvent_clicked()
         CalendarClient_CalDAV::receiveChanges(*auth->google, q.elementsByTagName("D:sync-token").at(0).toElement().text());
     });
 }*/
-
-void MainWindow::on_receiveChanges_clicked()
-{
-
-}
-
 
 void MainWindow::on_seeIfChanged_clicked()
 {
@@ -113,8 +94,7 @@ void MainWindow::on_showing_events_changed()
 void MainWindow::on_actionGiorno_triggered()
 {
    ui->calendarTable->setColumnCount(1);
-   QDate d;
-   d = ui->calendarWidget->selectedDate();
+   QDate d = ui->calendarWidget->selectedDate();
    QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd\ndd"));
    ui->calendarTable->setHorizontalHeaderItem(0, item);
 }

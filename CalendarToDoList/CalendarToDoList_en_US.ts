@@ -221,43 +221,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="299"/>
-        <source>receiveChanges</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="312"/>
-        <source>seeIfChanged</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="347"/>
+        <location filename="mainwindow.ui" line="307"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="351"/>
+        <location filename="mainwindow.ui" line="311"/>
         <source>Vedi tabella</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="364"/>
+        <location filename="mainwindow.ui" line="323"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="369"/>
+        <location filename="mainwindow.ui" line="328"/>
         <source>Giornaliera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="374"/>
+        <location filename="mainwindow.ui" line="333"/>
         <source>Settimanale</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="341"/>
-        <source>File</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

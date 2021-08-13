@@ -18,6 +18,9 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
 
    // Read authentication data
    QFile data = QFile("auth.json");
+   if(!data.exists())
+    QT_THROW("The file auth.json does not exists");
+
    data.open(QFile::ReadOnly);
    auto document = QJsonDocument().fromJson(data.readAll());
    auto settingsObject = document.object()["installed"].toObject();
@@ -31,9 +34,39 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    auto replyHandler = new QOAuthHttpServerReplyHandler(port, this);
    google->setReplyHandler(replyHandler);
 
-   google->grant();
+   QFile tokens = QFile("tokens.json");
+   if(tokens.exists())
+   {
+       tokens.open(QFile::ReadOnly);
+       auto document = QJsonDocument().fromJson(tokens.readAll()).object();
+       QString access_token = document["accessToken"].toString();
+       QString refresh_token = document["refreshToken"].toString();
+
+       google->setToken(access_token);
+       google->setRefreshToken(refresh_token);
+       google->refreshAccessToken();
+   }
+   else {
+    google->grant();
+   }
+
+   connect(google, &QOAuth2AuthorizationCodeFlow::error, [this](const QString& error, const QString& desc, const QUrl& uri) {
+       qDebug() << "error";
+       qDebug() << error;
+   });
 
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
+       qDebug() << "Granted";
+
+       QFile tokens = QFile("tokens.json");
+       tokens.open(QFile::WriteOnly);
+       QJsonObject json_obj;
+       json_obj.insert("accessToken", google->token());
+       json_obj.insert("refreshToken", google->refreshToken());
+       tokens.write(QJsonDocument(json_obj).toJson());
+
+       CalendarClient_CalDAV::getAllEvents(*this->google);
+       /*
        auto reply = CalendarClient_CalDAV::obtainCTag(*google);
        connect(reply, &QNetworkReply::finished, [this, reply]() {
            QDomDocument q;
@@ -41,6 +74,7 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
            CalendarClient_CalDAV::setCTag(q.elementsByTagName("cs:getctag").at(0).toElement());
            CalendarClient_CalDAV::getAllEvents(*this->google);
        });
+       */
    });
 }
 

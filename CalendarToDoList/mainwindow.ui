@@ -286,32 +286,6 @@ background-color: rgb(37, 255, 99);</string>
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="receiveChanges">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>330</y>
-      <width>80</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>receiveChanges</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="seeIfChanged">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>380</y>
-      <width>80</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>seeIfChanged</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -328,20 +302,6 @@ background-color: rgb(37, 255, 99);</string>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="geometry">
-     <rect>
-      <x>244</x>
-      <y>95</y>
-      <width>135</width>
-      <height>72</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionLogin"/>
-   </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
@@ -355,7 +315,6 @@ background-color: rgb(37, 255, 99);</string>
     </widget>
     <addaction name="menuVedi_tabella"/>
    </widget>
-   <addaction name="menuFile"/>
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
