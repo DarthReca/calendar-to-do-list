@@ -1,6 +1,6 @@
 #include "googleauth.h"
 #include "calendar_classes/calendarevent.h"
-#include "CalendarClient/CalendarClient_CalDAV.h"
+#include "CalendarClient/calendarclient.h"
 #include <QDesktopServices>
 #include <QDomDocument>
 #include <QDateTime>
@@ -64,17 +64,6 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
        json_obj.insert("accessToken", google->token());
        json_obj.insert("refreshToken", google->refreshToken());
        tokens.write(QJsonDocument(json_obj).toJson());
-
-       CalendarClient_CalDAV::getAllEvents(*this->google);
-       /*
-       auto reply = CalendarClient_CalDAV::obtainCTag(*google);
-       connect(reply, &QNetworkReply::finished, [this, reply]() {
-           QDomDocument q;
-           q.setContent(reply->readAll());
-           CalendarClient_CalDAV::setCTag(q.elementsByTagName("cs:getctag").at(0).toElement());
-           CalendarClient_CalDAV::getAllEvents(*this->google);
-       });
-       */
    });
 }
 

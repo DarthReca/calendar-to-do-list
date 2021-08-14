@@ -1,12 +1,12 @@
 #include "createeventform.h"
 #include "ui_createeventform.h"
-#include "CalendarClient/CalendarClient_CalDAV.h"
+#include "CalendarClient/calendarclient.h"
 
-CreateEventForm::CreateEventForm(CalendarEvent* event, QOAuth2AuthorizationCodeFlow& google, QWidget *parent) :
+CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CreateEventForm),
     event_(event),
-    google_(&google)
+    client_(&client)
 {
     ui->setupUi(this);
 
@@ -22,7 +22,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, QOAuth2AuthorizationCodeF
     connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged, [this](const QDateTime& datetime) { event_->setStartDateTime(datetime); });
     connect(ui->endDateTime, &QDateTimeEdit::dateTimeChanged, [this](const QDateTime& datetime) { event_->setEndDateTime(datetime); });
 
-    connect(ui->saveButton, &QPushButton::clicked, [this]{ CalendarClient_CalDAV::saveEvent(*google_, event_); accept(); });
+    connect(ui->saveButton, &QPushButton::clicked, [this]{ client_->saveEvent(event_); accept(); });
     connect(ui->deleteButton, &QPushButton::clicked, [this] { qDebug() << event_->ToICalendarObject(); delete event_; accept(); } );
 }
 

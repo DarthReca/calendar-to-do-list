@@ -16,6 +16,9 @@ public:
     QString ToICalendarObject();
 
     ~Calendar();
+
+    QVector<CalendarEvent> &events();
+    void setEvents(const QVector<CalendarEvent> &newEvents);
 signals:
   void displayNameChanged(QString display_name);
 public slots:

@@ -13,12 +13,6 @@ public:
     ~GoogleAuth();
 
     QOAuth2AuthorizationCodeFlow* google;
-signals:
-
-public slots:
-
-private:
-
 };
 
 #endif // GOOGLEAUTH_H

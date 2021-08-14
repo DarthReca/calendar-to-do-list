@@ -4,6 +4,8 @@
 #include <QMainWindow>
 
 #include "calendar_classes/calendarevent.h"
+#include "calendar_classes/calendar.h"
+#include "CalendarClient/calendarclient.h"
 #include "widgets/createeventform.h"
 
 QT_BEGIN_NAMESPACE
@@ -15,17 +17,16 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    Q_PROPERTY(QList<CalendarEvent *> showing_events READ showing_events WRITE setShowing_events NOTIFY showing_eventsChanged)
-
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    const QList<CalendarEvent *> &showing_events() const;
-    void setShowing_events(const QList<CalendarEvent *> &newShowing_events);
+    QList<CalendarEvent> *showing_events() const;
+    void setShowing_events(QList<CalendarEvent> *newShowing_events);
 
 signals:
     void showing_eventsChanged();
-
+public slots:
+    void refresh_calendar_events();
 private slots:
     void on_actionGiorno_triggered();
     void on_actionSettimanale_triggered();
@@ -38,7 +39,12 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    CalendarEvent* editing_event_;
-    QList<CalendarEvent*> showing_events_;
+
+    QPointer<CalendarEvent> editing_event_;
+    QList<CalendarEvent>* showing_events_;
+    QPointer<Calendar> calendar_;
+
+    QPointer<GoogleAuth> auth_;
+    QPointer<CalendarClient> client_;
 };
 #endif // MAINWINDOW_H

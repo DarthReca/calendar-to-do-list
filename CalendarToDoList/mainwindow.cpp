@@ -5,10 +5,8 @@
 #include "widgets/eventwidget.h"
 #include <QLabel>
 #include <QDomDocument>
-#include "CalendarClient/CalendarClient_CalDAV.h"
+#include "CalendarClient/calendarclient.h"
 #include <QApplication>
-
-GoogleAuth* auth;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -19,25 +17,44 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
-    if(auth == nullptr)
-        auth = new GoogleAuth(this);
+    if(auth_.isNull())
+        auth_ = new GoogleAuth(this);
     QEventLoop loop;
-    connect(auth->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
+    connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
     loop.exec();
 
+    client_ = new CalendarClient(*auth_, this);
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
+    connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
 }
 
 MainWindow::~MainWindow()
 {
-    delete auth;
     delete ui;
+}
+
+void MainWindow::refresh_calendar_events()
+{
+   auto reply = client_->getAllEvents();
+   connect(reply, &QNetworkReply::finished, [this, reply]() {
+       QDomDocument res;
+       res.setContent(reply->readAll());
+       auto calendars = res.elementsByTagName("caldav:calendar-data");
+       auto hrefs_list = res.elementsByTagName("D:href");
+       QString href = hrefs_list.at(0).toElement().text();
+       for(int i=0; i<calendars.size(); i++){
+           QString el = calendars.at(i).toElement().text();
+           QTextStream stream(&el);
+           calendar_ = new Calendar(href, stream);
+           setShowing_events(&calendar_->events());
+       }
+   });
 }
 
 void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
-    CreateEventForm form(editing_event_, *auth->google,  this);
+    CreateEventForm form(editing_event_, *client_,  this);
     form.exec();
 }
 
@@ -54,13 +71,13 @@ void MainWindow::on_createEvent_clicked()
 
 void MainWindow::on_seeIfChanged_clicked()
 {
-    auto reply = CalendarClient_CalDAV::obtainCTag(*auth->google);
+    auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
         QDomDocument q;
         q.setContent(reply->readAll());
         QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();;
-        if(CalendarClient_CalDAV::getCTag().text().compare(thisCTag.text())==0){
-            CalendarClient_CalDAV::lookForChanges(*auth->google);
+        if(client_->getCTag().text().compare(thisCTag.text())==0){
+            client_->lookForChanges();
         }
     });
 }
@@ -77,17 +94,30 @@ void MainWindow::on_showing_events_changed()
 
    QDate selected_date = ui->calendarWidget->selectedDate();
 
-   for(auto& event : showing_events_)
+   for(auto& event : *showing_events_)
    {
-       EventWidget* widget = new EventWidget(*event, ui->calendarTable->viewport());
+       EventWidget* widget = new EventWidget(event, ui->calendarTable->viewport());
        widget->resize(column_width, row_heigth);
 
-       int x_pos = column_width*selected_date.daysTo(event->getStartDateTime().date());
-       int y_pos = row_heigth + row_heigth*event->getStartDateTime().time().hour();
+       int x_pos = column_width*selected_date.daysTo(event.getStartDateTime().date());
+       int y_pos = row_heigth + row_heigth*event.getStartDateTime().time().hour();
        widget->move(x_pos, y_pos);
 
        widget->show();
    }
+}
+
+QList<CalendarEvent> *MainWindow::showing_events() const
+{
+    return showing_events_;
+}
+
+void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
+{
+    if (showing_events_ == newShowing_events)
+        return;
+    showing_events_ = newShowing_events;
+    emit showing_eventsChanged();
 }
 
 
@@ -127,18 +157,5 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
         ui->calendarTable->setHorizontalHeaderItem(i, item);
     }
   }
-}
-
-const QList<CalendarEvent *> &MainWindow::showing_events() const
-{
-    return showing_events_;
-}
-
-void MainWindow::setShowing_events(const QList<CalendarEvent *> &newShowing_events)
-{
-    if (showing_events_ == newShowing_events)
-        return;
-    showing_events_ = newShowing_events;
-    emit showing_eventsChanged();
 }
 

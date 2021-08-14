@@ -23,14 +23,14 @@ CalendarEvent::CalendarEvent(QObject *parent) : QObject(parent)
   calendar_pointer_ = NULL;
 }
 
-CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObject *parent)
+CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObject *parent) : CalendarEvent(parent)
 {
-    QString display_name = parent->property("displayName").toString();
-    CalendarEvent event(parent);
-    event.setColor(QColor(Qt::GlobalColor::blue).name());
-    event.setCalendarName(display_name);
-    event.setCalendarPointer(parent);
-    event.setHREF(href);
+    //QString display_name = parent->property("displayName").toString();
+    QString display_name = "Display";
+    setColor(QColor(Qt::GlobalColor::blue).name());
+    setCalendarName(display_name);
+    setCalendarPointer(parent);
+    setHREF(href);
     QString line;
     QDateTime utcTime;
     while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")))
@@ -58,7 +58,7 @@ CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObj
         if (!utcTime.isValid())
           qDebug() << display_name << ": " << "could not parse" << line;
 
-        event.setStartDateTime(utcTime.toLocalTime());
+        setStartDateTime(utcTime.toLocalTime());
       }
       else if (key.startsWith(QLatin1String("DTEND")))
       {
@@ -72,35 +72,35 @@ CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObj
         if (!utcTime.isValid())
           qDebug() << display_name << ": " << "could not parse" << line;
 
-        event.setEndDateTime(utcTime.toLocalTime());
+        setEndDateTime(utcTime.toLocalTime());
       }
       else if (key == QLatin1String("RRULE"))
       {
-        event.setRRULE(value);
+        setRRULE(value);
       }
       else if (key == QLatin1String("EXDATE"))
       {
-        event.setExdates(value);
+        setExdates(value);
       }
       else if (key == QLatin1String("SUMMARY"))
       {
-        event.setName(value);
+        setName(value);
       }
       else if (key == QLatin1String("LOCATION"))
       {
-        event.setLocation(value);
+        setLocation(value);
       }
       else if (key == QLatin1String("UID"))
       {
-        event.setUID(value);
+        setUID(value);
       }
       else if (key == QLatin1String("CATEGORIES"))
       {
-        event.setCategories(value);
+        setCategories(value);
       }
       else if (key == QLatin1String("DESCRIPTION"))
       {
-        event.setDescription(value);
+        setDescription(value);
       }
     }
 }

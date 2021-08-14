@@ -9,9 +9,9 @@ Calendar::Calendar(const QString& href, QTextStream& ical_object, QObject *paren
 {
     QString line = ical_object.readLine();
 
-    while(false == line.isNull())
+    while(!line.isNull())
     {
-      if(false != line.contains("BEGIN:VEVENT"))
+      if(line.contains("BEGIN:VEVENT"))
       {
           CalendarEvent event = CalendarEvent(href, ical_object, this);
           if (event.name() != "")
@@ -46,4 +46,14 @@ void Calendar::setDisplayName(QString name)
 {
   display_name_ = name;
   emit displayNameChanged(display_name_);
+}
+
+ QVector<CalendarEvent> &Calendar::events()
+{
+    return events_;
+}
+
+void Calendar::setEvents(const QVector<CalendarEvent> &newEvents)
+{
+    events_ = newEvents;
 }
