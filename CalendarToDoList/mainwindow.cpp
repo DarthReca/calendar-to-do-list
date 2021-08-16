@@ -246,7 +246,7 @@ void MainWindow::on_updateButton_clicked()
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
                       if(!oldMap.contains(i.key())){
-                          qDebug() << "There is a new Item with UID " + i.key()\n";
+                          qDebug() << "There is a new Item with UID " + i.key() + "\n";
                       }
                   }
               });
