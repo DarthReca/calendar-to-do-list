@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
         client_->setCTag(lista.at(0).toElement());
     });
     reply = client_->getAllEvents();
-    connect(reply, &QNetworkReply::finished, [reply]() {
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
         QDomDocument res;
         res.setContent(reply->readAll());
         auto lista = res.elementsByTagName("caldav:calendar-data");
@@ -42,8 +42,13 @@ MainWindow::MainWindow(QWidget *parent)
             qDebug() << lista.at(i).toElement().text();
             qDebug() << "\n";
         }
+        //salvo gli eTags per vedere i futuri cambiamenti
+        auto eTags = res.elementsByTagName("D:getetag");
+        for(int i=0; i<eTags.size(); i++){
+             client_->addETag(eTags.at(i).toElement());
+        }
     });
-
+    //dovranno essere visualizzati nel calendario
 
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
     connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
