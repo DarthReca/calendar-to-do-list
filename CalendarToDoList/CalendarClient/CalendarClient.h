@@ -29,6 +29,10 @@ public:
   QMap<QString, QDomElement> getETags(){ return eTags_; }
   void addETag(QString UID, const QDomElement &new_eTag) { eTags_.insert(UID, new_eTag); };
 
+  QList<QString> getChangedUIDs(){ return changedUIDs_; }
+  void addChangedUID(QString new_UID) { changedUIDs_.append(new_UID); };
+
+
 public slots:
 
   /**
@@ -52,6 +56,10 @@ public slots:
    */
   QNetworkReply* lookForChanges();
   /**
+   * @brief Fetches the changed things in the calendar.
+   */
+  QNetworkReply* getChangedEvents();
+  /**
    * @brief Updates a event in the calDAV server.
    */
   void updateEvent(CalendarEvent event, QString eTag);
@@ -71,6 +79,7 @@ private:
   GoogleAuth* auth_;
   QDomElement cTag_;
   QMap<QString, QDomElement> eTags_;
+  QList<QString> changedUIDs_;
 
   QNetworkAccessManager* network_manager_;
   QNetworkReply* upload_reply_;

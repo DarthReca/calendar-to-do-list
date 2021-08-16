@@ -234,21 +234,30 @@ void MainWindow::on_updateButton_clicked()
                   //confronto la nuova mappa con quella esistente
                   QMap<QString, QDomElement> oldMap = client_->getETags();
                   QMap<QString, QDomElement>::iterator i;
-                  for (i = oldMap.begin(); i != oldMap.end(); ++i){
+                  for(i = oldMap.begin(); i != oldMap.end(); ++i){
                       if(mapTmp.contains(i.key())){
                           if(mapTmp[i.key()]!=oldMap[i.key()]){
                               qDebug() << "Item with UID " + i.key() + "has a new etag\n";
+                              client_->addChangedUID(i.key());
                           }
                       }
                       else{
                           qDebug() << "Item with UID " + i.key() + "has been deleted\n";
+
                       }
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
                       if(!oldMap.contains(i.key())){
                           qDebug() << "There is a new Item with UID " + i.key() + "\n";
+                          client_->addChangedUID(i.key());
                       }
                   }
+
+                  auto reply = client_->getChangedEvents();
+                  connect(reply, &QNetworkReply::finished, [reply](){
+                      qDebug() << reply->readAll();
+                  });
+
               });
           }
     });

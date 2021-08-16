@@ -96,6 +96,34 @@ QNetworkReply* CalendarClient::lookForChanges(){
     return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 }
 
+QNetworkReply* CalendarClient::getChangedEvents(){
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
+    cal_part.setUrl(QUrl(REQUEST_URL));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setRawHeader("Depth", "1");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("c:calendar-multiget");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    tagProp.appendChild(xml.createElement("c:calendar-data"));
+    root.appendChild(tagProp);
+    QDomElement tagHref;
+    for(QString UID : changedUIDs_){
+        tagHref = xml.createElement("d:href");
+        tagHref.appendChild(xml.createTextNode(UID));
+        root.appendChild(tagHref);
+    }
+
+    return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
+}
+
 void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end)
 {
     QNetworkRequest cal_part;
