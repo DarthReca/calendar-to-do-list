@@ -26,7 +26,7 @@ public:
   const QDomElement &getCTag() { return cTag_ ;};
   void setCTag(const QDomElement &new_cTag) { cTag_ = new_cTag; };
 
-  void addETag(const QDomElement &new_eTag) { eTags_.append(new_eTag); };
+  void addETag(QString UID, const QDomElement &new_eTag) { eTags_.insert(UID, new_eTag); };
 
 public slots:
 
@@ -69,7 +69,7 @@ public slots:
 private:
   GoogleAuth* auth_;
   QDomElement cTag_;
-  QList<QDomElement> eTags_;
+  QMap<QString, QDomElement> eTags_;
 
   QNetworkAccessManager* network_manager_;
   QNetworkReply* upload_reply_;
