@@ -5,7 +5,7 @@
 #include "widgets/eventwidget.h"
 #include <QLabel>
 #include <QDomDocument>
-#include "CalendarClient/calendarclient.h"
+#include "CalendarClient/CalendarClient.h"
 #include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -23,6 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
     loop.exec();
 
+    connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
+    connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
+
     client_ = new CalendarClient(*auth_, this);
 
     //ottengo tutti gli eventi nel calendario
@@ -33,25 +36,26 @@ MainWindow::MainWindow(QWidget *parent)
         auto lista = res.elementsByTagName("cs:getctag");
         client_->setCTag(lista.at(0).toElement());
     });
+
     reply = client_->getAllEvents();
     connect(reply, &QNetworkReply::finished, [this, reply]() {
         QDomDocument res;
         res.setContent(reply->readAll());
+        /*
         auto lista = res.elementsByTagName("caldav:calendar-data");
         for(int i=0; i<lista.size(); i++){
             qDebug() << lista.at(i).toElement().text();
             qDebug() << "\n";
         }
+        */
         //salvo gli eTags per vedere i futuri cambiamenti
         auto eTags = res.elementsByTagName("D:getetag");
-        for(int i=0; i<eTags.size(); i++){
+        for(int i=0; i<eTags.size(); i++)
              client_->addETag(eTags.at(i).toElement());
-        }
     });
     //dovranno essere visualizzati nel calendario
 
-    connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
-    connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
+    refresh_calendar_events();
 }
 
 MainWindow::~MainWindow()
@@ -70,10 +74,17 @@ void MainWindow::refresh_calendar_events()
        QString href = hrefs_list.at(0).toElement().text();
        for(int i=0; i<calendars.size(); i++){
            QString el = calendars.at(i).toElement().text();
+           qDebug() << el;
            QTextStream stream(&el);
-           calendar_ = new Calendar(href, stream);
-           setShowing_events(&calendar_->events());
+           QPointer<Calendar> tmp = new Calendar(href, stream);
+           if(calendar_.isNull())
+               calendar_ = tmp;
+           else
+               calendar_->events().append(tmp->events());
+           //setShowing_events(&calendar_->events());
        }
+
+       on_actionSettimanale_triggered();
    });
 }
 
@@ -111,7 +122,7 @@ void MainWindow::on_seeIfChanged_clicked()
 void MainWindow::on_showing_events_changed()
 {
    //Delete all previous widgets
-   for(auto child : ui->calendarTable->children())
+   for(auto child : ui->calendarTable->viewport()->children())
       if(qobject_cast<EventWidget *>(child) != nullptr)
         child->deleteLater();
 
@@ -123,10 +134,13 @@ void MainWindow::on_showing_events_changed()
    for(auto& event : *showing_events_)
    {
        EventWidget* widget = new EventWidget(event, ui->calendarTable->viewport());
+       QTime start_time = event.getStartDateTime().time();
+
        widget->resize(column_width, row_heigth);
 
        int x_pos = column_width*selected_date.daysTo(event.getStartDateTime().date());
-       int y_pos = row_heigth + row_heigth*event.getStartDateTime().time().hour();
+       int y_pos = row_heigth + row_heigth*( start_time.hour() + start_time.minute()/60.0);
+
        widget->move(x_pos, y_pos);
 
        widget->show();
@@ -165,6 +179,11 @@ void MainWindow::on_actionSettimanale_triggered()
       QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
       ui->calendarTable->setHorizontalHeaderItem(i, item);
   }
+  QList<CalendarEvent>* selected = new QList<CalendarEvent>;
+  for(CalendarEvent& ev : calendar_->events())
+      if(ev.getStartDateTime().date() >= d)
+        selected->append(ev);
+  setShowing_events(selected);
 }
 
 
