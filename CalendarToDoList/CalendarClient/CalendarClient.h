@@ -49,6 +49,10 @@ public slots:
    */
   void lookForChanges();
   /**
+   * @brief Updates a event in the calDAV server.
+   */
+  void updateEvent(CalendarEvent event, QString eTag);
+  /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.

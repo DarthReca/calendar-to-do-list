@@ -24,6 +24,27 @@ MainWindow::MainWindow(QWidget *parent)
     loop.exec();
 
     client_ = new CalendarClient(*auth_, this);
+
+    //ottengo tutti gli eventi nel calendario
+    auto reply = client_->obtainCTag();
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        auto lista = res.elementsByTagName("cs:getctag");
+        client_->setCTag(lista.at(0).toElement());
+    });
+    reply = client_->getAllEvents();
+    connect(reply, &QNetworkReply::finished, [reply]() {
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        auto lista = res.elementsByTagName("caldav:calendar-data");
+        for(int i=0; i<lista.size(); i++){
+            qDebug() << lista.at(i).toElement().text();
+            qDebug() << "\n";
+        }
+    });
+
+
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
     connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
 }
@@ -157,5 +178,32 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
         ui->calendarTable->setHorizontalHeaderItem(i, item);
     }
   }
+}
+
+
+void MainWindow::on_updateButton_clicked()
+{
+    auto reply = client_->obtainCTag();
+        connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+          QDomDocument res;
+          res.setContent(reply->readAll());
+          auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
+          if(newCTag == client_->getCTag()){
+              qDebug() << "Calendar already up to date";
+          }
+          else{
+              //per ora faccio la get di tutto, ma è meglio solo cambiare le cose nuove
+              reply = client_->getAllEvents();
+              connect(reply, &QNetworkReply::finished, [reply]() {
+                  QDomDocument res;
+                  res.setContent(reply->readAll());
+                  auto lista = res.elementsByTagName("caldav:calendar-data");
+                  for(int i=0; i<lista.size(); i++){
+                      qDebug() << lista.at(i).toElement().text();
+                      qDebug() << "\n";
+                  }
+              });
+          }
+    });
 }
 

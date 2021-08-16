@@ -38,13 +38,7 @@ QNetworkReply* CalendarClient::obtainCTag()
     tagProp.appendChild(xml.createElement("cs:getctag"));
     root.appendChild(tagProp);
 
-    auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
-
-    connect(reply, &QNetworkReply::finished, [reply]() {
-      qDebug() << reply->readAll();
-    });
-
-    return reply;
+    return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
 }
 
 QNetworkReply* CalendarClient::getAllEvents()
@@ -73,18 +67,6 @@ QNetworkReply* CalendarClient::getAllEvents()
     root.appendChild(tagFilter);
 
     return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
-
-    /*
-    connect(reply, &QNetworkReply::finished, [reply]() {
-        QDomDocument res;
-        res.setContent(reply->readAll());
-        auto lista = res.elementsByTagName("D:prop");
-        for(int i=0; i<lista.size(); i++){
-            qDebug() << lista.at(i).toElement().text();
-            qDebug() << "\n";
-        }
-    });
-    */
 }
 
 void CalendarClient::lookForChanges(){
@@ -228,9 +210,9 @@ void CalendarClient::receiveChanges(QString syncToken)
     */
 }
 
-void CalendarClient::saveEvent(CalendarEvent event)
+void CalendarClient::updateEvent(CalendarEvent event, QString eTag)
 {
-  qDebug() << "saving new event" << event.getUID();
+  qDebug() << "updating an existing event: " << event.getUID();
 
   if (event.getUID().isEmpty())
   {
@@ -243,19 +225,54 @@ void CalendarClient::saveEvent(CalendarEvent event)
   cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
   cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader, request_string.size());
-  cal_part.setRawHeader("Prefer", "return-minimal");
-  cal_part.setRawHeader("Depth", "0");
 
   //QSslConfiguration conf = request.sslConfiguration();
   //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
   //request.setSslConfiguration(conf);
 
   //Bisogna ottenere il .ics corretto (/home/lisa/calendars/events/qwue23489.ics)
-  auto reply = auth_->google->networkAccessManager()->put(cal_part, request_string);
+  auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PUT"), request_string);
 
-  qDebug() << "Put request sent";
+  qDebug() << "Put request sent\n";
+  qDebug() << reply->readAll();
+
+  connect(reply, &QNetworkReply::finished, [reply]() {
+    qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
+  });
+}
+
+void CalendarClient::saveEvent(CalendarEvent event)
+{
+  qDebug() << "saving new event" << event.getUID();
+
+  if (event.getUID().isEmpty())
+  {
+    event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" + event.getStartDateTime().toString("yyyyMMddHHMM"));
+  }
+
+  QByteArray request_string = ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n").toUtf8();
+
+  qDebug() << "\n";
+  qDebug() << "BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n";
+qDebug() << "\n";
+
+  QNetworkRequest cal_part;
+  cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
+  cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/" + event.getUID() + ".ics"));
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "text/calendar; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+
+  //QSslConfiguration conf = request.sslConfiguration();
+  //conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+  //request.setSslConfiguration(conf);
+
+  //Bisogna ottenere il .ics corretto (/home/lisa/calendars/events/qwue23489.ics)
+  auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PUT"), request_string);
+
+  qDebug() << "Put request sent\n";
+  qDebug() << reply->readAll();
 
   connect(reply, &QNetworkReply::finished, [reply]() {
     qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
