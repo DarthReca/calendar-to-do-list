@@ -4,6 +4,7 @@
 #include <QDomDocument>
 
 #include "calendarclient.h"
+#include "calendar_classes/calendar.h"
 
 #define REQUEST_URL "https://apidata.googleusercontent.com/caldav/v2/k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events"
 
@@ -69,7 +70,7 @@ QNetworkReply* CalendarClient::getAllEvents()
     return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 }
 
-void CalendarClient::lookForChanges(){
+QNetworkReply* CalendarClient::lookForChanges(){
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
     cal_part.setUrl(QUrl(REQUEST_URL));
@@ -92,17 +93,7 @@ void CalendarClient::lookForChanges(){
     tagFilter.appendChild(tagCompFilter);
     root.appendChild(tagFilter);
 
-    auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
-
-    connect(reply, &QNetworkReply::finished, [reply]() {
-        QDomDocument res;
-        res.setContent(reply->readAll());
-        auto lista = res.elementsByTagName("D:prop");
-        for(int i=0; i<lista.size(); i++){
-            qDebug() << lista.at(i).toElement().text();
-            qDebug() << "\n";
-        }
-    });
+    return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 }
 
 void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end)

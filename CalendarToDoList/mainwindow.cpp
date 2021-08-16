@@ -204,15 +204,50 @@ void MainWindow::on_updateButton_clicked()
               qDebug() << "Calendar already up to date";
           }
           else{
-              //per ora faccio la get di tutto, ma è meglio solo cambiare le cose nuove
-              reply = client_->getAllEvents();
-              connect(reply, &QNetworkReply::finished, [reply]() {
+              reply = client_->lookForChanges();
+              connect(reply, &QNetworkReply::finished, [this, reply]() {
+
+                  //ottengo un calendario temporaneo con tutti gli eventi
                   QDomDocument res;
                   res.setContent(reply->readAll());
-                  auto lista = res.elementsByTagName("caldav:calendar-data");
-                  for(int i=0; i<lista.size(); i++){
-                      qDebug() << lista.at(i).toElement().text();
-                      qDebug() << "\n";
+                  auto calendars = res.elementsByTagName("caldav:calendar-data");
+                  auto hrefs_list = res.elementsByTagName("D:href");
+                  QString href = hrefs_list.at(0).toElement().text();
+                  QPointer<Calendar> tmp;
+                  QPointer<Calendar> calendar;
+                  for(int i=0; i<calendars.size(); i++){
+                      QString el = calendars.at(i).toElement().text();
+                      QTextStream stream(&el);
+                      QPointer<Calendar> tmp = new Calendar(href, stream);
+                      if(calendar.isNull())
+                          calendar = tmp;
+                      else
+                          calendar->events().append(tmp->events());
+                  }
+                  //creo una mappa con gli uid e gli etag nuovi
+                  QMap<QString, QDomElement> mapTmp;
+                  auto eTags = res.elementsByTagName("D:getetag");
+                  for(int i=0; i<eTags.size(); i++){
+                      mapTmp.insert(calendar->events().at(i).getUID(), eTags.at(i).toElement());
+                  }
+
+                  //confronto la nuova mappa con quella esistente
+                  QMap<QString, QDomElement> oldMap = client_->getETags();
+                  QMap<QString, QDomElement>::iterator i;
+                  for (i = oldMap.begin(); i != oldMap.end(); ++i){
+                      if(mapTmp.contains(i.key())){
+                          if(mapTmp[i.key()]!=oldMap[i.key()]){
+                              qDebug() << "Item with UID " + i.key() + "has a new etag\n";
+                          }
+                      }
+                      else{
+                          qDebug() << "Item with UID " + i.key() + "has been deleted\n";
+                      }
+                  }
+                  for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
+                      if(!oldMap.contains(i.key())){
+                          qDebug() << "There is a new Item with UID " + i.key()\n";
+                      }
                   }
               });
           }

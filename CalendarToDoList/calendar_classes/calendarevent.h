@@ -9,7 +9,6 @@ class CalendarEvent : public QObject
 {
   Q_OBJECT
 
-
 public:
   // Display name of the calendar where this event originates from
   Q_PROPERTY(QString calendarName READ calendarName WRITE setCalendarName NOTIFY calendarNameChanged)

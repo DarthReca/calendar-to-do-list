@@ -26,6 +26,7 @@ public:
   const QDomElement &getCTag() { return cTag_ ;};
   void setCTag(const QDomElement &new_cTag) { cTag_ = new_cTag; };
 
+  QMap<QString, QDomElement> getETags(){ return eTags_; }
   void addETag(QString UID, const QDomElement &new_eTag) { eTags_.insert(UID, new_eTag); };
 
 public slots:
@@ -49,7 +50,7 @@ public slots:
   /**
    * @brief Looks for changes done in the server.
    */
-  void lookForChanges();
+  QNetworkReply* lookForChanges();
   /**
    * @brief Updates a event in the calDAV server.
    */
