@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     client_ = new CalendarClient(*auth_, this);
 
-    //ottengo tutti gli eventi nel calendario
+    //ottengo il cTag e tutti gli eventi nel calendario
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() {
         QDomDocument res;
@@ -36,24 +36,6 @@ MainWindow::MainWindow(QWidget *parent)
         auto lista = res.elementsByTagName("cs:getctag");
         client_->setCTag(lista.at(0).toElement());
     });
-
-    reply = client_->getAllEvents();
-    connect(reply, &QNetworkReply::finished, [this, reply]() {
-        QDomDocument res;
-        res.setContent(reply->readAll());
-        /*
-        auto lista = res.elementsByTagName("caldav:calendar-data");
-        for(int i=0; i<lista.size(); i++){
-            qDebug() << lista.at(i).toElement().text();
-            qDebug() << "\n";
-        }
-        */
-        //salvo gli eTags per vedere i futuri cambiamenti
-        auto eTags = res.elementsByTagName("D:getetag");
-        for(int i=0; i<eTags.size(); i++)
-             client_->addETag(eTags.at(i).toElement());
-    });
-    //dovranno essere visualizzati nel calendario
 
     refresh_calendar_events();
 }
@@ -82,6 +64,12 @@ void MainWindow::refresh_calendar_events()
            else
                calendar_->events().append(tmp->events());
            //setShowing_events(&calendar_->events());
+       }
+
+       //salvo gli eTags per vedere i futuri cambiamenti
+       auto eTags = res.elementsByTagName("D:getetag");
+       for(int i=0; i<eTags.size(); i++){
+           client_->addETag(calendar_->events().at(i).getUID(), eTags.at(i).toElement());
        }
 
        on_actionSettimanale_triggered();
