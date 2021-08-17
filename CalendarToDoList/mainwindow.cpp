@@ -236,14 +236,13 @@ void MainWindow::on_updateButton_clicked()
                   QMap<QString, QDomElement>::iterator i;
                   for(i = oldMap.begin(); i != oldMap.end(); ++i){
                       if(mapTmp.contains(i.key())){
-                          if(mapTmp[i.key()]!=oldMap[i.key()]){
+                          if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
                               qDebug() << "Item with UID " + i.key() + "has a new etag\n";
                               client_->addChangedUID(i.key());
                           }
                       }
                       else{
                           qDebug() << "Item with UID " + i.key() + "has been deleted\n";
-
                       }
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){

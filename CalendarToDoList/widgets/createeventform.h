@@ -23,7 +23,7 @@ private slots:
 
 private:
     Ui::CreateEventForm *ui;
-    CalendarEvent* event_;
+    QPointer<CalendarEvent> event_;
     CalendarClient* client_;
 };
 

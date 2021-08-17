@@ -262,9 +262,9 @@ void CalendarClient::updateEvent(CalendarEvent event, QString eTag)
   });
 }
 
-void CalendarClient::saveEvent(CalendarEvent event)
+void CalendarClient::saveEvent(CalendarEvent& event)
 {
-  qDebug() << "saving new event" << event.getUID();
+  qDebug() << "saving new event:\n\n" << event.ToICalendarObject();
 
   if (event.getUID().isEmpty())
   {
@@ -272,10 +272,6 @@ void CalendarClient::saveEvent(CalendarEvent event)
   }
 
   QByteArray request_string = ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n").toUtf8();
-
-  qDebug() << "\n";
-  qDebug() << "BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n";
-qDebug() << "\n";
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
@@ -291,7 +287,6 @@ qDebug() << "\n";
   auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PUT"), request_string);
 
   qDebug() << "Put request sent\n";
-  qDebug() << reply->readAll();
 
   connect(reply, &QNetworkReply::finished, [reply]() {
     qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);

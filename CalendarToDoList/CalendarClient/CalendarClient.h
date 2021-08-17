@@ -68,7 +68,7 @@ public slots:
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveEvent(CalendarEvent event);
+  void saveEvent(CalendarEvent& event);
 
   /**
    * @brief Deletes a specific event from the calDAV server.
