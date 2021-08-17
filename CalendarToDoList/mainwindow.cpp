@@ -8,12 +8,13 @@
 #include "CalendarClient/CalendarClient.h"
 #include <QApplication>
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
@@ -63,7 +64,6 @@ void MainWindow::refresh_calendar_events()
                calendar_ = tmp;
            else
                calendar_->events().append(tmp->events());
-           //setShowing_events(&calendar_->events());
        }
 
        //salvo gli eTags per vedere i futuri cambiamenti
@@ -129,6 +129,7 @@ void MainWindow::on_showing_events_changed()
        int x_pos = column_width*selected_date.daysTo(event.getStartDateTime().date());
        int y_pos = row_heigth + row_heigth*( start_time.hour() + start_time.minute()/60.0);
 
+       ui->calendarTable->scrollToTop();
        widget->move(x_pos, y_pos);
 
        widget->show();
@@ -151,7 +152,9 @@ void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
 
 void MainWindow::on_actionGiorno_triggered()
 {
+   current_visual_ = Day;
    ui->calendarTable->setColumnCount(1);
+
    QDate d = ui->calendarWidget->selectedDate();
    QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd\ndd"));
    ui->calendarTable->setHorizontalHeaderItem(0, item);
@@ -160,8 +163,11 @@ void MainWindow::on_actionGiorno_triggered()
 
 void MainWindow::on_actionSettimanale_triggered()
 {
+  current_visual_ = Week;
   ui->calendarTable->setColumnCount(7);
+
   QDate d = ui->calendarWidget->selectedDate();
+
   for(int i = 0; i < ui->calendarTable->columnCount(); i++)
   {
       QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
@@ -225,6 +231,7 @@ void MainWindow::on_updateButton_clicked()
                           calendar->events().append(tmp->events());
                   }
                   //creo una mappa con gli uid e gli etag nuovi
+                  // TODO: da qualche errore la insert
                   QMap<QString, QDomElement> mapTmp;
                   auto eTags = res.elementsByTagName("D:getetag");
                   for(int i=0; i<eTags.size(); i++){
