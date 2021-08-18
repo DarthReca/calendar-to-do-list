@@ -16,7 +16,7 @@ CalendarEvent::CalendarEvent(QObject *parent) : QObject(parent)
   categories_      = "";
   exdates_         = "";
   RRULE_           = "";
-  color_           = QColor(rng.generate() & 0xFF, rng.generate() & 0xFF, rng.generate() & 0xFF).name();
+  color_           = QColor(Qt::red).name();
   UID_             = "";
   HREF_            = "";
   calendar_pointer_ = NULL;
@@ -24,9 +24,7 @@ CalendarEvent::CalendarEvent(QObject *parent) : QObject(parent)
 
 CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObject *parent) : CalendarEvent(parent)
 {
-    //QString display_name = parent->property("displayName").toString();
-    QString display_name = "Display";
-    setColor(QColor(Qt::GlobalColor::blue).name());
+    QString display_name = "unnamed";
     setCalendarName(display_name);
     setCalendarPointer(parent);
     setHREF(href);
@@ -34,8 +32,6 @@ CalendarEvent::CalendarEvent(const QString &href, QTextStream& ical_object, QObj
     QDateTime utcTime;
     while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")))
     {
-      //QDEBUG << m_DisplayName << ": " << line;
-
       const int deliminatorPosition = line.indexOf(QLatin1Char(':'));
       const QString key   = line.mid(0, deliminatorPosition);
       QString value = (line.mid(deliminatorPosition + 1, -1).replace("\\n", "\n")); //.toLatin1();
@@ -146,7 +142,19 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from, QDateTime to)
     }
     else
     {
+       auto rules_map = parseRRule();
+       QList<QDateTime> tmp;
 
+       QString freq = rules_map["FREQ"];
+       if(freq == "DAILY")
+       {
+          for(QDateTime i = start_date_time_; i < to; i = i.addDays(1))
+          {
+              tmp += i;
+          }
+       }
+
+       list += tmp;
     }
     return list;
 }
@@ -228,7 +236,74 @@ void CalendarEvent::setName(const QString &name)
 
 void CalendarEvent::setCalendarPointer(QObject* ptr)
 {
-  calendar_pointer_ = ptr;
+    calendar_pointer_ = ptr;
+}
+
+QHash<QString, QString> CalendarEvent::parseRRule()
+{
+    QStringList rruleList = RRULE_.trimmed().split(";", Qt::SkipEmptyParts);
+    QHash<QString, QString> map;
+
+    // divide into rule name and rule parameter(s)
+    for(QString& ruleString : rruleList)
+    {
+      QStringList rruleElements = ruleString.trimmed().split("=", Qt::SkipEmptyParts);
+      // result must have 2 elements
+      if (rruleElements.length() != 2)
+      {
+        qDebug() << "" << ": " << "ERROR: invalid rule element count" << rruleElements.length() << "in rule" << ruleString;
+        continue;
+      }
+      if (rruleElements.at(0).toUpper() == "FREQ")
+      {
+        map["FREQ"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "INTERVAL")
+      {
+        map["INTERVAL"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "COUNT")
+      {
+        map["COUNT"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "UNTIL")
+      {
+        map["UNTIL"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "WKST")
+      {
+        map["WKST"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYDAY")
+      {
+        map["BYDAY"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYMONTHDAY")
+      {
+        map["BYMONTHDAY"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYMONTH")
+      {
+        map["BYMONTH"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYYEAR")
+      {
+        map["BYYEAR"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYWEEKNO")
+      {
+        map["BYWEEKNO"] = rruleElements.at(1);
+      }
+      else if (rruleElements.at(0).toUpper() == "BYSETPOS")
+      {
+        map["BYSETPOS"] = rruleElements.at(1);
+      }
+      else
+      {
+        qDebug() << "m_DisplayName" << ": " << "WARNING: unsupported rrule element" << rruleElements.at(0);
+      }
+    }
+    return map;
 }
 
 QObject* CalendarEvent::getCalendarPointer(void) const

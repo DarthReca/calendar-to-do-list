@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->calendarTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     qDebug() << "Starting...\n";
 
     // Force user to authenticate
@@ -27,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
     connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
+    connect(ui->calendarWidget, &QCalendarWidget::selectionChanged, this, &MainWindow::refresh_calendar_events);
 
     client_ = new CalendarClient(*auth_, this);
 
@@ -54,12 +56,13 @@ void MainWindow::refresh_calendar_events()
    connect(reply, &QNetworkReply::finished, [this, reply]() {
        QDomDocument res;
        res.setContent(reply->readAll());
+
        auto calendars = res.elementsByTagName("caldav:calendar-data");
        auto hrefs_list = res.elementsByTagName("D:href");
+
        QString href = hrefs_list.at(0).toElement().text();
        for(int i=0; i<calendars.size(); i++){
            QString el = calendars.at(i).toElement().text();
-           //qDebug() << el;
            QTextStream stream(&el);
            QPointer<Calendar> tmp = new Calendar(href, stream);
            if(calendar_.isNull())
@@ -170,35 +173,13 @@ void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
 
 void MainWindow::on_actionGiorno_triggered()
 {
-   ui->calendarTable->setColumnCount(1);
-
-   QDate d = ui->calendarWidget->selectedDate();
-   QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd\ndd"));
-   ui->calendarTable->setHorizontalHeaderItem(0, item);
-   QList<CalendarEvent>* selected = new QList<CalendarEvent>;
-   for(CalendarEvent& ev : calendar_->events())
-       if(ev.getStartDateTime().date() == d)
-         selected->append(ev);
-   setShowing_events(selected);
+  updateTableToNDays(1);
 }
 
 
 void MainWindow::on_actionSettimanale_triggered()
 {
-  ui->calendarTable->setColumnCount(7);
-
-  QDate d = ui->calendarWidget->selectedDate();
-
-  for(int i = 0; i < ui->calendarTable->columnCount(); i++)
-  {
-      QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
-      ui->calendarTable->setHorizontalHeaderItem(i, item);
-  }
-  QList<CalendarEvent>* selected = new QList<CalendarEvent>;
-  for(CalendarEvent& ev : calendar_->events())
-      if(ev.getStartDateTime().date() >= d)
-        selected->append(ev);
-  setShowing_events(selected);
+  updateTableToNDays(7);
 }
 
 
@@ -292,5 +273,32 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
    refresh_calendar_events();
    QWidget::resizeEvent(event);
+}
+
+void MainWindow::updateTableToNDays(int n)
+{
+    ui->calendarTable->setColumnCount(n);
+    QDate d = ui->calendarWidget->selectedDate();
+
+    for(int i = 0; i < n; i++)
+    {
+        QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
+        ui->calendarTable->setHorizontalHeaderItem(i, item);
+    }
+    QList<CalendarEvent>* selected = new QList<CalendarEvent>;
+    for(CalendarEvent& ev : calendar_->events())
+    {
+        auto recurs = ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
+        for(QDateTime& dt : recurs)
+        {
+            CalendarEvent new_ev = ev;
+            auto diff = ev.getStartDateTime().msecsTo(ev.getEndDateTime());
+
+            ev.setStartDateTime(dt);
+            ev.setEndDateTime(dt.addMSecs(diff));
+            selected->append(new_ev);
+        }
+    }
+    setShowing_events(selected);
 }
 

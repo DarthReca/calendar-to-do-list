@@ -42,6 +42,8 @@ protected:
     void resizeEvent(QResizeEvent *event);
 
 private:
+    void updateTableToNDays(int n);
+
     Ui::MainWindow *ui;
 
     QPointer<CalendarEvent> editing_event_;

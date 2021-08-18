@@ -80,7 +80,9 @@ public slots:
   QObject* getCalendarPointer(void) const;
   void setCalendarPointer(QObject* ptr);
 
-protected:
+private:
+  QHash<QString, QString> parseRRule();
+
   QString color_;
   QString calendar_name_;
   QString name_;
