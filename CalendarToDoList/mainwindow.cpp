@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent)
         res.setContent(reply->readAll());
         auto lista = res.elementsByTagName("cs:getctag");
         client_->setCTag(lista.at(0).toElement());
+        qDebug() << client_->getCTag().text() + "\n\n";
+
     });
 
     refresh_calendar_events();
@@ -57,7 +59,7 @@ void MainWindow::refresh_calendar_events()
        QString href = hrefs_list.at(0).toElement().text();
        for(int i=0; i<calendars.size(); i++){
            QString el = calendars.at(i).toElement().text();
-           qDebug() << el;
+           //qDebug() << el;
            QTextStream stream(&el);
            QPointer<Calendar> tmp = new Calendar(href, stream);
            if(calendar_.isNull())
@@ -67,10 +69,15 @@ void MainWindow::refresh_calendar_events()
        }
 
        //salvo gli eTags per vedere i futuri cambiamenti
+       //sarà una mappa di <href, eTag>
        auto eTags = res.elementsByTagName("D:getetag");
+
+       qDebug() << "Mappa prima:\n\n";
        for(int i=0; i<eTags.size(); i++){
-           client_->addETag(calendar_->events().at(i).getUID(), eTags.at(i).toElement());
+           client_->addETag(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
+           qDebug() << hrefs_list.at(i).toElement().text() + " - " + eTags.at(i).toElement().text() + "\n\n";
        }
+       qDebug() << "\n\n";
 
        on_actionSettimanale_triggered();
    });
@@ -206,37 +213,31 @@ void MainWindow::on_updateButton_clicked()
           QDomDocument res;
           res.setContent(reply->readAll());
           auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
-          if(newCTag == client_->getCTag()){
+          qDebug() << newCTag.text() + "\n\n";
+          qDebug() << client_->getCTag().text() + "\n\n";
+
+          if(newCTag.text() == client_->getCTag().text()){
               qDebug() << "Calendar already up to date";
           }
           else{
               reply = client_->lookForChanges();
               connect(reply, &QNetworkReply::finished, [this, reply]() {
 
-                  //ottengo un calendario temporaneo con tutti gli eventi
+                  //creo una mappa con gli href e gli etag nuovi
+                  // TODO: da qualche errore la insert
                   QDomDocument res;
                   res.setContent(reply->readAll());
-                  auto calendars = res.elementsByTagName("caldav:calendar-data");
                   auto hrefs_list = res.elementsByTagName("D:href");
-                  QString href = hrefs_list.at(0).toElement().text();
-                  QPointer<Calendar> tmp;
-                  QPointer<Calendar> calendar;
-                  for(int i=0; i<calendars.size(); i++){
-                      QString el = calendars.at(i).toElement().text();
-                      QTextStream stream(&el);
-                      QPointer<Calendar> tmp = new Calendar(href, stream);
-                      if(calendar.isNull())
-                          calendar = tmp;
-                      else
-                          calendar->events().append(tmp->events());
-                  }
-                  //creo una mappa con gli uid e gli etag nuovi
-                  // TODO: da qualche errore la insert
-                  QMap<QString, QDomElement> mapTmp;
                   auto eTags = res.elementsByTagName("D:getetag");
+                  QMap<QString, QDomElement> mapTmp;
+
+                  qDebug() << "Mappa dopo:\n\n";
                   for(int i=0; i<eTags.size(); i++){
-                      mapTmp.insert(calendar->events().at(i).getUID(), eTags.at(i).toElement());
+                      mapTmp.insert(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
+                      qDebug() << hrefs_list.at(i).toElement().text() + " - " + eTags.at(i).toElement().text() + "\n\n";
+
                   }
+                  qDebug() << "\n\n";
 
                   //confronto la nuova mappa con quella esistente
                   QMap<QString, QDomElement> oldMap = client_->getETags();
@@ -244,24 +245,29 @@ void MainWindow::on_updateButton_clicked()
                   for(i = oldMap.begin(); i != oldMap.end(); ++i){
                       if(mapTmp.contains(i.key())){
                           if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
-                              qDebug() << "Item with UID " + i.key() + "has a new etag\n";
+                              qDebug() << "Item with href " + i.key() + "has a new etag: " + i.value().text() + "\n\n";
                               client_->addChangedUID(i.key());
                           }
                       }
                       else{
-                          qDebug() << "Item with UID " + i.key() + "has been deleted\n";
+                          qDebug() << "Item with eTag " + i.value().text() + "has been deleted\n\n";
                       }
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
                       if(!oldMap.contains(i.key())){
-                          qDebug() << "There is a new Item with UID " + i.key() + "\n";
+                          qDebug() << "There is a new Item with eTag: " + i.value().text() + "\n\n";
                           client_->addChangedUID(i.key());
                       }
                   }
 
                   auto reply = client_->getChangedEvents();
                   connect(reply, &QNetworkReply::finished, [reply](){
-                      qDebug() << reply->readAll();
+                      QDomDocument res;
+                      res.setContent(reply->readAll());
+                      auto events = res.elementsByTagName("caldav:calendar-data");
+                      for(int i=0; i<events.size(); i++){
+                          qDebug() << events.at(i).toElement().text() + "\n\n";
+                      }
                   });
 
               });
