@@ -81,6 +81,9 @@ public slots:
   void setCalendarPointer(QObject* ptr);
 
 private:
+  /**
+   * @brief Transform rrule string to a map
+   */
   QHash<QString, QString> parseRRule();
 
   QString color_;

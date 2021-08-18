@@ -25,22 +25,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="117"/>
+        <location filename="widgets/createeventform.ui" line="121"/>
         <source>Aggiungi posizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="124"/>
+        <location filename="widgets/createeventform.ui" line="128"/>
         <source>Aggiungi descrizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="174"/>
+        <location filename="widgets/createeventform.ui" line="178"/>
         <source>Salva</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="187"/>
+        <location filename="widgets/createeventform.ui" line="191"/>
         <source>Elimina</source>
         <translation type="unfinished"></translation>
     </message>

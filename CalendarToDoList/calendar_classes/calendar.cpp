@@ -2,7 +2,7 @@
 
 Calendar::Calendar(QObject *parent) : QObject(parent)
 {
-
+  events_ = QVector<CalendarEvent>();
 }
 
 Calendar::Calendar(const QString& href, QTextStream& ical_object, QObject *parent)

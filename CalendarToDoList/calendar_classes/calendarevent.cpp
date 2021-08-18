@@ -139,6 +139,8 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from, QDateTime to)
     {
       if(start_date_time_ >= from)
           list += start_date_time_;
+      else if(start_date_time_ < from && end_date_time_ <= to)
+          list += QDateTime(from.date(), QTime(0,0));
     }
     else
     {
@@ -146,14 +148,18 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from, QDateTime to)
        QList<QDateTime> tmp;
 
        QString freq = rules_map["FREQ"];
+       QDateTime start = from < start_date_time_ ? start_date_time_ : from;
        if(freq == "DAILY")
        {
-          for(QDateTime i = start_date_time_; i < to; i = i.addDays(1))
-          {
+          for(QDateTime i = start; i < to; i = i.addDays(1))
               tmp += i;
-          }
        }
-
+       if(freq == "WEEKLY")
+       {
+           for(QDateTime i = start; i < to; i = i.addDays(1))
+              if(i.date().dayOfWeek() == start_date_time_.date().dayOfWeek())
+                 tmp += i;
+       }
        list += tmp;
     }
     return list;

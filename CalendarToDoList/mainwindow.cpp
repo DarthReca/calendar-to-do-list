@@ -53,7 +53,11 @@ MainWindow::~MainWindow()
 void MainWindow::refresh_calendar_events()
 {
    auto reply = client_->getAllEvents();
+
    connect(reply, &QNetworkReply::finished, [this, reply]() {
+       if(!calendar_.isNull())
+            calendar_->events().clear();
+
        QDomDocument res;
        res.setContent(reply->readAll());
 
@@ -289,13 +293,13 @@ void MainWindow::updateTableToNDays(int n)
     for(CalendarEvent& ev : calendar_->events())
     {
         auto recurs = ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
-        for(QDateTime& dt : recurs)
+        for(const QDateTime& dt : recurs)
         {
             CalendarEvent new_ev = ev;
-            auto diff = ev.getStartDateTime().msecsTo(ev.getEndDateTime());
+            auto diff = ev.getStartDateTime().time().msecsTo(ev.getEndDateTime().time());
 
-            ev.setStartDateTime(dt);
-            ev.setEndDateTime(dt.addMSecs(diff));
+            new_ev.setStartDateTime(dt);
+            new_ev.setEndDateTime(dt.addMSecs(diff));
             selected->append(new_ev);
         }
     }
