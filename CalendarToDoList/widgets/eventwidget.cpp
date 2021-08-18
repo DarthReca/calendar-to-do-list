@@ -1,9 +1,17 @@
 #include "eventwidget.h"
 
-EventWidget::EventWidget(CalendarEvent& event, QWidget *parent) : QPushButton(parent)
+EventWidget::EventWidget(CalendarEvent& event, CalendarClient& client, QWidget *parent) : QPushButton(parent)
 {
+    event_ = &event;
+    client_ = &client;
+
     QString start_time = event.getStartDateTime().toString("hh:mm");
     QString end_time = event.getEndDateTime().toString("hh:mm");
-    setText(event.name() + "\n" + start_time + " - " + end_time);
-    setStyleSheet("color: red;");
+    setText(QString("%1\n%2 - %3").arg(event.name(), start_time, end_time));
+    setStyleSheet("background-color: red; color: white");
+
+    connect(this, &QPushButton::clicked, [this]() {
+        CreateEventForm form(event_, *client_);
+        form.exec();
+    });
 }

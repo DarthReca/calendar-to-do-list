@@ -14,7 +14,7 @@ class CalendarClient: public QObject
 public:
   Q_PROPERTY(QDomElement cTag_ READ getCTag WRITE setCTag)
 
-  CalendarClient(GoogleAuth& auth, QObject* parent = NULL);
+  CalendarClient(GoogleAuth& auth, QObject* parent = nullptr);
 
   ~CalendarClient();
 

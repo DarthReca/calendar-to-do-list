@@ -14,6 +14,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, Q
     ui->locationEdit->setText(event_->location());
     ui->startDateTime->setDateTime(event_->getStartDateTime());
     ui->endDateTime->setDateTime(event_->getEndDateTime());
+
     ui->RRule->setPlaceholderText("Ripeti:");
     ui->RRule->addItem("Non si ripete");
     ui->RRule->addItem("Ogni giorno");

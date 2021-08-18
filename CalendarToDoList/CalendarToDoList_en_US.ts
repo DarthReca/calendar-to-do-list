@@ -2,14 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
-    <name>CalendarTable</name>
-    <message>
-        <location filename="widgets/calendartable.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>CreateEventForm</name>
     <message>
         <location filename="widgets/createeventform.ui" line="14"/>

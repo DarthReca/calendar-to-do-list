@@ -17,7 +17,6 @@ CalendarEvent::CalendarEvent(QObject *parent) : QObject(parent)
   exdates_         = "";
   RRULE_           = "";
   color_           = QColor(rng.generate() & 0xFF, rng.generate() & 0xFF, rng.generate() & 0xFF).name();
-  is_canceled_      = false;
   UID_             = "";
   HREF_            = "";
   calendar_pointer_ = NULL;
@@ -136,6 +135,22 @@ QString CalendarEvent::ToICalendarObject()
     return ical_object;
 }
 
+QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from, QDateTime to)
+{
+    //Look at QList<QObject*> CalendarClient::eventsForDate(const QDate& date)
+    QList<QDateTime> list;
+    if(RRULE_.isEmpty())
+    {
+      if(start_date_time_ >= from)
+          list += start_date_time_;
+    }
+    else
+    {
+
+    }
+    return list;
+}
+
 CalendarEvent& CalendarEvent::operator=(const CalendarEvent& other)
 {
   copyFrom(other);
@@ -159,7 +174,6 @@ void CalendarEvent::copyFrom(const CalendarEvent& other)
   setCategories(other.categories_);
   setExdates(other.exdates_);
   setRRULE(other.RRULE_);
-  setIsCanceled(other.is_canceled_);
   setUID(other.UID_);
   setHREF(other.HREF_);
   setCalendarPointer(other.calendar_pointer_);
@@ -324,21 +338,6 @@ void CalendarEvent::setCategories(const QString& categories)
   {
     categories_ = categories;
     emit categoriesChanged(categories_);
-  }
-}
-
-
-bool CalendarEvent::getIsCanceled() const
-{
-  return is_canceled_;
-}
-
-void CalendarEvent::setIsCanceled(const bool& isCanceled)
-{
-  if (is_canceled_ != isCanceled)
-  {
-    is_canceled_ = isCanceled;
-    emit isCanceledChanged(is_canceled_);
   }
 }
 

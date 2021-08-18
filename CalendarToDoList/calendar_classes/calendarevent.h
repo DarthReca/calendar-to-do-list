@@ -10,50 +10,13 @@ class CalendarEvent : public QObject
   Q_OBJECT
 
 public:
-  // Display name of the calendar where this event originates from
-  Q_PROPERTY(QString calendarName READ calendarName WRITE setCalendarName NOTIFY calendarNameChanged)
 
-  // Color of the calendar where this event originates from
-  Q_PROPERTY(QString color READ getColor WRITE setColor NOTIFY colorChanged)
-
-  // Summary or title of the event
-  Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-
-  // Location, where the event occurs
-  Q_PROPERTY(QString location READ location WRITE setLocation NOTIFY locationChanged)
-
-  // Detailed description of the event
-  Q_PROPERTY(QString description READ description WRITE setDescription NOTIFY descriptionChanged)
-
-  // Start date and time; event applies since this point in time
-  Q_PROPERTY(QDateTime startDateTime READ getStartDateTime WRITE setStartDateTime NOTIFY startDateTimeChanged)
-
-  // End date and time; event applies until this point in time
-  Q_PROPERTY(QDateTime endDateTime READ getEndDateTime WRITE setEndDateTime NOTIFY endDateTimeChanged)
-
-  // iCalendar RRULE value as string
-  Q_PROPERTY(QString rrule READ getRRULE WRITE setRRULE NOTIFY rruleChanged)
-
-  // iCalendar EXDATE value as string
-  Q_PROPERTY(QString exdates READ getExdates WRITE setExdates NOTIFY exdatesChanged)
-
-  // Event categories, separated by ","
-  Q_PROPERTY(QString categories READ getCategories WRITE setCategories NOTIFY categoriesChanged)
-
-  // Unique ID of event
-  Q_PROPERTY(QString uid READ getUID WRITE setUID NOTIFY uidChanged)
-
-  // URL of calendar file
-  Q_PROPERTY(QString href READ getHREF WRITE setHREF NOTIFY hrefChanged)
-
-  // Read-only boolean property which is set, if the event represents a specific occurrence and an EXDATE value applies
-  Q_PROPERTY(bool isCanceled READ getIsCanceled NOTIFY isCanceledChanged)
-
-  CalendarEvent(QObject* parent);
+  CalendarEvent(QObject* parent = nullptr);
   CalendarEvent(const QString& href, QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
   QString ToICalendarObject();
+  QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 
   CalendarEvent& operator=(const CalendarEvent& other);
   bool operator<(const CalendarEvent& other) const;
@@ -73,7 +36,6 @@ signals:
   void categoriesChanged(const QString& categories);
   void uidChanged(const QString& uid);
   void hrefChanged(const QString& href);
-  void isCanceledChanged(const bool& isCanceled);
 
 public slots:
   QString getColor(void) const;
@@ -106,9 +68,6 @@ public slots:
   QString getCategories() const;
   void setCategories(const QString& categories);
 
-  bool getIsCanceled() const;
-  void setIsCanceled(const bool& isCanceled);
-
   QString getUID(void) const;
   void setUID(const QString& uid);
 
@@ -119,7 +78,6 @@ public slots:
   // to edit an event and upload it back to the CalDAV server we need to know the
   // CalendarClient object where this event originates from
   QObject* getCalendarPointer(void) const;
-
   void setCalendarPointer(QObject* ptr);
 
 protected:
@@ -135,7 +93,6 @@ protected:
   QString categories_;
   QString UID_;
   QString HREF_;
-  bool is_canceled_;
   QObject* calendar_pointer_;
 
 };

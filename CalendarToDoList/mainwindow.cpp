@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     refresh_calendar_events();
+
 }
 
 MainWindow::~MainWindow()
@@ -79,7 +80,10 @@ void MainWindow::refresh_calendar_events()
        }
        qDebug() << "\n\n";
 
-       on_actionSettimanale_triggered();
+       if(ui->calendarTable->columnCount() == 7)
+         on_actionSettimanale_triggered();
+       else
+         on_actionGiorno_triggered();
    });
 }
 
@@ -128,16 +132,24 @@ void MainWindow::on_showing_events_changed()
 
    for(auto& event : *showing_events_)
    {
-       EventWidget* widget = new EventWidget(event, ui->calendarTable->viewport());
+       EventWidget* widget = new EventWidget(event, *client_, ui->calendarTable->viewport());
        QTime start_time = event.getStartDateTime().time();
-
-       widget->resize(column_width, row_heigth);
+       int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
 
        int x_pos = column_width*selected_date.daysTo(event.getStartDateTime().date());
        int y_pos = row_heigth + row_heigth*( start_time.hour() + start_time.minute()/60.0);
 
        ui->calendarTable->scrollToTop();
-       widget->move(x_pos, y_pos);
+       if(days_long == 0)
+       {
+           widget->resize(column_width, row_heigth);
+           widget->move(x_pos, y_pos);
+       }
+       else
+       {
+           widget->move(x_pos, 0);
+           widget->resize((days_long+1)*column_width, row_heigth);
+       }
 
        widget->show();
    }
@@ -159,18 +171,21 @@ void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
 
 void MainWindow::on_actionGiorno_triggered()
 {
-   current_visual_ = Day;
    ui->calendarTable->setColumnCount(1);
 
    QDate d = ui->calendarWidget->selectedDate();
    QTableWidgetItem *item = new QTableWidgetItem(d.toString("ddd\ndd"));
    ui->calendarTable->setHorizontalHeaderItem(0, item);
+   QList<CalendarEvent>* selected = new QList<CalendarEvent>;
+   for(CalendarEvent& ev : calendar_->events())
+       if(ev.getStartDateTime().date() == d)
+         selected->append(ev);
+   setShowing_events(selected);
 }
 
 
 void MainWindow::on_actionSettimanale_triggered()
 {
-  current_visual_ = Week;
   ui->calendarTable->setColumnCount(7);
 
   QDate d = ui->calendarWidget->selectedDate();
@@ -204,7 +219,6 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
     }
   }
 }
-
 
 void MainWindow::on_updateButton_clicked()
 {
@@ -272,6 +286,12 @@ void MainWindow::on_updateButton_clicked()
 
               });
           }
-    });
+        });
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+   refresh_calendar_events();
+   QWidget::resizeEvent(event);
 }
 

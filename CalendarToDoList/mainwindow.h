@@ -23,9 +23,6 @@ public:
     QList<CalendarEvent> *showing_events() const;
     void setShowing_events(QList<CalendarEvent> *newShowing_events);
 
-    enum Visualization { Week, Day };
-    Q_ENUM(Visualization);
-
 signals:
     void showing_eventsChanged();
 public slots:
@@ -41,7 +38,8 @@ private slots:
     void on_showing_events_changed();
 
     void on_updateButton_clicked();
-
+protected:
+    void resizeEvent(QResizeEvent *event);
 private:
     Ui::MainWindow *ui;
 
@@ -51,6 +49,5 @@ private:
 
     QPointer<GoogleAuth> auth_;
     QPointer<CalendarClient> client_;
-    Visualization current_visual_;
 };
 #endif // MAINWINDOW_H
