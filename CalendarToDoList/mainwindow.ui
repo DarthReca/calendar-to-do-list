@@ -86,13 +86,6 @@ background-color: rgb(37, 255, 99);</string>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="updateButton">
-        <property name="text">
-         <string>Update</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="testButton">
         <property name="text">
          <string>Test</string>
@@ -357,7 +350,26 @@ background-color: rgb(37, 255, 99);</string>
     </widget>
     <addaction name="menuVedi_tabella"/>
    </widget>
+   <widget class="QMenu" name="menuSynch">
+    <property name="title">
+     <string>Synch</string>
+    </property>
+    <widget class="QMenu" name="menuImposta_intervallo_di_sincronizzazione">
+     <property name="title">
+      <string>Imposta intervallo di sincronizzazione</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="separator"/>
+     <addaction name="actionOgni_10_secondi"/>
+     <addaction name="actionOgni_30_secondi"/>
+     <addaction name="actionOgni_minuto"/>
+     <addaction name="actionOgni_ora"/>
+    </widget>
+    <addaction name="actionSincronizza"/>
+    <addaction name="menuImposta_intervallo_di_sincronizzazione"/>
+   </widget>
    <addaction name="menuView"/>
+   <addaction name="menuSynch"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLogin">
@@ -373,6 +385,31 @@ background-color: rgb(37, 255, 99);</string>
   <action name="actionSettimanale">
    <property name="text">
     <string>Settimanale</string>
+   </property>
+  </action>
+  <action name="actionSincronizza">
+   <property name="text">
+    <string>Sincronizza</string>
+   </property>
+  </action>
+  <action name="actionOgni_10_secondi">
+   <property name="text">
+    <string>Ogni 10 secondi</string>
+   </property>
+  </action>
+  <action name="actionOgni_30_secondi">
+   <property name="text">
+    <string>Ogni 30 secondi</string>
+   </property>
+  </action>
+  <action name="actionOgni_minuto">
+   <property name="text">
+    <string>Ogni minuto</string>
+   </property>
+  </action>
+  <action name="actionOgni_ora">
+   <property name="text">
+    <string>Ogni ora</string>
    </property>
   </action>
  </widget>

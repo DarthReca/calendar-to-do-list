@@ -36,10 +36,11 @@ private slots:
     void on_calendarWidget_clicked(const QDate &date);
     void on_seeIfChanged_clicked();
     void on_showing_events_changed();
+    void on_actionSincronizza_triggered();
 
-    void on_updateButton_clicked();
 protected:
     void resizeEvent(QResizeEvent *event);
+
 private:
     Ui::MainWindow *ui;
 
