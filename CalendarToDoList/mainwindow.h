@@ -40,7 +40,7 @@ private slots:
     void on_seeIfChanged_clicked();
     void on_showing_events_changed();
 
-    void on_updateButton_clicked();
+    void on_actionSincronizza_triggered();
 
 private:
     Ui::MainWindow *ui;

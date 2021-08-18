@@ -7,6 +7,7 @@
 #include <QDomDocument>
 #include "CalendarClient/CalendarClient.h"
 #include <QApplication>
+#include <QTimer>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -67,16 +68,17 @@ void MainWindow::refresh_calendar_events()
        }
 
        //salvo gli eTags per vedere i futuri cambiamenti
-       //sarà una mappa di <href, eTag>
+       //è una mappa di <href, eTag>
        auto eTags = res.elementsByTagName("D:getetag");
-       qDebug() << "Mappa prima:\n\n";
        for(int i=0; i<eTags.size(); i++){
            client_->addETag(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
-           qDebug() << hrefs_list.at(i).toElement().text() + " - " + eTags.at(i).toElement().text() + "\n\n";
        }
-       qDebug() << "\n\n";
 
        on_actionSettimanale_triggered();
+
+       /*QTimer timer;
+       connect(timer, &QTimer::timeout, MainWindow::on_actionSincronizza_triggered());
+       timer.start(5000);*/
    });
 }
 
@@ -202,8 +204,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
   }
 }
 
-
-void MainWindow::on_updateButton_clicked()
+void MainWindow::on_actionSincronizza_triggered()
 {
     auto reply = client_->obtainCTag();
         connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
@@ -225,17 +226,12 @@ void MainWindow::on_updateButton_clicked()
                   auto hrefs_list = res.elementsByTagName("D:href");
                   auto eTags = res.elementsByTagName("D:getetag");
                   QMap<QString, QDomElement> mapTmp;
-
-                  qDebug() << "Mappa dopo:\n\n";
                   for(int i=0; i<eTags.size(); i++){
                       mapTmp.insert(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
-                      qDebug() << hrefs_list.at(i).toElement().text() + " - " + eTags.at(i).toElement().text() + "\n\n";
-
                   }
-                  qDebug() << "\n\n";
 
                   //confronto la nuova mappa con quella esistente
-                  //e aggggiorno la lista di eTag nel client
+                  //e aggiorno la lista di eTag nel client
                   QMap<QString, QDomElement> oldMap = client_->getETags();
                   QMap<QString, QDomElement>::iterator i;
                   for(i = oldMap.begin(); i != oldMap.end(); ++i){
