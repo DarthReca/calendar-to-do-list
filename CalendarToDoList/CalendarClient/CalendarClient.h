@@ -27,10 +27,15 @@ public:
   void setCTag(const QDomElement &new_cTag) { cTag_ = new_cTag; };
 
   QMap<QString, QDomElement> getETags(){ return eTags_; }
-  void addETag(QString UID, const QDomElement &new_eTag) { eTags_.insert(UID, new_eTag); };
+  void addETag(QString href, const QDomElement &new_eTag) { eTags_.insert(href, new_eTag); };
+  void deleteETag(QString href) { eTags_.remove(href); };
 
-  QList<QString> getChangedUIDs(){ return changedUIDs_; }
-  void addChangedUID(QString new_UID) { changedUIDs_.append(new_UID); };
+  QList<QString> getChangedItems(){ return changedItems_; }
+  void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }
+  void clearChangedItems(){ changedItems_.clear(); }
+
+  QList<QString> getDeletedItems(){ return deletedItems_; }
+  void addDeletedItem(QString new_Item) { deletedItems_.append(new_Item); };
 
 
 public slots:
@@ -79,7 +84,8 @@ private:
   GoogleAuth* auth_;
   QDomElement cTag_;
   QMap<QString, QDomElement> eTags_;
-  QList<QString> changedUIDs_;
+  QList<QString> changedItems_;
+  QList<QString> deletedItems_;
 
   QNetworkAccessManager* network_manager_;
   QNetworkReply* upload_reply_;

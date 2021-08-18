@@ -115,9 +115,9 @@ QNetworkReply* CalendarClient::getChangedEvents(){
     tagProp.appendChild(xml.createElement("c:calendar-data"));
     root.appendChild(tagProp);
     QDomElement tagHref;
-    for(QString UID : changedUIDs_){
+    for(QString Item : changedItems_){
         tagHref = xml.createElement("d:href");
-        tagHref.appendChild(xml.createTextNode(UID));
+        tagHref.appendChild(xml.createTextNode(Item));
         root.appendChild(tagHref);
     }
 
@@ -288,8 +288,80 @@ void CalendarClient::saveEvent(CalendarEvent& event)
 
   qDebug() << "Put request sent\n";
 
-  connect(reply, &QNetworkReply::finished, [reply]() {
-    qDebug() << reply->attribute(QNetworkRequest::Attribute::HttpStatusCodeAttribute);
+  connect(reply, &QNetworkReply::finished, [this, reply]() {
+      qDebug() << reply->rawHeaderPairs();
+      qDebug() << "\n";
+
+      auto reply = this->obtainCTag();
+          connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+            QDomDocument res;
+            res.setContent(reply->readAll());
+            auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
+
+            if(newCTag.text() == this->getCTag().text()){
+                qDebug() << "Calendar already up to date";
+            }
+            else{
+                this->setCTag(newCTag);
+                reply = this->lookForChanges();
+                connect(reply, &QNetworkReply::finished, [this, reply]() {
+
+                    //creo una mappa con gli href e gli etag nuovi
+                    QDomDocument res;
+                    res.setContent(reply->readAll());
+                    auto hrefs_list = res.elementsByTagName("D:href");
+                    auto eTags = res.elementsByTagName("D:getetag");
+                    QMap<QString, QDomElement> mapTmp;
+
+                    qDebug() << "Mappa dopo:\n\n";
+                    for(int i=0; i<eTags.size(); i++){
+                        mapTmp.insert(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
+                        qDebug() << hrefs_list.at(i).toElement().text() + " - " + eTags.at(i).toElement().text() + "\n\n";
+
+                    }
+                    qDebug() << "\n\n";
+
+                    //confronto la nuova mappa con quella esistente
+                    //e aggggiorno la lista di eTag nel client
+                    QMap<QString, QDomElement> oldMap = this->getETags();
+                    QMap<QString, QDomElement>::iterator i;
+                    for(i = oldMap.begin(); i != oldMap.end(); ++i){
+                        if(mapTmp.contains(i.key())){
+                            if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
+                                qDebug() << "Item with href " + i.key() + "has a new etag: " + i.value().text() + "\n\n";
+                                this->addChangedItem(i.key());
+                                this->deleteETag(i.key());
+                                this->addETag(i.key(), i.value());
+                            }
+                        }
+                        else{
+                            qDebug() << "Item with eTag " + i.value().text() + "has been deleted\n\n";
+                            this->addDeletedItem(i.key());
+                            this->deleteETag(i.key());
+                        }
+                    }
+                    for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
+                        if(!oldMap.contains(i.key())){
+                            qDebug() << "There is a new Item with eTag: " + i.value().text() + "\n\n";
+                            this->addChangedItem(i.key());
+                            this->addETag(i.key(), i.value());
+                        }
+                    }
+
+                    auto reply = this->getChangedEvents();
+                    connect(reply, &QNetworkReply::finished, [this, reply](){
+                        QDomDocument res;
+                        res.setContent(reply->readAll());
+                        auto events = res.elementsByTagName("caldav:calendar-data");
+                        for(int i=0; i<events.size(); i++){
+                            qDebug() << events.at(i).toElement().text() + "\n\n";
+                        }
+                        this->clearChangedItems();
+                    });
+
+                });
+            }
+      });
   });
 }
 
