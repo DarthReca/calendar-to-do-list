@@ -65,7 +65,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
             }
             qDebug() <<"Event " + event_->name() + " updated\n";
         }
-        emit requestView();
+
+        for(CalendarEvent ev : calendar_->events()){
+            qDebug() << "\n\n" + ev.ToICalendarObject() + "\n\n";
+        }
+        emit CreateEventForm::requestView();
         accept();
     });
 
@@ -75,21 +79,14 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
             qDebug() << "Event not created\n";
         }
         else{
-            int i=0;
             QString hrefToDelete = event_->getHREF();
-            QDomElement eTag;
-            QMap<QString, QDomElement>::const_iterator it;
-            for(QString href : client_->getETags().keys()){
-                if(href == hrefToDelete){
-                    eTag = client_->getETags().find(href).value();
-                    break;
-                }
-                i++;
-            }
-            client_->deleteEvent(eTag);
+            QDomElement eTag = client_->getETags().find(hrefToDelete).value();
+            calendar_->events().removeOne(*event_);
+            client_->deleteETag(hrefToDelete);
+            client_->deleteEvent(*event_, eTag);
             qDebug() <<"Event " + event_->name() + " deleted\n";
-            emit requestView();
-        }
+            emit CreateEventForm::requestView();
+        }  
         accept();
     });
 }
