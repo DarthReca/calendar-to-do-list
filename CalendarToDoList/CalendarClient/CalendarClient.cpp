@@ -10,7 +10,6 @@
 
 CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent)
 {
-  upload_reply_ = NULL;
   auth_ = &auth;
 }
 

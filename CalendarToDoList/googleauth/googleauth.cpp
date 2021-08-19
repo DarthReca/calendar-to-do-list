@@ -1,6 +1,6 @@
 #include "googleauth.h"
 #include "calendar_classes/calendarevent.h"
-#include "CalendarClient/calendarclient.h"
+#include "CalendarClient/CalendarClient.h"
 #include <QDesktopServices>
 #include <QDomDocument>
 #include <QDateTime>
@@ -12,7 +12,11 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    google = new QOAuth2AuthorizationCodeFlow;
 
    // Permessi richiesti a google. Vedi https://developers.google.com/identity/protocols/oauth2/scopes
-   google->setScope("https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.settings.readonly");
+   google->setScope("https://www.googleapis.com/auth/calendar "
+                    "https://www.googleapis.com/auth/calendar.events "
+                    "https://www.googleapis.com/auth/calendar.settings.readonly "
+                    "https://www.googleapis.com/auth/task"
+   );
 
    connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 
@@ -53,6 +57,7 @@ GoogleAuth::GoogleAuth(QObject *parent) : QObject(parent)
    connect(google, &QOAuth2AuthorizationCodeFlow::error, [this](const QString& error, const QString& desc, const QUrl& uri) {
        qDebug() << "error";
        qDebug() << error;
+       QT_THROW(error);
    });
 
    connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
