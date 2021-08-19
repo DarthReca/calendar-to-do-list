@@ -57,3 +57,8 @@ void Calendar::setEvents(const QVector<CalendarEvent> &newEvents)
 {
     events_ = newEvents;
 }
+
+void Calendar::addEvent(CalendarEvent newEvent)
+{
+    events_.append(newEvent);
+}

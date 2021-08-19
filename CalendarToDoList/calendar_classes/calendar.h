@@ -19,6 +19,7 @@ public:
 
     QVector<CalendarEvent> &events();
     void setEvents(const QVector<CalendarEvent> &newEvents);
+    void addEvent(CalendarEvent newEvent);
 signals:
   void displayNameChanged(QString display_name);
 public slots:

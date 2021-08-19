@@ -263,10 +263,28 @@ void MainWindow::on_actionSincronizza_triggered()
                       QDomDocument res;
                       res.setContent(reply->readAll());
                       auto events = res.elementsByTagName("caldav:calendar-data");
+                      auto href_list = res.elementsByTagName("D:href");
+                      //QList<CalendarEvent> newEventstoShow;
                       for(int i=0; i<events.size(); i++){
                           qDebug() << events.at(i).toElement().text() + "\n\n";
+
+                          /*
+                          //salvo l'evento nella lista di eventi del calendario
+                          QString el = events.at(i).toElement().text();
+                          QTextStream stream(&el);
+                          QPointer<Calendar> tmp = new Calendar("href_list.at(i).toElement().text()", stream);
+                          if(calendar_.isNull())
+                              calendar_ = tmp;
+                          else
+                              calendar_->events().append(tmp->events());
+                          CalendarEvent newEvent(href_list.at(i).toElement().text(), stream, nullptr);
+                          newEventstoShow.append(newEvent);
+
+
+                          */
                       }
                       client_->clearChangedItems();
+                      //setShowing_events(&newEventstoShow);
                   });
 
               });
