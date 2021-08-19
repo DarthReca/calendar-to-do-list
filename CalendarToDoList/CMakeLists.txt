@@ -43,6 +43,7 @@ set(PROJECT_SOURCES
         CalendarClient/calendarclient.h
         widgets/eventwidget.h widgets/eventwidget.cpp
         widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
+        widgets/calendartable.h widgets/calendartable.cpp
         icons/icons.qrc
         ${TS_FILES}
 )
