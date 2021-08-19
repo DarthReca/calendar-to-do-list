@@ -65,6 +65,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
             }
             qDebug() <<"Event " + event_->name() + " updated\n";
         }
+        emit requestView();
         accept();
     });
 

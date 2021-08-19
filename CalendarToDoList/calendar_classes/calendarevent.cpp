@@ -173,7 +173,12 @@ CalendarEvent& CalendarEvent::operator=(const CalendarEvent& other)
 
 bool CalendarEvent::operator<(const CalendarEvent& other) const
 {
-  return (this->start_date_time_ < other.start_date_time_);
+    return (this->start_date_time_ < other.start_date_time_);
+}
+
+bool CalendarEvent::operator==(const CalendarEvent &other) const
+{
+    return (this->UID_ == other.UID_);
 }
 
 void CalendarEvent::copyFrom(const CalendarEvent& other)

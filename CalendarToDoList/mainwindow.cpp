@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     timer_ = new QTimer(this);
     connect(timer_, SIGNAL(timeout()), this, SLOT(on_actionSincronizza_triggered()));
-    timer_->start(10000);
+    timer_->start(5000);
 }
 
 MainWindow::~MainWindow()
@@ -98,6 +98,12 @@ void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
+    connect(&form, &CreateEventForm::requestView, [this](){
+        if(ui->calendarTable->columnCount() == 7)
+          on_actionSettimanale_triggered();
+        else
+          on_actionGiorno_triggered();
+    });
     form.exec();
 }
 
@@ -207,6 +213,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_actionSincronizza_triggered()
 {
+    //ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
         connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
           QDomDocument res;
@@ -216,9 +223,9 @@ void MainWindow::on_actionSincronizza_triggered()
           if(newCTag.text() == client_->getCTag().text()){
               qDebug() << "Calendar already up to date";
           }
-          else{
+          else{//se non sono uguali, qualcosa è cambiato
               client_->setCTag(newCTag);
-              reply = client_->lookForChanges();
+              reply = client_->lookForChanges();//ottengo gli eTag per vedere quali sono cambiati
               connect(reply, &QNetworkReply::finished, [this, reply]() {
 
                   //creo una mappa con gli href e gli etag nuovi
@@ -239,6 +246,7 @@ void MainWindow::on_actionSincronizza_triggered()
                       if(mapTmp.contains(i.key())){
                           if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
                               qDebug() << "Item with href " + i.key() + "has a new etag: " + i.value().text() + "\n\n";
+                              client_->deleteChangedItem(i.key());
                               client_->addChangedItem(i.key());
                               client_->deleteETag(i.key());
                               client_->addETag(i.key(), i.value());
@@ -246,8 +254,14 @@ void MainWindow::on_actionSincronizza_triggered()
                       }
                       else{
                           qDebug() << "Item with eTag " + i.value().text() + "has been deleted\n\n";
-                          client_->addDeletedItem(i.key());
                           client_->deleteETag(i.key());
+                          for(CalendarEvent& ev : calendar_->events()){
+                              if(ev.getHREF()==i.key()){
+                                  calendar_->events().removeOne(ev);
+                                  break;
+                              }
+                          }
+
                       }
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){

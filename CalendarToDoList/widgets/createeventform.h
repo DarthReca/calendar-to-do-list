@@ -21,6 +21,8 @@ public:
 
 private slots:
     void on_allDayBox_stateChanged(int arg1);
+signals:
+    void requestView();
 
 private:
     Ui::CreateEventForm *ui;
