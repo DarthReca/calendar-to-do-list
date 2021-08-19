@@ -88,6 +88,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
             }
             client_->deleteEvent(eTag);
             qDebug() <<"Event " + event_->name() + " deleted\n";
+            emit requestView();
         }
         accept();
     });
