@@ -98,10 +98,7 @@ void MainWindow::on_createEvent_clicked()
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
     connect(&form, &CreateEventForm::requestView, [this](){
-        if(ui->calendarTable->columnCount() == 7)
-          on_actionSettimanale_triggered();
-        else
-          on_actionGiorno_triggered();
+        updateTableToNDays(ui->calendarTable->columnCount());
     });
     form.exec();
 }
