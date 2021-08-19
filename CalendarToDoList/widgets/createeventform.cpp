@@ -2,11 +2,13 @@
 #include "ui_createeventform.h"
 #include "CalendarClient/calendarclient.h"
 
-CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, QWidget *parent) :
+CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, Calendar& calendar, bool existing, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CreateEventForm),
     event_(event),
-    client_(&client)
+    client_(&client),
+    calendar_(&calendar),
+    existing_(existing)
 {
     ui->setupUi(this);
 
@@ -48,8 +50,46 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, Q
         }
     });
 
-    connect(ui->saveButton, &QPushButton::clicked, [this]{ client_->saveEvent(*event_); accept(); });
-    connect(ui->deleteButton, &QPushButton::clicked, [this] { qDebug() << event_->ToICalendarObject(); delete event_; accept(); } );
+    connect(ui->saveButton, &QPushButton::clicked, [this]{
+        if(!existing_){
+            client_->saveEvent(*event_);
+            calendar_->addEvent(*event_);
+            qDebug() <<"New event saved\n";
+        }
+        else{
+            QString hrefToUpdate = event_->getHREF();
+            for(QString href: client_->getETags().keys()){
+                if(href == hrefToUpdate){
+                    client_->updateEvent(*event_, client_->getETags().find(href).value());
+                }
+            }
+            qDebug() <<"Event " + event_->name() + " updated\n";
+        }
+        accept();
+    });
+
+    connect(ui->deleteButton, &QPushButton::clicked, [this] {
+        if(!existing_){
+            delete event_;
+            qDebug() << "Event not created\n";
+        }
+        else{
+            int i=0;
+            QString hrefToDelete = event_->getHREF();
+            QDomElement eTag;
+            QMap<QString, QDomElement>::const_iterator it;
+            for(QString href : client_->getETags().keys()){
+                if(href == hrefToDelete){
+                    eTag = client_->getETags().find(href).value();
+                    break;
+                }
+                i++;
+            }
+            client_->deleteEvent(eTag);
+            qDebug() <<"Event " + event_->name() + " deleted\n";
+        }
+        accept();
+    });
 }
 
 CreateEventForm::~CreateEventForm()

@@ -62,3 +62,8 @@ void Calendar::addEvent(CalendarEvent newEvent)
 {
     events_.append(newEvent);
 }
+
+void Calendar::deleteEvent(CalendarEvent eventToDelete)
+{
+    events_.removeOne(eventToDelete);
+}

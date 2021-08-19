@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     timer_ = new QTimer(this);
     connect(timer_, SIGNAL(timeout()), this, SLOT(on_actionSincronizza_triggered()));
-    timer_->start(5000);
+    timer_->start(10000);
 }
 
 MainWindow::~MainWindow()
@@ -97,7 +97,7 @@ void MainWindow::refresh_calendar_events()
 void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
-    CreateEventForm form(editing_event_, *client_,  this);
+    CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
     form.exec();
 }
 
@@ -139,7 +139,7 @@ void MainWindow::on_showing_events_changed()
 
    for(auto& event : *showing_events_)
    {
-       EventWidget* widget = new EventWidget(event, *client_, ui->calendarTable->viewport());
+       EventWidget* widget = new EventWidget(event, *client_, *calendar_, ui->calendarTable->viewport());
        QTime start_time = event.getStartDateTime().time();
        int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
 
@@ -267,7 +267,6 @@ void MainWindow::on_actionSincronizza_triggered()
                       for(int i=0; i<events.size(); i++){
                           qDebug() << events.at(i).toElement().text() + "\n\n";
 
-
                           //salvo l'evento nella lista di eventi del calendario
                           QString el = events.at(i).toElement().text();
                           QTextStream stream(&el);
@@ -278,7 +277,7 @@ void MainWindow::on_actionSincronizza_triggered()
                               calendar_->events().append(tmp->events());
                       }
                       if(ui->calendarTable->columnCount() == 7)
-                        on_actionSettimanale_triggered();
+                          on_actionSettimanale_triggered();
                       else
                           on_actionGiorno_triggered();
                   });

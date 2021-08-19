@@ -67,7 +67,7 @@ public slots:
   /**
    * @brief Updates a event in the calDAV server.
    */
-  void updateEvent(CalendarEvent event, QString eTag);
+  void updateEvent(CalendarEvent event, QDomElement eTag);
   /**
    * @brief Saves a event to the calDAV server.
    *
@@ -78,7 +78,8 @@ public slots:
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(QString href);
+  void deleteEvent(QDomElement eTag);
+  void checkForChanges();
 
 private:
   GoogleAuth* auth_;
