@@ -12,10 +12,7 @@ class CalendarClient: public QObject
   Q_OBJECT
 
 public:
-  Q_PROPERTY(QDomElement cTag_ READ getCTag WRITE setCTag)
-
   CalendarClient(GoogleAuth& auth, QObject* parent = nullptr);
-
   ~CalendarClient();
 
   /**
@@ -78,15 +75,12 @@ public slots:
   void checkForChanges();
 
 private:
-  GoogleAuth* auth_;
+  QPointer<GoogleAuth> auth_;
   QDomElement cTag_;
   QMap<QString, QDomElement> eTags_;
   QList<QString> changedItems_;
 
-  QNetworkAccessManager* network_manager_;
-  QNetworkReply* upload_reply_;
-  QTimer upload_request_timeout_timer_;
-
+  QPointer<QNetworkAccessManager> network_manager_;
 };
 
 #endif // CALENDARCLIENT_CALDAV_H

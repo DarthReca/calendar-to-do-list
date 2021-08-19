@@ -9,8 +9,10 @@
 #include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow),
+      calendar_(new Calendar(this)),
+      timer_(new QTimer(this))
 {
     ui->setupUi(this);
     ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -24,9 +26,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
     loop.exec();
 
+    // Internal signals
     connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
+    connect(timer_, &QTimer::timeout, this, &MainWindow::on_actionSincronizza_triggered);
+    // UI
     connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
     connect(ui->calendarWidget, &QCalendarWidget::selectionChanged, this, &MainWindow::refresh_calendar_events);
+    connect(ui->actionOgni_10_secondi, &QAction::triggered, [this]() { timer_->start(10000); });
+    connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() { timer_->start(30000); });
+    connect(ui->actionOgni_minuto, &QAction::triggered, [this]() { timer_->start(60000); });
+    connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() { timer_->start(600000); });
 
     client_ = new CalendarClient(*auth_, this);
 
@@ -39,15 +48,16 @@ MainWindow::MainWindow(QWidget *parent)
         client_->setCTag(lista.at(0).toElement());        
     });
 
+    // Initial sync
     refresh_calendar_events();
 
-    timer_ = new QTimer(this);
-    connect(timer_, SIGNAL(timeout()), this, SLOT(on_actionSincronizza_triggered()));
-    timer_->start(5000);
+    timer_->start(10000);
 }
 
 MainWindow::~MainWindow()
 {
+    showing_events_->clear();
+    delete showing_events_;
     delete ui;
 }
 
@@ -56,8 +66,7 @@ void MainWindow::refresh_calendar_events()
    auto reply = client_->getAllEvents();
 
    connect(reply, &QNetworkReply::finished, [this, reply]() {
-       if(!calendar_.isNull())
-            calendar_->events().clear();
+       calendar_->events().clear();
 
        QDomDocument res;
        res.setContent(reply->readAll());
@@ -70,10 +79,7 @@ void MainWindow::refresh_calendar_events()
            QString el = calendars.at(i).toElement().text();
            QTextStream stream(&el);
            QPointer<Calendar> tmp = new Calendar(href, stream);
-           if(calendar_.isNull())
-               calendar_ = tmp;
-           else
-               calendar_->events().append(tmp->events());
+           calendar_->events().append(tmp->events());
        }
 
        //salvo gli eTags per vedere i futuri cambiamenti
@@ -83,14 +89,7 @@ void MainWindow::refresh_calendar_events()
            client_->addETag(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
        }
 
-       if(ui->calendarTable->columnCount() == 7)
-         on_actionSettimanale_triggered();
-       else
-         on_actionGiorno_triggered();
-
-       /*QTimer timer;
-       connect(timer, &QTimer::timeout, MainWindow::on_actionSincronizza_triggered());
-       timer.start(5000);*/
+       updateTableToNDays(ui->calendarTable->columnCount());
    });
 }
 
@@ -99,10 +98,7 @@ void MainWindow::on_createEvent_clicked()
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
     connect(&form, &CreateEventForm::requestView, [this](){
-        if(ui->calendarTable->columnCount() == 7)
-          on_actionSettimanale_triggered();
-        else
-          on_actionGiorno_triggered();
+        updateTableToNDays(ui->calendarTable->columnCount());
     });
     form.exec();
 }
@@ -180,19 +176,6 @@ void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
     showing_events_ = newShowing_events;
     emit showing_eventsChanged();
 }
-
-
-void MainWindow::on_actionGiorno_triggered()
-{
-  updateTableToNDays(1);
-}
-
-
-void MainWindow::on_actionSettimanale_triggered()
-{
-  updateTableToNDays(7);
-}
-
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
@@ -291,11 +274,10 @@ void MainWindow::on_actionSincronizza_triggered()
                              calendar_->events().append(tmp->events());
                       }
                       client_->clearChangedItems();
-                      if(ui->calendarTable->columnCount() == 7)
-                         on_actionSettimanale_triggered();
-                      else
-                         on_actionGiorno_triggered();
-                    });
+                      updateTableToNDays(ui->calendarTable->columnCount());
+                  });
+
+                      
               });
           }
        });
@@ -303,7 +285,7 @@ void MainWindow::on_actionSincronizza_triggered()
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
-   refresh_calendar_events();
+   updateTableToNDays(ui->calendarTable->columnCount());
    QWidget::resizeEvent(event);
 }
 
@@ -332,26 +314,4 @@ void MainWindow::updateTableToNDays(int n)
         }
     }
     setShowing_events(selected);
-}
-
-
-void MainWindow::on_actionOgni_10_secondi_triggered()
-{
-    qDebug() << "Tempo di sincronizzazione: 10 secondi";
-    timer_->start(10000);
-}
-void MainWindow::on_actionOgni_30_secondi_triggered()
-{
-    qDebug() << "Tempo di sincronizzazione: 30 secondi";
-    timer_->start(30000);
-}
-void MainWindow::on_actionOgni_minuto_triggered()
-{
-    qDebug() << "Tempo di sincronizzazione: 1 minuto";
-    timer_->start(60000);
-}
-void MainWindow::on_actionOgni_10_minuti_triggered()
-{
-    qDebug() << "Tempo di sincronizzazione: 10 minuti";
-    timer_->start(600000);
 }

@@ -26,26 +26,18 @@ public:
 
 signals:
     void showing_eventsChanged();
-public slots:
-    void refresh_calendar_events();
-private slots:
-    void on_actionGiorno_triggered();
-    void on_actionSettimanale_triggered();
 
+protected:
+    void resizeEvent(QResizeEvent *event);
+
+private slots:
     void on_createEvent_clicked();
+    void refresh_calendar_events();
 
     void on_calendarWidget_clicked(const QDate &date);
     void on_seeIfChanged_clicked();
     void on_showing_events_changed();
     void on_actionSincronizza_triggered();
-
-    void on_actionOgni_10_secondi_triggered();
-    void on_actionOgni_30_secondi_triggered();
-    void on_actionOgni_minuto_triggered();
-    void on_actionOgni_10_minuti_triggered();
-
-protected:
-    void resizeEvent(QResizeEvent *event);
 
 private:
     void updateTableToNDays(int n);
@@ -59,6 +51,6 @@ private:
     QPointer<GoogleAuth> auth_;
     QPointer<CalendarClient> client_;
 
-    QTimer *timer_;
+    QPointer<QTimer> timer_;
 };
 #endif // MAINWINDOW_H
