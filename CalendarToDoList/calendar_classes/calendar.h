@@ -19,8 +19,6 @@ public:
 
     QVector<CalendarEvent> &events();
     void setEvents(const QVector<CalendarEvent> &newEvents);
-    void addEvent(CalendarEvent newEvent);
-    void deleteEvent(CalendarEvent eventToDelete);
 signals:
   void displayNameChanged(QString display_name);
 public slots:

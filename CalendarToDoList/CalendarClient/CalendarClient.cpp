@@ -319,6 +319,11 @@ void CalendarClient::deleteEvent(QDomElement eTag)
   });
 }
 
+void CalendarClient::checkForChanges()
+{
+
+}
+
 /*void CalendarClient::checkForChanges()
 {
     auto reply = this->obtainCTag();

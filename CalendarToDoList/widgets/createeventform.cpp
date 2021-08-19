@@ -53,7 +53,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
     connect(ui->saveButton, &QPushButton::clicked, [this]{
         if(!existing_){
             client_->saveEvent(*event_);
-            calendar_->addEvent(*event_);
+            calendar_->events().append(*event_);
             qDebug() <<"New event saved\n";
         }
         else{
