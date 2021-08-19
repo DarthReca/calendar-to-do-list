@@ -20,6 +20,7 @@ public:
 
   CalendarEvent& operator=(const CalendarEvent& other);
   bool operator<(const CalendarEvent& other) const;
+  bool operator==(const CalendarEvent& other) const;
 
   void copyFrom(const CalendarEvent& other);
 

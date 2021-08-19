@@ -29,11 +29,8 @@ public:
 
   QList<QString> getChangedItems(){ return changedItems_; }
   void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }
+  void deleteChangedItem(QString href){ changedItems_.removeOne(href); };
   void clearChangedItems(){ changedItems_.clear(); }
-
-  QList<QString> getDeletedItems(){ return deletedItems_; }
-  void addDeletedItem(QString new_Item) { deletedItems_.append(new_Item); };
-
 
 public slots:
 
@@ -83,7 +80,6 @@ private:
   QDomElement cTag_;
   QMap<QString, QDomElement> eTags_;
   QList<QString> changedItems_;
-  QList<QString> deletedItems_;
 
   QPointer<QNetworkAccessManager> network_manager_;
 };

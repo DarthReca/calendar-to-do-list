@@ -97,6 +97,12 @@ void MainWindow::on_createEvent_clicked()
 {
     editing_event_ = new CalendarEvent(nullptr);
     CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
+    connect(&form, &CreateEventForm::requestView, [this](){
+        if(ui->calendarTable->columnCount() == 7)
+          on_actionSettimanale_triggered();
+        else
+          on_actionGiorno_triggered();
+    });
     form.exec();
 }
 
@@ -193,6 +199,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_actionSincronizza_triggered()
 {
+    //ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
         connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
           QDomDocument res;
@@ -202,9 +209,9 @@ void MainWindow::on_actionSincronizza_triggered()
           if(newCTag.text() == client_->getCTag().text()){
               qDebug() << "Calendar already up to date";
           }
-          else{
+          else{//se non sono uguali, qualcosa è cambiato
               client_->setCTag(newCTag);
-              reply = client_->lookForChanges();
+              reply = client_->lookForChanges();//ottengo gli eTag per vedere quali sono cambiati
               connect(reply, &QNetworkReply::finished, [this, reply]() {
 
                   //creo una mappa con gli href e gli etag nuovi
@@ -225,15 +232,22 @@ void MainWindow::on_actionSincronizza_triggered()
                       if(mapTmp.contains(i.key())){
                           if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
                               qDebug() << "Item with href " + i.key() + "has a new etag: " + i.value().text() + "\n\n";
+                              client_->deleteChangedItem(i.key());
                               client_->addChangedItem(i.key());
                               client_->deleteETag(i.key());
                               client_->addETag(i.key(), i.value());
                           }
                       }
                       else{
-                          qDebug() << "Item with eTag " + i.value().text() + "has been deleted\n\n";
-                          client_->addDeletedItem(i.key());
+                          qDebug() << "Item with href " + i.key() + "has been deleted\n\n";
                           client_->deleteETag(i.key());
+                          for(CalendarEvent ev : calendar_->events()){
+                              qDebug() << "\n\n href: " + ev.getHREF() + "\n\n";
+                              if(ev.getHREF()==i.key()){
+                                  calendar_->events().removeOne(ev);
+                                  break;
+                              }
+                          }
                       }
                   }
                   for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
@@ -244,30 +258,32 @@ void MainWindow::on_actionSincronizza_triggered()
                       }
                   }
 
-                  auto reply = client_->getChangedEvents();
-                  connect(reply, &QNetworkReply::finished, [this, reply](){
-                      QDomDocument res;
+                 auto reply = client_->getChangedEvents();
+                 connect(reply, &QNetworkReply::finished, [this, reply](){
+                     QDomDocument res;
                       res.setContent(reply->readAll());
                       auto events = res.elementsByTagName("caldav:calendar-data");
                       auto href_list = res.elementsByTagName("D:href");
                       for(int i=0; i<events.size(); i++){
-                          qDebug() << events.at(i).toElement().text() + "\n\n";
+                         qDebug() << events.at(i).toElement().text() + "\n\n";
 
-                          //salvo l'evento nella lista di eventi del calendario
-                          QString el = events.at(i).toElement().text();
-                          QTextStream stream(&el);
-                          QPointer<Calendar> tmp = new Calendar("href_list.at(i).toElement().text()", stream);
-                          if(calendar_.isNull())
-                              calendar_ = tmp;
-                          else
-                              calendar_->events().append(tmp->events());
+                         //salvo l'evento nella lista di eventi del calendario
+                         QString el = events.at(i).toElement().text();
+                         QTextStream stream(&el);
+                         QPointer<Calendar> tmp = new Calendar(href_list.at(i).toElement().text(), stream);
+                         if(calendar_.isNull())
+                             calendar_ = tmp;
+                         else
+                             calendar_->events().append(tmp->events());
                       }
+                      client_->clearChangedItems();
                       updateTableToNDays(ui->calendarTable->columnCount());
                   });
 
+                      
               });
           }
-        });
+       });
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
