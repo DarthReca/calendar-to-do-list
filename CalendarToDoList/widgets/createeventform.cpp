@@ -58,18 +58,16 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
         }
         else{
             QString hrefToUpdate = event_->getHREF();
-            for(QString href: client_->getETags().keys()){
-                if(href == hrefToUpdate){
-                    client_->updateEvent(*event_, client_->getETags().find(href).value());
+            client_->updateEvent(*event_, client_->getETags().find(hrefToUpdate).value());
+            for(CalendarEvent ev : calendar_->events()){
+                if(ev.getHREF() == hrefToUpdate){
+                    calendar_->events().removeOne(ev);
                 }
             }
+            calendar_->events().append(*event_);
             qDebug() <<"Event " + event_->name() + " updated\n";
         }
-
-        for(CalendarEvent ev : calendar_->events()){
-            qDebug() << "\n\n" + ev.ToICalendarObject() + "\n\n";
-        }
-        emit CreateEventForm::requestView();
+        emit requestView();
         accept();
     });
 
@@ -85,7 +83,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client, C
             client_->deleteETag(hrefToDelete);
             client_->deleteEvent(*event_, eTag);
             qDebug() <<"Event " + event_->name() + " deleted\n";
-            emit CreateEventForm::requestView();
+            emit requestView();
         }  
         accept();
     });

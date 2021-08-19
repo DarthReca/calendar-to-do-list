@@ -62,16 +62,15 @@ public slots:
    */
   QNetworkReply* getChangedEvents();
   /**
-   * @brief Updates a event in the calDAV server.
-   */
-  void updateEvent(CalendarEvent event, QDomElement eTag);
-  /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.
    */
   void saveEvent(CalendarEvent& event);
-
+  /**
+   * @brief Updates a event in the calDAV server.
+   */
+  void updateEvent(CalendarEvent event, QDomElement eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
