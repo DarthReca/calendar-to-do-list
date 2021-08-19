@@ -75,7 +75,7 @@ public slots:
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(QDomElement eTag);
+  void deleteEvent(CalendarEvent& event, QDomElement eTag);
   void checkForChanges();
 
 private:

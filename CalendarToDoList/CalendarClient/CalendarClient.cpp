@@ -287,17 +287,10 @@ void CalendarClient::saveEvent(CalendarEvent& event)
   auto reply = auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("PUT"), request_string);
 
   qDebug() << "Put request sent\n";
-
-  connect(reply, &QNetworkReply::finished, [this, reply]() {
-      qDebug() << reply->rawHeaderPairs();
-      qDebug() << "\n";
-
-      //checkForChanges();
-  });
 }
 
 
-void CalendarClient::deleteEvent(QDomElement eTag)
+void CalendarClient::deleteEvent(CalendarEvent& event, QDomElement eTag)
 {
   if (eTag.text().isEmpty())
   {
@@ -308,7 +301,8 @@ void CalendarClient::deleteEvent(QDomElement eTag)
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Bearer "+auth_->google->token()).toUtf8());
-  cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/3nopsjhsq7dtugtjspkd1tlv91@google.com.ics"));
+  //cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/3nopsjhsq7dtugtjspkd1tlv91@google.com.ics"));
+  cal_part.setUrl(QUrl(QString(REQUEST_URL)+"/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag.text());
 
