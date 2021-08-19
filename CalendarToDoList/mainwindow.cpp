@@ -7,8 +7,6 @@
 #include <QDomDocument>
 #include "CalendarClient/CalendarClient.h"
 #include <QApplication>
-#include <QTimer>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     refresh_calendar_events();
 
+    timer_ = new QTimer(this);
+    connect(timer_, SIGNAL(timeout()), this, SLOT(on_actionSincronizza_triggered()));
+    timer_->start(5000);
 }
 
 MainWindow::~MainWindow()
@@ -306,3 +307,24 @@ void MainWindow::updateTableToNDays(int n)
     setShowing_events(selected);
 }
 
+
+void MainWindow::on_actionOgni_10_secondi_triggered()
+{
+    qDebug() << "Tempo di sincronizzazione: 10 secondi";
+    timer_->start(10000);
+}
+void MainWindow::on_actionOgni_30_secondi_triggered()
+{
+    qDebug() << "Tempo di sincronizzazione: 30 secondi";
+    timer_->start(30000);
+}
+void MainWindow::on_actionOgni_minuto_triggered()
+{
+    qDebug() << "Tempo di sincronizzazione: 1 minuto";
+    timer_->start(60000);
+}
+void MainWindow::on_actionOgni_10_minuti_triggered()
+{
+    qDebug() << "Tempo di sincronizzazione: 10 minuti";
+    timer_->start(600000);
+}

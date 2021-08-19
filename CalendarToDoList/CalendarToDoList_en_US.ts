@@ -234,7 +234,8 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="412"/>
-        <source>Ogni ora</source>
+        <source>Ogni 10 minuti</source>
+        <oldsource>Ogni ora</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>

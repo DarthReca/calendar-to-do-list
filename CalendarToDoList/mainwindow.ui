@@ -363,7 +363,7 @@ background-color: rgb(37, 255, 99);</string>
      <addaction name="actionOgni_10_secondi"/>
      <addaction name="actionOgni_30_secondi"/>
      <addaction name="actionOgni_minuto"/>
-     <addaction name="actionOgni_ora"/>
+     <addaction name="actionOgni_10_minuti"/>
     </widget>
     <addaction name="actionSincronizza"/>
     <addaction name="menuImposta_intervallo_di_sincronizzazione"/>
@@ -407,9 +407,9 @@ background-color: rgb(37, 255, 99);</string>
     <string>Ogni minuto</string>
    </property>
   </action>
-  <action name="actionOgni_ora">
+  <action name="actionOgni_10_minuti">
    <property name="text">
-    <string>Ogni ora</string>
+    <string>Ogni 10 minuti</string>
    </property>
   </action>
  </widget>

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 
 #include "calendar_classes/calendarevent.h"
 #include "calendar_classes/calendar.h"
@@ -38,6 +39,11 @@ private slots:
     void on_showing_events_changed();
     void on_actionSincronizza_triggered();
 
+    void on_actionOgni_10_secondi_triggered();
+    void on_actionOgni_30_secondi_triggered();
+    void on_actionOgni_minuto_triggered();
+    void on_actionOgni_10_minuti_triggered();
+
 protected:
     void resizeEvent(QResizeEvent *event);
 
@@ -52,5 +58,7 @@ private:
 
     QPointer<GoogleAuth> auth_;
     QPointer<CalendarClient> client_;
+
+    QTimer *timer_;
 };
 #endif // MAINWINDOW_H
