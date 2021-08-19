@@ -2,31 +2,31 @@
 #define CALENDAR_H
 
 #include <QObject>
+
 #include "calendarevent.h"
 
-class Calendar : public QObject
-{
-    Q_OBJECT
+class Calendar : public QObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QString displayName READ getDisplayName WRITE setDisplayName NOTIFY displayNameChanged)
-public:
-    Calendar(QObject *parent = nullptr);
-    Calendar(const QString& href, QTextStream& ical_object, QObject *parent = nullptr);
+ public:
+  Calendar(QObject *parent = nullptr);
+  Calendar(const QString &href, QTextStream &ical_object,
+           QObject *parent = nullptr);
+  ~Calendar();
 
-    QString ToICalendarObject();
+  QString ToICalendarObject();
 
-    ~Calendar();
-
-    QVector<CalendarEvent> &events();
-    void setEvents(const QVector<CalendarEvent> &newEvents);
-signals:
+  QVector<CalendarEvent> &events();
+  void setEvents(const QVector<CalendarEvent> &newEvents);
+ signals:
   void displayNameChanged(QString display_name);
-public slots:
+ public slots:
   QString getDisplayName(void) const;
   void setDisplayName(QString name);
-private:
+
+ private:
   QString display_name_;
   QVector<CalendarEvent> events_;
 };
 
-#endif // CALENDAR_H
+#endif  // CALENDAR_H

@@ -14,7 +14,7 @@ Calendar::Calendar(const QString& href, QTextStream& ical_object, QObject *paren
       if(line.contains("BEGIN:VEVENT"))
       {
           CalendarEvent event = CalendarEvent(href, ical_object, this);
-          if (event.name() != "")
+          if (event.summary() != "")
           {
             events_.append(event);
           }

@@ -1,18 +1,17 @@
 #ifndef GOOGLEAUTH_H
 #define GOOGLEAUTH_H
 
+#include <QFuture>
 #include <QObject>
 #include <QtNetworkAuth>
-#include <QFuture>
 
-class GoogleAuth : public QObject
-{
-    Q_OBJECT
-public:
-    explicit GoogleAuth(QObject *parent = nullptr);
-    ~GoogleAuth();
+class GoogleAuth : public QObject {
+  Q_OBJECT
+ public:
+  explicit GoogleAuth(QObject *parent = nullptr);
+  ~GoogleAuth();
 
-    QOAuth2AuthorizationCodeFlow* google;
+  QPointer<QOAuth2AuthorizationCodeFlow> google;
 };
 
-#endif // GOOGLEAUTH_H
+#endif  // GOOGLEAUTH_H

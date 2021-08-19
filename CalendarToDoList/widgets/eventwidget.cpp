@@ -8,7 +8,7 @@ EventWidget::EventWidget(CalendarEvent& event, CalendarClient& client, Calendar&
 
     QString start_time = event.getStartDateTime().toString("hh:mm");
     QString end_time = event.getEndDateTime().toString("hh:mm");
-    setText(QString("%1\n%2 - %3").arg(event.name(), start_time, end_time));
+    setText(QString("%1\n%2 - %3").arg(event.summary(), start_time, end_time));
     setStyleSheet(QString("background-color: %1; color: white").arg(event.getColor()));
 
     connect(this, &QPushButton::clicked, [this]() {

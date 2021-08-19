@@ -1,17 +1,16 @@
 #ifndef CALENDARCLIENT_CALDAV_H
 #define CALENDARCLIENT_CALDAV_H
 
-#include <QObject>
 #include <QDomDocument>
+#include <QObject>
 
-#include "googleauth/googleauth.h"
 #include "calendar_classes/calendarevent.h"
+#include "googleauth/googleauth.h"
 
-class CalendarClient: public QObject
-{
+class CalendarClient : public QObject {
   Q_OBJECT
 
-public:
+ public:
   CalendarClient(GoogleAuth& auth, QObject* parent = nullptr);
   ~CalendarClient();
 
@@ -20,19 +19,21 @@ public:
    */
   QNetworkReply* obtainCTag();
 
-  const QDomElement &getCTag() { return cTag_ ;};
-  void setCTag(const QDomElement &new_cTag) { cTag_ = new_cTag; };
+  const QString& getCTag() { return cTag_; };
+  void setCTag(const QString& new_cTag) { cTag_ = new_cTag; };
 
-  QMap<QString, QDomElement> getETags(){ return eTags_; }
-  void addETag(QString href, const QDomElement &new_eTag) { eTags_.insert(href, new_eTag); };
+  QMap<QString, QString>& getETags() { return eTags_; }
+  void addETag(QString href, const QString& new_eTag) {
+    eTags_.insert(href, new_eTag);
+  };
   void deleteETag(QString href) { eTags_.remove(href); };
 
-  QList<QString> getChangedItems(){ return changedItems_; }
+  QList<QString> getChangedItems() { return changedItems_; }
   void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }
-  void deleteChangedItem(QString href){ changedItems_.removeOne(href); };
-  void clearChangedItems(){ changedItems_.clear(); }
+  void deleteChangedItem(QString href) { changedItems_.removeOne(href); };
+  void clearChangedItems() { changedItems_.clear(); }
 
-public slots:
+ public slots:
 
   /**
    * @brief Gets all events from the calDAV server.
@@ -67,20 +68,20 @@ public slots:
   /**
    * @brief Updates a event in the calDAV server.
    */
-  void updateEvent(CalendarEvent event, QDomElement eTag);
+  void updateEvent(CalendarEvent event, QString eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(CalendarEvent& event, QDomElement eTag);
+  void deleteEvent(CalendarEvent& event, QString eTag);
   void checkForChanges();
 
-private:
+ private:
   QPointer<GoogleAuth> auth_;
-  QDomElement cTag_;
-  QMap<QString, QDomElement> eTags_;
+  QString cTag_;
+  QMap<QString, QString> eTags_;
   QList<QString> changedItems_;
 
   QPointer<QNetworkAccessManager> network_manager_;
 };
 
-#endif // CALENDARCLIENT_CALDAV_H
+#endif  // CALENDARCLIENT_CALDAV_H

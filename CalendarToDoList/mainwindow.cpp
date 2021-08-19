@@ -1,108 +1,120 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+
+#include <QApplication>
+#include <QDomDocument>
+#include <QLabel>
 #include <iostream>
+
+#include "./ui_mainwindow.h"
+#include "CalendarClient/CalendarClient.h"
 #include "googleauth/googleauth.h"
 #include "widgets/eventwidget.h"
-#include <QLabel>
-#include <QDomDocument>
-#include "CalendarClient/CalendarClient.h"
-#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       calendar_(new Calendar(this)),
-      timer_(new QTimer(this))
-{
-    ui->setupUi(this);
-    ui->calendarTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->calendarTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    qDebug() << "Starting...\n";
+      timer_(new QTimer(this)),
+      showing_events_(nullptr),
+      single_shot_timer_(new QTimer(this)) {
+  ui->setupUi(this);
+  ui->calendarTable->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::Stretch);
+  ui->calendarTable->verticalHeader()->setSectionResizeMode(
+      QHeaderView::Stretch);
+  single_shot_timer_->setSingleShot(true);
+  qDebug() << "Starting...\n";
 
-    // Force user to authenticate
-    if(auth_.isNull())
-        auth_ = new GoogleAuth(this);
-    QEventLoop loop;
-    connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop, &QEventLoop::quit);
-    loop.exec();
+  // Force user to authenticate
+  if (auth_.isNull()) auth_ = new GoogleAuth(this);
+  QEventLoop loop;
+  connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
+          &QEventLoop::quit);
+  loop.exec();
 
-    // Internal signals
-    connect(this, &MainWindow::showing_eventsChanged, this, &MainWindow::on_showing_events_changed);
-    connect(timer_, &QTimer::timeout, this, &MainWindow::on_actionSincronizza_triggered);
-    // UI
-    connect(ui->testButton, &QPushButton::clicked, this, &MainWindow::refresh_calendar_events);
-    connect(ui->calendarWidget, &QCalendarWidget::selectionChanged, this, &MainWindow::refresh_calendar_events);
-    connect(ui->actionOgni_10_secondi, &QAction::triggered, [this]() { timer_->start(10000); });
-    connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() { timer_->start(30000); });
-    connect(ui->actionOgni_minuto, &QAction::triggered, [this]() { timer_->start(60000); });
-    connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() { timer_->start(600000); });
+  // Internal signals
+  connect(this, &MainWindow::showing_eventsChanged, this,
+          &MainWindow::on_showing_events_changed);
+  connect(timer_, &QTimer::timeout, this,
+          &MainWindow::on_actionSincronizza_triggered);
+  connect(single_shot_timer_, &QTimer::timeout,
+          [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
+  // UI
+  connect(ui->testButton, &QPushButton::clicked, this,
+          &MainWindow::refresh_calendar_events);
+  connect(ui->calendarWidget, &QCalendarWidget::selectionChanged, this,
+          &MainWindow::refresh_calendar_events);
+  connect(ui->actionOgni_10_secondi, &QAction::triggered,
+          [this]() { timer_->start(10000); });
+  connect(ui->actionOgni_30_secondi, &QAction::triggered,
+          [this]() { timer_->start(30000); });
+  connect(ui->actionOgni_minuto, &QAction::triggered,
+          [this]() { timer_->start(60000); });
+  connect(ui->actionOgni_10_minuti, &QAction::triggered,
+          [this]() { timer_->start(600000); });
 
-    client_ = new CalendarClient(*auth_, this);
+  client_ = new CalendarClient(*auth_, this);
 
-    //ottengo il cTag e tutti gli eventi nel calendario
-    auto reply = client_->obtainCTag();
-    connect(reply, &QNetworkReply::finished, [this, reply]() {
-        QDomDocument res;
-        res.setContent(reply->readAll());
-        auto lista = res.elementsByTagName("cs:getctag");
-        client_->setCTag(lista.at(0).toElement());        
-    });
+  // ottengo il cTag e tutti gli eventi nel calendario
+  auto reply = client_->obtainCTag();
+  connect(reply, &QNetworkReply::finished, [this, reply]() {
+    QDomDocument res;
+    res.setContent(reply->readAll());
+    auto lista = res.elementsByTagName("cs:getctag");
+    client_->setCTag(lista.at(0).toElement().text());
+  });
 
-    // Initial sync
-    refresh_calendar_events();
+  // Initial sync
+  refresh_calendar_events();
 
-    timer_->start(10000);
+  timer_->start(10000);
 }
 
-MainWindow::~MainWindow()
-{
-    showing_events_->clear();
-    delete showing_events_;
-    delete ui;
+MainWindow::~MainWindow() {
+  showing_events_->clear();
+  delete showing_events_;
+  delete ui;
 }
 
-void MainWindow::refresh_calendar_events()
-{
-   auto reply = client_->getAllEvents();
+void MainWindow::refresh_calendar_events() {
+  auto reply = client_->getAllEvents();
 
-   connect(reply, &QNetworkReply::finished, [this, reply]() {
-       calendar_->events().clear();
+  connect(reply, &QNetworkReply::finished, [this, reply]() {
+    calendar_->events().clear();
 
-       QDomDocument res;
-       res.setContent(reply->readAll());
+    QDomDocument res;
+    res.setContent(reply->readAll());
 
-       auto calendars = res.elementsByTagName("caldav:calendar-data");
-       auto hrefs_list = res.elementsByTagName("D:href");
+    auto calendars = res.elementsByTagName("caldav:calendar-data");
+    auto hrefs_list = res.elementsByTagName("D:href");
 
-       QString href = hrefs_list.at(0).toElement().text();
-       for(int i=0; i<calendars.size(); i++){
-           QString el = calendars.at(i).toElement().text();
-           QTextStream stream(&el);
-           QPointer<Calendar> tmp = new Calendar(href, stream);
-           calendar_->events().append(tmp->events());
-       }
+    QString href = hrefs_list.at(0).toElement().text();
+    for (int i = 0; i < calendars.size(); i++) {
+      QString el = calendars.at(i).toElement().text();
+      QTextStream stream(&el);
+      QPointer<Calendar> tmp = new Calendar(href, stream);
+      calendar_->events().append(tmp->events());
+    }
 
-       //salvo gli eTags per vedere i futuri cambiamenti
-       //è una mappa di <href, eTag>
-       auto eTags = res.elementsByTagName("D:getetag");
-       for(int i=0; i<eTags.size(); i++){
-           client_->addETag(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
-       }
+    // salvo gli eTags per vedere i futuri cambiamenti
+    //è una mappa di <href, eTag>
+    auto eTags = res.elementsByTagName("D:getetag");
+    for (int i = 0; i < eTags.size(); i++) {
+      client_->addETag(hrefs_list.at(i).toElement().text(),
+                       eTags.at(i).toElement().text());
+    }
 
-       updateTableToNDays(ui->calendarTable->columnCount());
-   });
+    updateTableToNDays(ui->calendarTable->columnCount());
+  });
 }
 
-void MainWindow::on_createEvent_clicked()
-{
-    editing_event_ = new CalendarEvent(nullptr);
-    CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
-    connect(&form, &CreateEventForm::requestView, [this](){
-        updateTableToNDays(ui->calendarTable->columnCount());
-    });
-    form.exec();
+void MainWindow::on_createEvent_clicked() {
+  editing_event_ = new CalendarEvent(nullptr);
+  CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
+  connect(&form, &CreateEventForm::requestView,
+          [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
+  form.exec();
 }
-
 
 /*void MainWindow::on_receiveChanges_clicked()
 {
@@ -110,208 +122,201 @@ void MainWindow::on_createEvent_clicked()
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
         QDomDocument q;
         q.setContent(reply->readAll());
-        CalendarClient_CalDAV::receiveChanges(*auth->google, q.elementsByTagName("D:sync-token").at(0).toElement().text());
+        CalendarClient_CalDAV::receiveChanges(*auth->google,
+q.elementsByTagName("D:sync-token").at(0).toElement().text());
     });
 }*/
 
-void MainWindow::on_seeIfChanged_clicked()
-{
-    auto reply = client_->obtainCTag();
-    connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
-        QDomDocument q;
-        q.setContent(reply->readAll());
-        QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();;
-        if(client_->getCTag().text().compare(thisCTag.text())==0){
-            client_->lookForChanges();
-        }
-    });
+void MainWindow::on_seeIfChanged_clicked() {
+  auto reply = client_->obtainCTag();
+  connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+    QDomDocument q;
+    q.setContent(reply->readAll());
+    QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();
+    if (client_->getCTag() == thisCTag.text()) {
+      client_->lookForChanges();
+    }
+  });
 }
 
-void MainWindow::on_showing_events_changed()
-{
-   //Delete all previous widgets
-   for(auto child : ui->calendarTable->viewport()->children())
-      if(qobject_cast<EventWidget *>(child) != nullptr)
-        child->deleteLater();
+void MainWindow::on_showing_events_changed() {
+  // Delete all previous widgets
+  for (auto child : ui->calendarTable->viewport()->children())
+    if (qobject_cast<EventWidget *>(child) != nullptr) child->deleteLater();
 
-   int column_width = ui->calendarTable->columnWidth(0);
-   int row_heigth = ui->calendarTable->rowHeight(0);
+  int column_width = ui->calendarTable->columnWidth(0);
+  int row_heigth = ui->calendarTable->rowHeight(0);
 
-   QDate selected_date = ui->calendarWidget->selectedDate();
+  QDate selected_date = ui->calendarWidget->selectedDate();
 
-   for(auto& event : *showing_events_)
-   {
-       EventWidget* widget = new EventWidget(event, *client_, *calendar_, ui->calendarTable->viewport());
-       QTime start_time = event.getStartDateTime().time();
-       int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
+  if (showing_events_ == nullptr) return;
 
-       int x_pos = column_width*selected_date.daysTo(event.getStartDateTime().date());
-       int y_pos = row_heigth + row_heigth*( start_time.hour() + start_time.minute()/60.0);
+  for (auto &event : *showing_events_) {
+    EventWidget *widget = new EventWidget(event, *client_, *calendar_,
+                                          ui->calendarTable->viewport());
+    QTime start_time = event.getStartDateTime().time();
+    int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
 
-       ui->calendarTable->scrollToTop();
-       if(days_long == 0)
-       {
-           widget->resize(column_width, row_heigth);
-           widget->move(x_pos, y_pos);
-       }
-       else
-       {
-           widget->move(x_pos, 0);
-           widget->resize((days_long+1)*column_width, row_heigth);
-       }
+    int x_pos =
+        column_width * selected_date.daysTo(event.getStartDateTime().date());
 
-       widget->show();
-   }
+    int y_pos = 0;
+    for (int i = 0; i <= start_time.hour(); i++)
+      y_pos += ui->calendarTable->rowHeight(i);
+    y_pos += (start_time.minute() / 60.0) * ui->calendarTable->rowHeight(0);
+
+    ui->calendarTable->scrollToTop();
+    if (days_long == 0) {
+      widget->resize(column_width, row_heigth);
+      widget->move(x_pos, y_pos);
+    } else {
+      widget->move(x_pos, 0);
+      widget->resize((days_long + 1) * column_width, row_heigth);
+    }
+
+    widget->show();
+  }
 }
 
-QList<CalendarEvent> *MainWindow::showing_events() const
-{
-    return showing_events_;
+QList<CalendarEvent> *MainWindow::showing_events() const {
+  return showing_events_;
 }
 
-void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events)
-{
-    if (showing_events_ == newShowing_events)
-        return;
-    showing_events_ = newShowing_events;
-    emit showing_eventsChanged();
+void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events) {
+  // if (showing_events_ == newShowing_events) return;
+  showing_events_ = newShowing_events;
+  emit showing_eventsChanged();
 }
 
-void MainWindow::on_calendarWidget_clicked(const QDate &date)
-{
+void MainWindow::on_calendarWidget_clicked(const QDate &date) {
   QDate d(date);
   QTableWidgetItem *item;
-  if(ui->calendarTable->columnCount()==1){
+  if (ui->calendarTable->columnCount() == 1) {
     item = new QTableWidgetItem(d.toString("ddd\ndd"));
     ui->calendarTable->setHorizontalHeaderItem(0, item);
-  }
-  else{
-    for(int i = 0; i < ui->calendarTable->columnCount(); i++)
-    {
-        item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
-        ui->calendarTable->setHorizontalHeaderItem(i, item);
+  } else {
+    for (int i = 0; i < ui->calendarTable->columnCount(); i++) {
+      item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
+      ui->calendarTable->setHorizontalHeaderItem(i, item);
     }
   }
 }
 
-void MainWindow::on_actionSincronizza_triggered()
-{
-    //ottengo il nuovo cTag e lo confronto con il vecchio
-    auto reply = client_->obtainCTag();
-        connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+void MainWindow::on_actionSincronizza_triggered() {
+  // ottengo il nuovo cTag e lo confronto con il vecchio
+  auto reply = client_->obtainCTag();
+  connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
+    QDomDocument res;
+    res.setContent(reply->readAll());
+    auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
+
+    if (newCTag.text() == client_->getCTag()) {
+      qDebug() << "Calendar already up to date";
+    } else {  // se non sono uguali, qualcosa è cambiato
+      client_->setCTag(newCTag.text());
+      reply = client_->lookForChanges();  // ottengo gli eTag per vedere quali
+                                          // sono cambiati
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        // creo una mappa con gli href e gli etag nuovi
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        auto hrefs_list = res.elementsByTagName("D:href");
+        auto eTags = res.elementsByTagName("D:getetag");
+        QMap<QString, QString> mapTmp;
+        for (int i = 0; i < eTags.size(); i++) {
+          mapTmp.insert(hrefs_list.at(i).toElement().text(),
+                        eTags.at(i).toElement().text());
+        }
+
+        // confronto la nuova mappa con quella esistente
+        // e aggiorno la lista di eTag nel client
+        QMap<QString, QString> oldMap = client_->getETags();
+        QMap<QString, QString>::iterator i;
+        for (i = oldMap.begin(); i != oldMap.end(); ++i) {
+          if (mapTmp.contains(i.key())) {
+            if (mapTmp[i.value()] != oldMap[i.value()]) {
+              qDebug() << "Item with href " + i.key() +
+                              "has a new etag: " + i.value() + "\n\n";
+              client_->deleteChangedItem(i.key());
+              client_->addChangedItem(i.key());
+              client_->deleteETag(i.key());
+              client_->addETag(i.key(), i.value());
+            }
+          } else {
+            qDebug() << "Item with href " + i.key() + "has been deleted\n\n";
+            client_->deleteETag(i.key());
+            for (CalendarEvent &ev : calendar_->events()) {
+              qDebug() << "\n\n href: " + ev.getHREF() + "\n\n";
+              if (ev.getHREF() == i.key()) {
+                calendar_->events().removeOne(ev);
+                break;
+              }
+            }
+          }
+        }
+        for (i = mapTmp.begin(); i != mapTmp.end(); ++i) {
+          if (!oldMap.contains(i.key())) {
+            qDebug() << "There is a new Item with eTag: " + i.value() + "\n\n";
+            client_->addChangedItem(i.key());
+            client_->addETag(i.key(), i.value());
+          }
+        }
+
+        auto reply = client_->getChangedEvents();
+        connect(reply, &QNetworkReply::finished, [this, reply]() {
           QDomDocument res;
           res.setContent(reply->readAll());
-          auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
+          auto events = res.elementsByTagName("caldav:calendar-data");
+          auto href_list = res.elementsByTagName("D:href");
+          for (int i = 0; i < events.size(); i++) {
+            qDebug() << events.at(i).toElement().text() + "\n\n";
 
-          if(newCTag.text() == client_->getCTag().text()){
-              qDebug() << "Calendar already up to date";
+            // salvo l'evento nella lista di eventi del calendario
+            QString el = events.at(i).toElement().text();
+            QTextStream stream(&el);
+            QPointer<Calendar> tmp =
+                new Calendar(href_list.at(i).toElement().text(), stream);
+            if (calendar_.isNull())
+              calendar_ = tmp;
+            else
+              calendar_->events().append(tmp->events());
           }
-          else{//se non sono uguali, qualcosa è cambiato
-              client_->setCTag(newCTag);
-              reply = client_->lookForChanges();//ottengo gli eTag per vedere quali sono cambiati
-              connect(reply, &QNetworkReply::finished, [this, reply]() {
-
-                  //creo una mappa con gli href e gli etag nuovi
-                  QDomDocument res;
-                  res.setContent(reply->readAll());
-                  auto hrefs_list = res.elementsByTagName("D:href");
-                  auto eTags = res.elementsByTagName("D:getetag");
-                  QMap<QString, QDomElement> mapTmp;
-                  for(int i=0; i<eTags.size(); i++){
-                      mapTmp.insert(hrefs_list.at(i).toElement().text(), eTags.at(i).toElement());
-                  }
-
-                  //confronto la nuova mappa con quella esistente
-                  //e aggiorno la lista di eTag nel client
-                  QMap<QString, QDomElement> oldMap = client_->getETags();
-                  QMap<QString, QDomElement>::iterator i;
-                  for(i = oldMap.begin(); i != oldMap.end(); ++i){
-                      if(mapTmp.contains(i.key())){
-                          if(mapTmp[i.value().text()]!=oldMap[i.value().text()]){
-                              qDebug() << "Item with href " + i.key() + "has a new etag: " + i.value().text() + "\n\n";
-                              client_->deleteChangedItem(i.key());
-                              client_->addChangedItem(i.key());
-                              client_->deleteETag(i.key());
-                              client_->addETag(i.key(), i.value());
-                          }
-                      }
-                      else{
-                          qDebug() << "Item with href " + i.key() + "has been deleted\n\n";
-                          client_->deleteETag(i.key());
-                          for(CalendarEvent ev : calendar_->events()){
-                              qDebug() << "\n\n href: " + ev.getHREF() + "\n\n";
-                              if(ev.getHREF()==i.key()){
-                                  calendar_->events().removeOne(ev);
-                                  break;
-                              }
-                          }
-                      }
-                  }
-                  for(i = mapTmp.begin(); i != mapTmp.end(); ++i){
-                      if(!oldMap.contains(i.key())){
-                          qDebug() << "There is a new Item with eTag: " + i.value().text() + "\n\n";
-                          client_->addChangedItem(i.key());
-                          client_->addETag(i.key(), i.value());
-                      }
-                  }
-
-                 auto reply = client_->getChangedEvents();
-                 connect(reply, &QNetworkReply::finished, [this, reply](){
-                     QDomDocument res;
-                      res.setContent(reply->readAll());
-                      auto events = res.elementsByTagName("caldav:calendar-data");
-                      auto href_list = res.elementsByTagName("D:href");
-                      for(int i=0; i<events.size(); i++){
-                         qDebug() << events.at(i).toElement().text() + "\n\n";
-
-                         //salvo l'evento nella lista di eventi del calendario
-                         QString el = events.at(i).toElement().text();
-                         QTextStream stream(&el);
-                         QPointer<Calendar> tmp = new Calendar(href_list.at(i).toElement().text(), stream);
-                         if(calendar_.isNull())
-                             calendar_ = tmp;
-                         else
-                             calendar_->events().append(tmp->events());
-                      }
-                      client_->clearChangedItems();
-                      updateTableToNDays(ui->calendarTable->columnCount());
-                  });
-
-                      
-              });
-          }
-       });
+          client_->clearChangedItems();
+          updateTableToNDays(ui->calendarTable->columnCount());
+        });
+      });
+    }
+  });
 }
 
-void MainWindow::resizeEvent(QResizeEvent *event)
-{
-   updateTableToNDays(ui->calendarTable->columnCount());
-   QWidget::resizeEvent(event);
+void MainWindow::resizeEvent(QResizeEvent *event) {
+  QWidget::resizeEvent(event);
+  single_shot_timer_->start(500);
+  updateTableToNDays(ui->calendarTable->columnCount());
 }
 
-void MainWindow::updateTableToNDays(int n)
-{
-    ui->calendarTable->setColumnCount(n);
-    QDate d = ui->calendarWidget->selectedDate();
+void MainWindow::updateTableToNDays(int n) {
+  ui->calendarTable->setColumnCount(n);
+  QDate d = ui->calendarWidget->selectedDate();
 
-    for(int i = 0; i < n; i++)
-    {
-        QTableWidgetItem *item = new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
-        ui->calendarTable->setHorizontalHeaderItem(i, item);
-    }
-    QList<CalendarEvent>* selected = new QList<CalendarEvent>;
-    for(CalendarEvent& ev : calendar_->events())
-    {
-        auto recurs = ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
-        for(const QDateTime& dt : recurs)
-        {
-            CalendarEvent new_ev = ev;
-            auto diff = ev.getStartDateTime().time().msecsTo(ev.getEndDateTime().time());
+  for (int i = 0; i < n; i++) {
+    QTableWidgetItem *item =
+        new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
+    ui->calendarTable->setHorizontalHeaderItem(i, item);
+  }
+  QList<CalendarEvent> *selected = new QList<CalendarEvent>;
+  for (CalendarEvent &ev : calendar_->events()) {
+    auto recurs =
+        ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
+    for (const QDateTime &dt : recurs) {
+      CalendarEvent new_ev = ev;
+      auto diff =
+          ev.getStartDateTime().time().msecsTo(ev.getEndDateTime().time());
 
-            new_ev.setStartDateTime(dt);
-            new_ev.setEndDateTime(dt.addMSecs(diff));
-            selected->append(new_ev);
-        }
+      new_ev.setStartDateTime(dt);
+      new_ev.setEndDateTime(dt.addMSecs(diff));
+      selected->append(new_ev);
     }
-    setShowing_events(selected);
+  }
+  setShowing_events(selected);
 }
