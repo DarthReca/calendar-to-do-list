@@ -87,20 +87,23 @@ void MainWindow::refresh_calendar_events() {
     QDomDocument res;
     res.setContent(reply->readAll());
 
+    qDebug() << res.toString();
+
     auto calendars = res.elementsByTagName("caldav:calendar-data");
     auto hrefs_list = res.elementsByTagName("D:href");
+    auto eTags = res.elementsByTagName("D:getetag");
 
-    QString href = hrefs_list.at(0).toElement().text();
     for (int i = 0; i < calendars.size(); i++) {
       QString el = calendars.at(i).toElement().text();
+      QString href = hrefs_list.at(i).toElement().text();
+      QString eTag = eTags.at(i).toElement().text();
       QTextStream stream(&el);
-      QPointer<Calendar> tmp = new Calendar(href, stream);
+      QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
       calendar_->events().append(tmp->events());
     }
 
     // salvo gli eTags per vedere i futuri cambiamenti
     //è una mappa di <href, eTag>
-    auto eTags = res.elementsByTagName("D:getetag");
     for (int i = 0; i < eTags.size(); i++) {
       client_->addETag(hrefs_list.at(i).toElement().text(),
                        eTags.at(i).toElement().text());
@@ -206,12 +209,13 @@ void MainWindow::on_actionSincronizza_triggered() {
   connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
     QDomDocument res;
     res.setContent(reply->readAll());
-    auto newCTag = res.elementsByTagName("cs:getctag").at(0).toElement();
+    QString newCTag =
+        res.elementsByTagName("cs:getctag").at(0).toElement().text();
 
-    if (newCTag.text() == client_->getCTag()) {
+    if (newCTag == client_->getCTag()) {
       qDebug() << "Calendar already up to date";
     } else {  // se non sono uguali, qualcosa è cambiato
-      client_->setCTag(newCTag.text());
+      client_->setCTag(newCTag);
       reply = client_->lookForChanges();  // ottengo gli eTag per vedere quali
                                           // sono cambiati
       connect(reply, &QNetworkReply::finished, [this, reply]() {
@@ -220,7 +224,7 @@ void MainWindow::on_actionSincronizza_triggered() {
         res.setContent(reply->readAll());
         auto hrefs_list = res.elementsByTagName("D:href");
         auto eTags = res.elementsByTagName("D:getetag");
-        QMap<QString, QString> mapTmp;
+        QHash<QString, QString> mapTmp;
         for (int i = 0; i < eTags.size(); i++) {
           mapTmp.insert(hrefs_list.at(i).toElement().text(),
                         eTags.at(i).toElement().text());
@@ -228,35 +232,26 @@ void MainWindow::on_actionSincronizza_triggered() {
 
         // confronto la nuova mappa con quella esistente
         // e aggiorno la lista di eTag nel client
-        QMap<QString, QString> oldMap = client_->getETags();
-        QMap<QString, QString>::iterator i;
-        for (i = oldMap.begin(); i != oldMap.end(); ++i) {
-          if (mapTmp.contains(i.key())) {
-            if (mapTmp[i.value()] != oldMap[i.value()]) {
-              qDebug() << "Item with href " + i.key() +
-                              "has a new etag: " + i.value() + "\n\n";
-              client_->deleteChangedItem(i.key());
-              client_->addChangedItem(i.key());
-              client_->deleteETag(i.key());
-              client_->addETag(i.key(), i.value());
-            }
+        QSet<QString> processed;
+        // Deleted and updated events
+        for (CalendarEvent &ev : calendar_->events()) {
+          QString href = ev.getHREF();
+          if (mapTmp.contains(href)) {
+            qDebug() << "Item with href " + href +
+                            "has a new etag: " + mapTmp[href] + "\n\n";
+            client_->deleteChangedItem(href);
+            client_->addChangedItem(href);
           } else {
-            qDebug() << "Item with href " + i.key() + "has been deleted\n\n";
-            client_->deleteETag(i.key());
-            for (CalendarEvent &ev : calendar_->events()) {
-              qDebug() << "\n\n href: " + ev.getHREF() + "\n\n";
-              if (ev.getHREF() == i.key()) {
-                calendar_->events().removeOne(ev);
-                break;
-              }
-            }
+            qDebug() << "Item with href " + href + "has been deleted\n\n";
           }
+          calendar_->events().removeOne(ev);
+          processed += href;
         }
-        for (i = mapTmp.begin(); i != mapTmp.end(); ++i) {
-          if (!oldMap.contains(i.key())) {
+        // Added events
+        for (auto i = mapTmp.constBegin(); i != mapTmp.constEnd(); i++) {
+          if (!processed.contains(i.key())) {
             qDebug() << "There is a new Item with eTag: " + i.value() + "\n\n";
             client_->addChangedItem(i.key());
-            client_->addETag(i.key(), i.value());
           }
         }
 
@@ -273,7 +268,7 @@ void MainWindow::on_actionSincronizza_triggered() {
             QString el = events.at(i).toElement().text();
             QTextStream stream(&el);
             QPointer<Calendar> tmp =
-                new Calendar(href_list.at(i).toElement().text(), stream);
+                new Calendar(href_list.at(i).toElement().text(), "", stream);
             if (calendar_.isNull())
               calendar_ = tmp;
             else

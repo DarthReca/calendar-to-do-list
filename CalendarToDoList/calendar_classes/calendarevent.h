@@ -10,7 +10,7 @@ class CalendarEvent : public QObject {
 
  public:
   CalendarEvent(QObject* parent = nullptr);
-  CalendarEvent(const QString& href, QTextStream& ical_object, QObject* parent);
+  CalendarEvent(QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
   QString ToICalendarObject();

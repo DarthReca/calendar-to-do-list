@@ -10,7 +10,7 @@ class Calendar : public QObject {
 
  public:
   Calendar(QObject *parent = nullptr);
-  Calendar(const QString &href, QTextStream &ical_object,
+  Calendar(const QString &href, const QString &eTag, QTextStream &ical_object,
            QObject *parent = nullptr);
   ~Calendar();
 

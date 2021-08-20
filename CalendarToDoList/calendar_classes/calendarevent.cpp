@@ -21,12 +21,8 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
   eTag_ = "";
 }
 
-CalendarEvent::CalendarEvent(const QString& href, QTextStream& ical_object,
-                             QObject* parent)
+CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
     : CalendarEvent(parent) {
-  QString display_name = "unnamed";
-  setCalendarName(display_name);
-  setHREF(href);
   QString line;
   QDateTime utcTime;
   while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT"))) {
@@ -48,7 +44,7 @@ CalendarEvent::CalendarEvent(const QString& href, QTextStream& ical_object,
       if (!utcTime.isValid())
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
       if (!utcTime.isValid())
-        qDebug() << display_name << ": "
+        qDebug() << ": "
                  << "could not parse" << line;
 
       setStartDateTime(utcTime.toLocalTime());
@@ -61,7 +57,7 @@ CalendarEvent::CalendarEvent(const QString& href, QTextStream& ical_object,
       if (!utcTime.isValid())
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
       if (!utcTime.isValid())
-        qDebug() << display_name << ": "
+        qDebug() << ": "
                  << "could not parse" << line;
 
       setEndDateTime(utcTime.toLocalTime());
