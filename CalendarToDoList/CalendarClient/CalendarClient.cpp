@@ -281,6 +281,12 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
       cal_part, QByteArray("PUT"), request_string);
 
   qDebug() << "Put request sent\n";
+  connect(reply, &QNetworkReply::finished, [reply]() {
+    for(int i=0; reply->rawHeaderPairs().size(); i++)
+        qDebug() << "\n\nHeader: " + reply->rawHeaderPairs().at(i).first + reply->rawHeaderPairs().at(i).second + "\n\n";
+
+      qDebug() << "\n\nBody: " + reply->readAll() + "\n\n";
+  });
 }
 
 void CalendarClient::updateEvent(CalendarEvent event, QString eTag) {

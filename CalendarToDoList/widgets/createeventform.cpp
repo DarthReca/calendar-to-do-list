@@ -59,13 +59,16 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {
+
+      //serve l'eTag quando faccio la create dal server
+
       client_->saveEvent(*event_);
       calendar_->events().append(*event_);
       qDebug() << "New event saved\n";
     } else {
       QString hrefToUpdate = event_->getHREF();
-      client_->updateEvent(*event_,
-                           client_->getETags().find(hrefToUpdate).value());
+      qDebug() << "\n\nETag: " + client_->getETags().find(hrefToUpdate).value() + "\n\n";
+      client_->updateEvent(*event_, client_->getETags().find(hrefToUpdate).value());
       for (CalendarEvent& ev : calendar_->events()) {
         if (ev.getHREF() == hrefToUpdate) {
           calendar_->events().removeOne(ev);
