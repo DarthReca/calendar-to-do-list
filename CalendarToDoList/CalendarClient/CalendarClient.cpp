@@ -282,7 +282,7 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
 
   qDebug() << "Put request sent\n";
   connect(reply, &QNetworkReply::finished, [reply]() {
-    for(int i=0; reply->rawHeaderPairs().size(); i++)
+    for(int i=0; i<reply->rawHeaderPairs().size(); i++)
         qDebug() << "\n\nHeader: " + reply->rawHeaderPairs().at(i).first + reply->rawHeaderPairs().at(i).second + "\n\n";
 
       qDebug() << "\n\nBody: " + reply->readAll() + "\n\n";

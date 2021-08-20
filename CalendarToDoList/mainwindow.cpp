@@ -253,19 +253,24 @@ void MainWindow::on_actionSincronizza_triggered() {
         }
 
         auto reply = client_->getChangedEvents();
-        connect(reply, &QNetworkReply::finished, [this, reply]() {
+        connect(reply, &QNetworkReply::finished, [this, reply, mapTmp]() {
           QDomDocument res;
           res.setContent(reply->readAll());
           auto events = res.elementsByTagName("caldav:calendar-data");
           auto href_list = res.elementsByTagName("D:href");
           for (int i = 0; i < events.size(); i++) {
-            qDebug() << events.at(i).toElement().text() + "\n\n";
+            //qDebug() << events.at(i).toElement().text() + "\n\n";
 
             // salvo l'evento nella lista di eventi del calendario
             QString el = events.at(i).toElement().text();
             QTextStream stream(&el);
             QPointer<Calendar> tmp =
                 new Calendar(href_list.at(i).toElement().text(), "", stream);
+            for(CalendarEvent& ev : tmp->events()){
+                QString hrefToSearch = ev.getHREF();
+                QString eTagToPut = mapTmp.find(hrefToSearch).value();
+                ev.setETag(eTagToPut);
+            }
             if (calendar_.isNull())
               calendar_ = tmp;
             else
