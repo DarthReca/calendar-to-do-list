@@ -86,9 +86,6 @@ void MainWindow::refresh_calendar_events() {
 
     QDomDocument res;
     res.setContent(reply->readAll());
-
-    qDebug() << res.toString();
-
     auto calendars = res.elementsByTagName("caldav:calendar-data");
     auto hrefs_list = res.elementsByTagName("D:href");
     auto eTags = res.elementsByTagName("D:getetag");
@@ -164,7 +161,7 @@ void MainWindow::on_showing_events_changed() {
     y_pos += (start_time.minute() / 60.0) * ui->calendarTable->rowHeight(0);
 
     ui->calendarTable->scrollToTop();
-    if (days_long == 0) {
+    if (days_long == 0 && !event.all_day()) {
       widget->resize(column_width, row_heigth * time_long);
       widget->move(x_pos, y_pos);
     } else {

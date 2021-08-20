@@ -20,9 +20,6 @@ class CreateEventForm : public QDialog {
                            Calendar& calendar, bool existing,
                            QWidget* parent = nullptr);
   ~CreateEventForm();
-
- private slots:
-  void on_allDayBox_stateChanged(int arg1);
  signals:
   void requestView();
 

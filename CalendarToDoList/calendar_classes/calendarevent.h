@@ -30,6 +30,9 @@ class CalendarEvent : public QObject {
   const QString& eTag() const;
   void setETag(const QString& newETag);
 
+  bool all_day() const;
+  void setAll_day(bool newAll_day);
+
  signals:
   void colorChanged(QString& color);
   void calendarNameChanged(const QString& calendarName);
@@ -92,8 +95,11 @@ class CalendarEvent : public QObject {
   QString summary_;
   QString location_;
   QString description_;
+
   QDateTime start_date_time_;
   QDateTime end_date_time_;
+  bool all_day_;
+
   QString RRULE_;
   QString exdates_;
   QString categories_;

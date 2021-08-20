@@ -19,6 +19,7 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
   UID_ = "";
   HREF_ = "";
   eTag_ = "";
+  all_day_ = false;
 }
 
 CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
@@ -54,8 +55,10 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
         utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss");
       if (!utcTime.isValid())
         utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
-      if (!utcTime.isValid())
+      if (!utcTime.isValid()) {
+        all_day_ = true;
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
+      }
       if (!utcTime.isValid())
         qDebug() << ": "
                  << "could not parse" << line;
@@ -97,10 +100,12 @@ QString CalendarEvent::ToICalendarObject() {
       summary_ +
       "\r\n"
       "DTSTART:" +
-      start_date_time_.toString("yyyyMMddTHHmmss") +
+      (all_day_ ? start_date_time_.toString("yyyyMMdd")
+                : start_date_time_.toString("yyyyMMddTHHmmss")) +
       "\r\n"
       "DTEND:" +
-      end_date_time_.toString("yyyyMMddTHHmmss") +
+      (all_day_ ? end_date_time_.toString("yyyyMMdd")
+                : end_date_time_.toString("yyyyMMddTHHmmss")) +
       "\r\n"
       "LOCATION:" +
       location_ +
@@ -168,6 +173,8 @@ void CalendarEvent::copyFrom(const CalendarEvent& other) {
   setUID(other.UID_);
   setHREF(other.HREF_);
   setParent(other.parent());
+  setAll_day(other.all_day_);
+  setETag(other.eTag_);
 }
 
 /* Public slots */
@@ -245,6 +252,10 @@ QHash<QString, QString> CalendarEvent::parseRRule() {
   }
   return map;
 }
+
+bool CalendarEvent::all_day() const { return all_day_; }
+
+void CalendarEvent::setAll_day(bool newAll_day) { all_day_ = newAll_day; }
 
 const QString& CalendarEvent::eTag() const { return eTag_; }
 

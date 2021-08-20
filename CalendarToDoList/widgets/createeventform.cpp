@@ -18,6 +18,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   ui->locationEdit->setText(event_->location());
   ui->startDateTime->setDateTime(event_->getStartDateTime());
   ui->endDateTime->setDateTime(event_->getEndDateTime());
+  ui->allDayBox->setChecked(event->all_day());
 
   connect(ui->titleEdit, &QLineEdit::textChanged,
           [this](const QString& text) { event_->setSummary(text); });
@@ -26,6 +27,9 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   connect(ui->descriptionEdit, &QTextEdit::textChanged,
           [this]() { event_->setDescription(ui->descriptionEdit->toHtml()); });
 
+  connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
+    event_->setAll_day(state == Qt::CheckState::Checked);
+  });
   connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
             event_->setStartDateTime(datetime);
@@ -80,7 +84,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       qDebug() << "Event not created\n";
     } else {
       QString hrefToDelete = event_->getHREF();
-      QString eTag = client_->getETags().find(hrefToDelete).value();
+      QString eTag = event_->eTag();
       calendar_->events().removeOne(*event_);
       client_->deleteETag(hrefToDelete);
       client_->deleteEvent(*event_, eTag);
@@ -92,9 +96,3 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 }
 
 CreateEventForm::~CreateEventForm() { delete ui; }
-
-void CreateEventForm::on_allDayBox_stateChanged(int arg1) {
-  if (arg1 == Qt::CheckState::Checked) {
-  } else {
-  }
-}
