@@ -86,6 +86,31 @@
         <property name="placeholderText">
          <string/>
         </property>
+        <item>
+         <property name="text">
+          <string>Non si ripete</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ogni giorno</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ogni settimana</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ogni mese</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ogni anno</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

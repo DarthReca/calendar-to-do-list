@@ -32,7 +32,6 @@ class MainWindow : public QMainWindow {
   void resizeEvent(QResizeEvent *event);
 
  private slots:
-  void on_createEvent_clicked();
   void refresh_calendar_events();
 
   void on_calendarWidget_clicked(const QDate &date);
@@ -42,6 +41,7 @@ class MainWindow : public QMainWindow {
 
  private:
   void updateTableToNDays(int n);
+  void on_request_editing_form(CalendarEvent *event = nullptr);
 
   Ui::MainWindow *ui;
 

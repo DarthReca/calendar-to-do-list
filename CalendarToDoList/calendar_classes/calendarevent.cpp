@@ -18,6 +18,7 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
   color_ = QColor(Qt::red).name();
   UID_ = "";
   HREF_ = "";
+  eTag_ = "";
 }
 
 CalendarEvent::CalendarEvent(const QString& href, QTextStream& ical_object,
@@ -248,6 +249,10 @@ QHash<QString, QString> CalendarEvent::parseRRule() {
   }
   return map;
 }
+
+const QString& CalendarEvent::eTag() const { return eTag_; }
+
+void CalendarEvent::setETag(const QString& newETag) { eTag_ = newETag; }
 
 QString CalendarEvent::location() const { return location_; }
 

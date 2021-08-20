@@ -27,6 +27,9 @@ class CalendarEvent : public QObject {
 
   void copyFrom(const CalendarEvent& other);
 
+  const QString& eTag() const;
+  void setETag(const QString& newETag);
+
  signals:
   void colorChanged(QString& color);
   void calendarNameChanged(const QString& calendarName);
@@ -96,6 +99,8 @@ class CalendarEvent : public QObject {
   QString categories_;
   QString UID_;
   QString HREF_;
+
+  QString eTag_;
 };
 
 #endif  // CALENDAREVENT_H

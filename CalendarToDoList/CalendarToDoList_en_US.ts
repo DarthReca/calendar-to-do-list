@@ -25,22 +25,47 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="121"/>
+        <location filename="widgets/createeventform.ui" line="91"/>
+        <source>Non si ripete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="96"/>
+        <source>Ogni giorno</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="101"/>
+        <source>Ogni settimana</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="106"/>
+        <source>Ogni mese</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="111"/>
+        <source>Ogni anno</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="146"/>
         <source>Aggiungi posizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="128"/>
+        <location filename="widgets/createeventform.ui" line="153"/>
         <source>Aggiungi descrizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="178"/>
+        <location filename="widgets/createeventform.ui" line="203"/>
         <source>Salva</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="191"/>
+        <location filename="widgets/createeventform.ui" line="216"/>
         <source>Elimina</source>
         <translation type="unfinished"></translation>
     </message>

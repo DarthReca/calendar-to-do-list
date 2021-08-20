@@ -19,13 +19,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   ui->startDateTime->setDateTime(event_->getStartDateTime());
   ui->endDateTime->setDateTime(event_->getEndDateTime());
 
-  ui->RRule->setPlaceholderText("Ripeti:");
-  ui->RRule->addItem("Non si ripete");
-  ui->RRule->addItem("Ogni giorno");
-  ui->RRule->addItem("Ogni settimana");
-  ui->RRule->addItem("Ogni mese");
-  ui->RRule->addItem("Ogni anno");
-
   connect(ui->titleEdit, &QLineEdit::textChanged,
           [this](const QString& text) { event_->setSummary(text); });
   connect(ui->locationEdit, &QLineEdit::textChanged,
@@ -69,7 +62,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       QString hrefToUpdate = event_->getHREF();
       client_->updateEvent(*event_,
                            client_->getETags().find(hrefToUpdate).value());
-      for (CalendarEvent ev : calendar_->events()) {
+      for (CalendarEvent& ev : calendar_->events()) {
         if (ev.getHREF() == hrefToUpdate) {
           calendar_->events().removeOne(ev);
         }
@@ -83,7 +76,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      delete event_;
+      event_.clear();
       qDebug() << "Event not created\n";
     } else {
       QString hrefToDelete = event_->getHREF();

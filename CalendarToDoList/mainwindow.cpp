@@ -52,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent)
           [this]() { timer_->start(60000); });
   connect(ui->actionOgni_10_minuti, &QAction::triggered,
           [this]() { timer_->start(600000); });
+  connect(ui->createEvent, &QPushButton::clicked,
+          [this]() { on_request_editing_form(); });
 
   client_ = new CalendarClient(*auth_, this);
 
@@ -108,14 +110,6 @@ void MainWindow::refresh_calendar_events() {
   });
 }
 
-void MainWindow::on_createEvent_clicked() {
-  editing_event_ = new CalendarEvent(nullptr);
-  CreateEventForm form(editing_event_, *client_, *calendar_, false, this);
-  connect(&form, &CreateEventForm::requestView,
-          [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
-  form.exec();
-}
-
 /*void MainWindow::on_receiveChanges_clicked()
 {
     auto reply = CalendarClient_CalDAV::requestSyncToken(*auth->google);
@@ -156,6 +150,7 @@ void MainWindow::on_showing_events_changed() {
                                           ui->calendarTable->viewport());
     QTime start_time = event.getStartDateTime().time();
     int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
+    int time_long = event.getEndDateTime().time().hour() - start_time.hour();
 
     int x_pos =
         column_width * selected_date.daysTo(event.getStartDateTime().date());
@@ -167,13 +162,16 @@ void MainWindow::on_showing_events_changed() {
 
     ui->calendarTable->scrollToTop();
     if (days_long == 0) {
-      widget->resize(column_width, row_heigth);
+      widget->resize(column_width, row_heigth * time_long);
       widget->move(x_pos, y_pos);
     } else {
       widget->move(x_pos, 0);
       widget->resize((days_long + 1) * column_width, row_heigth);
     }
 
+    // Connection to edit
+    connect(widget, &EventWidget::clicked,
+            [this, widget]() { on_request_editing_form(widget->event()); });
     widget->show();
   }
 }
@@ -287,6 +285,15 @@ void MainWindow::on_actionSincronizza_triggered() {
       });
     }
   });
+}
+
+void MainWindow::on_request_editing_form(CalendarEvent *event) {
+  bool existing = event != nullptr;
+  if (!existing) event = new CalendarEvent;
+  CreateEventForm form(event, *client_, *calendar_, existing, this);
+  connect(&form, &CreateEventForm::requestView,
+          [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
+  form.exec();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
