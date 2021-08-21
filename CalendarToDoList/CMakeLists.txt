@@ -39,6 +39,7 @@ set(PROJECT_SOURCES
         googleauth/googleauth.h googleauth/googleauth.cpp
         calendar_classes/calendarevent.h calendar_classes/calendarevent.cpp
         calendar_classes/calendar.h calendar_classes/calendar.cpp
+        calendar_classes/task.h calendar_classes/task.cpp
         CalendarClient/calendarclient.cpp
         CalendarClient/calendarclient.h
         widgets/eventwidget.h widgets/eventwidget.cpp
