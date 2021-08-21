@@ -35,6 +35,7 @@ class CalendarClient : public QObject {
 
  public slots:
 
+  //////////// Events APIs ////////////
   /**
    * @brief Gets all events from the calDAV server.
    */
@@ -43,14 +44,6 @@ class CalendarClient : public QObject {
    * @brief Gets all events in a specific time range.
    */
   void getDateRangeEvents(QDateTime start, QDateTime end);
-  /**
-   * @brief Requests the token to receive changes in the server.
-   */
-  QNetworkReply* requestSyncToken();
-  /**
-   * @brief Receives the changes done in the server.
-   */
-  void receiveChanges(QString syncToken);
   /**
    * @brief Looks for changes done in the server.
    */
@@ -73,7 +66,50 @@ class CalendarClient : public QObject {
    * @brief Deletes a specific event from the calDAV server.
    */
   void deleteEvent(CalendarEvent& event, QString eTag);
-  void checkForChanges();
+
+  //////////// Tasks APIs ////////////
+  /**
+   * @brief Gets all taskLists from the server.
+   */
+  QNetworkReply* getAllTaskLists();
+  /**
+   * @brief Creates a new taskList in the user's taskLists.
+   */
+  //QNetworkReply* createTaskList(TaskList listToCreate);
+  /**
+   * @brief Updates an existing taskList among the user's taskLists.
+   */
+  //QNetworkReply* updateTaskList(TaskList listToUpdate);
+  /**
+   * @brief Deletes an existing taskList among the user's taskLists.
+   */
+  //QNetworkReply* deleteTaskList(TaskList listToDelete);
+  /**
+   * @brief Gets all tasks in a specified user's taskLists.
+   */
+  //QNetworkReply* getAllTasks(TaskList list);
+  /**
+   * @brief Gets a certain tasks in a specified user's taskLists.
+   */
+  //QNetworkReply* getTask(TaskList list, Task taskToGet);
+  /**
+   * @brief Creates a new tasks in a specified user's taskLists.
+   */
+  //QNetworkReply* createTask(TaskList list, Task newTask);
+  /**
+   * @brief Updates a certain tasks in a specified user's taskLists.
+   */
+  //QNetworkReply* updateTask(TaskList list, Task taskToUpdate);
+  /**
+   * @brief Deletes a certain tasks in a specified user's taskLists.
+   */
+  //QNetworkReply* deleteTask(TaskList list, Task taskToDelete);
+
+
+
+
+
+
 
  private:
   QPointer<GoogleAuth> auth_;
