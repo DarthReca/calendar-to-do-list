@@ -1,14 +1,18 @@
 #ifndef TASK_H
 #define TASK_H
 
+#include <QColor>
 #include <QJsonObject>
 #include <QObject>
 
 #include "calendarevent.h"
 
 class Task : public CalendarEvent {
+  Q_OBJECT
  public:
-  Task(QObject *parent = nullptr) : CalendarEvent(parent), completed_(false){};
+  Task(QObject *parent = nullptr) : CalendarEvent(parent), completed_(false) {
+    setColor(QColor(Qt::blue).name());
+  };
   Task(QJsonObject &json, QObject *parent = nullptr);
 
   QJsonObject ToJson();

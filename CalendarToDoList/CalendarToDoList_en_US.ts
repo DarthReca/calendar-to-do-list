@@ -60,12 +60,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="203"/>
+        <location filename="widgets/createeventform.ui" line="219"/>
         <source>Salva</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="216"/>
+        <location filename="widgets/createeventform.ui" line="227"/>
+        <source>Evento</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="232"/>
+        <source>Attività</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/createeventform.ui" line="206"/>
         <source>Elimina</source>
         <translation type="unfinished"></translation>
     </message>

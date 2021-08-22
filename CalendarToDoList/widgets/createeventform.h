@@ -7,6 +7,7 @@
 #include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
 #include "calendar_classes/calendarevent.h"
+#include "calendar_classes/task.h"
 
 namespace Ui {
 class CreateEventForm;
@@ -20,6 +21,8 @@ class CreateEventForm : public QDialog {
                            Calendar& calendar, bool existing,
                            QWidget* parent = nullptr);
   ~CreateEventForm();
+
+  void ResetFormFields();
  signals:
   void requestView();
 

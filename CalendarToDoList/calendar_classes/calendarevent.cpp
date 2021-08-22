@@ -126,6 +126,28 @@ QString CalendarEvent::ToICalendarObject() {
   return ical_object;
 }
 
+int CalendarEvent::WeekDayFromString(const QString& weekday_string) {
+  int iRet = 0;
+
+  if (weekday_string.endsWith("MO", Qt::CaseInsensitive)) {
+    iRet = 1;
+  } else if (weekday_string.endsWith("TU", Qt::CaseInsensitive)) {
+    iRet = 2;
+  } else if (weekday_string.endsWith("WE", Qt::CaseInsensitive)) {
+    iRet = 3;
+  } else if (weekday_string.endsWith("TH", Qt::CaseInsensitive)) {
+    iRet = 4;
+  } else if (weekday_string.endsWith("FR", Qt::CaseInsensitive)) {
+    iRet = 5;
+  } else if (weekday_string.endsWith("SA", Qt::CaseInsensitive)) {
+    iRet = 6;
+  } else if (weekday_string.endsWith("SU", Qt::CaseInsensitive)) {
+    iRet = 7;
+  }
+
+  return iRet;
+}
+
 QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
                                                    QDateTime to) {
   // Look at QList<QObject*> CalendarClient::eventsForDate(const QDate& date)
@@ -140,14 +162,22 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
     QList<QDateTime> tmp;
 
     QString freq = rules_map["FREQ"];
+    QSet<int> by_day;
+
     QDateTime start = from < start_date_time_ ? start_date_time_ : from;
     if (freq == "DAILY") {
       for (QDateTime i = start; i < to; i = i.addDays(1)) tmp += i;
     }
     if (freq == "WEEKLY") {
+      // Parse BYDAY
+      for (QString& day : rules_map["BYDAY"].split(",", Qt::SkipEmptyParts))
+        by_day += WeekDayFromString(day);
       for (QDateTime i = start; i < to; i = i.addDays(1))
-        if (i.date().dayOfWeek() == start_date_time_.date().dayOfWeek())
-          tmp += i;
+        if (by_day.contains(i.date().dayOfWeek())) tmp += i;
+    }
+    if (freq == "MONTHLY") {
+    }
+    if (freq == "YEARLY") {
     }
     list += tmp;
   }

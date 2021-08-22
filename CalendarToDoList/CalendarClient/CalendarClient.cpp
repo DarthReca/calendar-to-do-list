@@ -7,11 +7,12 @@
 
 #include "calendar_classes/calendar.h"
 
-#define EVENTS_REQUEST_URL                                  \
+#define EVENTS_REQUEST_URL                           \
   "https://apidata.googleusercontent.com/caldav/v2/" \
   "k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events"
 
-#define TASKLISTS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/users/@me/lists";
+#define TASKLISTS_REQUEST_URL \
+  "https://tasks.googleapis.com/tasks/v1/users/@me/lists";
 #define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists";
 
 CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent) {
@@ -20,11 +21,7 @@ CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent) {
 
 CalendarClient::~CalendarClient() { delete auth_; }
 
-
-
 //////////// Events APIs ////////////
-
-
 
 QNetworkReply* CalendarClient::obtainCTag() {
   QNetworkRequest cal_part;
@@ -199,7 +196,8 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization",
                         ("Bearer " + auth_->google->token()).toUtf8());
-  cal_part.setUrl(QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(
+      QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -216,10 +214,11 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
 
   qDebug() << "Put request sent\n";
   connect(reply, &QNetworkReply::finished, [reply]() {
-    for(int i=0; i<reply->rawHeaderPairs().size(); i++)
-        qDebug() << "\n\nHeader: " + reply->rawHeaderPairs().at(i).first + reply->rawHeaderPairs().at(i).second + "\n\n";
+    for (int i = 0; i < reply->rawHeaderPairs().size(); i++)
+      qDebug() << "\n\nHeader: " + reply->rawHeaderPairs().at(i).first +
+                      reply->rawHeaderPairs().at(i).second + "\n\n";
 
-      qDebug() << "\n\nBody: " + reply->readAll() + "\n\n";
+    qDebug() << "\n\nBody: " + reply->readAll() + "\n\n";
   });
 }
 
@@ -238,7 +237,8 @@ void CalendarClient::updateEvent(CalendarEvent event, QString eTag) {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization",
                         ("Bearer " + auth_->google->token()).toUtf8());
-  cal_part.setUrl(QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(
+      QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
@@ -267,7 +267,8 @@ void CalendarClient::deleteEvent(CalendarEvent& event, QString eTag) {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization",
                         ("Bearer " + auth_->google->token()).toUtf8());
-  cal_part.setUrl(QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(
+      QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);

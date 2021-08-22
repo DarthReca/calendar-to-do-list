@@ -16,6 +16,12 @@ class CalendarEvent : public QObject {
   QString ToICalendarObject();
   QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 
+  ///////// STATIC UTILS //////
+
+  static int WeekDayFromString(const QString& weekday_string);
+
+  //////// OPERATORS //////////
+
   CalendarEvent& operator=(const CalendarEvent& other);
 
   bool operator<(const CalendarEvent& other) const {
@@ -26,6 +32,8 @@ class CalendarEvent : public QObject {
   };
 
   void copyFrom(const CalendarEvent& other);
+
+  //////// GETTERS SETTERS /////////
 
   const QString& eTag() const;
   void setETag(const QString& newETag);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>564</width>
-    <height>244</height>
+    <height>271</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>10</x>
      <y>20</y>
      <width>326</width>
-     <height>219</height>
+     <height>221</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -179,6 +179,9 @@
       </property>
      </widget>
     </item>
+    <item row="4" column="1">
+     <widget class="QComboBox" name="taskLists"/>
+    </item>
    </layout>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget">
@@ -186,12 +189,25 @@
     <rect>
      <x>370</x>
      <y>20</y>
-     <width>160</width>
-     <height>31</height>
+     <width>158</width>
+     <height>51</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
+   <layout class="QGridLayout" name="righthLayout">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="deleteButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Elimina</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
      <widget class="QPushButton" name="saveButton">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -204,17 +220,18 @@
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QPushButton" name="deleteButton">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Elimina</string>
-      </property>
+    <item row="1" column="0" colspan="2">
+     <widget class="QComboBox" name="typeSelection">
+      <item>
+       <property name="text">
+        <string>Evento</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Attività</string>
+       </property>
+      </item>
      </widget>
     </item>
    </layout>
