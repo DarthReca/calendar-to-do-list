@@ -10,15 +10,20 @@
 class Task : public CalendarEvent {
   Q_OBJECT
  public:
-  Task(QObject *parent = nullptr) : CalendarEvent(parent), completed_(false) {
+  Task(QObject *parent = nullptr)
+      : CalendarEvent(parent),
+        completed_(QPair<bool, QDateTime>(false, QDateTime())) {
     setColor(QColor(Qt::blue).name());
   };
   Task(QJsonObject &json, QObject *parent = nullptr);
 
   QJsonObject ToJson();
+  void FlipCompleted();
+
+  const QPair<bool, QDateTime> &completed() const;
 
  private:
-  bool completed_;
+  QPair<bool, QDateTime> completed_;
 };
 
 class TaskList : public QList<Task> {

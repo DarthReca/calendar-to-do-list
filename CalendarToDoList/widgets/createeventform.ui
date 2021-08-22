@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>20</y>
+     <y>10</y>
      <width>326</width>
-     <height>221</height>
+     <height>254</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -181,6 +181,13 @@
     </item>
     <item row="4" column="1">
      <widget class="QComboBox" name="taskLists"/>
+    </item>
+    <item row="5" column="1">
+     <widget class="QPushButton" name="completionButton">
+      <property name="text">
+       <string>Segna come completa</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

@@ -40,6 +40,14 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
     event_->setAll_day(state == Qt::CheckState::Checked);
   });
+  // COMPLETION
+  connect(ui->completionButton, &QPushButton::clicked, [this]() {
+    Task* task = qobject_cast<Task*>(event_);
+    task->FlipCompleted();
+    QString text = task->completed().first ? "Segna come non completata"
+                                           : "Segna come completata";
+    ui->completionButton->setText(text);
+  });
   // SDATETIME
   connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
@@ -129,8 +137,6 @@ void CreateEventForm::ResetFormFields() {
   ui->startDateTime->setDateTime(event_->getStartDateTime());
   ui->endDateTime->setDateTime(event_->getEndDateTime());
   ui->allDayBox->setChecked(event_->all_day());
-
-  // Event specific
   ui->locationEdit->setText(event_->location());
 
   QPointer<Task> task = qobject_cast<Task*>(event_);
@@ -140,8 +146,14 @@ void CreateEventForm::ResetFormFields() {
     ui->startDateTime->hide();
     // Show
     ui->taskLists->show();
+    ui->completionButton->show();
+    // Completion button
+    QString text = task->completed().first ? "Segna come non completata"
+                                           : "Segna come completata";
+    ui->completionButton->setText(text);
   } else {
     ui->taskLists->hide();
+    ui->completionButton->hide();
     // Show
     ui->RRule->show();
     ui->locationEdit->show();

@@ -13,6 +13,10 @@ Task::Task(QJsonObject& json, QObject* parent) {
     setStartDateTime(QDateTime().fromString(end_date.toString()));
     setEndDateTime(QDateTime().fromString(end_date.toString()));
   }
+
+  completed_.first = completed != QJsonValue::Undefined;
+  if (completed_.first)
+    completed_.second = QDateTime().fromString(completed.toString());
 }
 
 QJsonObject Task::ToJson() {
@@ -20,5 +24,13 @@ QJsonObject Task::ToJson() {
   json["id"] = getHREF();
   json["title"] = summary();
   json["due"] = getEndDateTime().toString();
+  if (completed_.first) json["completed"] = completed_.second.toString();
   return json;
 }
+
+void Task::FlipCompleted() {
+  completed_.first = !completed_.first;
+  completed_.second = QDateTime::currentDateTime();
+}
+
+const QPair<bool, QDateTime>& Task::completed() const { return completed_; }
