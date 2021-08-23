@@ -6,6 +6,7 @@
 
 #include "calendar_classes/calendarevent.h"
 #include "googleauth/googleauth.h"
+#include "calendar_classes/task.h"
 
 class CalendarClient : public QObject {
   Q_OBJECT
@@ -71,39 +72,39 @@ class CalendarClient : public QObject {
   /**
    * @brief Gets all taskLists from the server.
    */
-  // QNetworkReply* getAllTaskLists();
+  QNetworkReply* getAllTaskLists();
   /**
    * @brief Creates a new taskList in the user's taskLists.
    */
-  // QNetworkReply* createTaskList(TaskList listToCreate);
+  QNetworkReply* createTaskList(TaskList listToCreate);
   /**
    * @brief Updates an existing taskList among the user's taskLists.
    */
-  // QNetworkReply* updateTaskList(TaskList listToUpdate);
+  QNetworkReply* updateTaskList(TaskList listToUpdate);
   /**
    * @brief Deletes an existing taskList among the user's taskLists.
    */
-  // QNetworkReply* deleteTaskList(TaskList listToDelete);
+  QNetworkReply* deleteTaskList(TaskList listToDelete);
   /**
    * @brief Gets all tasks in a specified user's taskLists.
    */
-  // QNetworkReply* getAllTasks(TaskList list);
+  QNetworkReply* getAllTasks(TaskList list);
   /**
    * @brief Gets a certain tasks in a specified user's taskLists.
    */
-  // QNetworkReply* getTask(TaskList list, Task taskToGet);
+  QNetworkReply* getTask(TaskList list, Task taskToGet);
   /**
    * @brief Creates a new tasks in a specified user's taskLists.
    */
-  // QNetworkReply* createTask(TaskList list, Task newTask);
+  QNetworkReply* createTask(TaskList list, Task newTask);
   /**
    * @brief Updates a certain tasks in a specified user's taskLists.
    */
-  // QNetworkReply* updateTask(TaskList list, Task taskToUpdate);
+  QNetworkReply* updateTask(TaskList list, Task taskToUpdate);
   /**
    * @brief Deletes a certain tasks in a specified user's taskLists.
    */
-  // QNetworkReply* deleteTask(TaskList list, Task taskToDelete);
+  QNetworkReply* deleteTask(TaskList list, Task taskToDelete);
 
  private:
   QPointer<GoogleAuth> auth_;

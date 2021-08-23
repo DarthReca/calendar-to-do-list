@@ -34,3 +34,11 @@ void Task::FlipCompleted() {
 }
 
 const QPair<bool, QDateTime>& Task::completed() const { return completed_; }
+
+QJsonObject TaskList::ToJson()
+{
+    QJsonObject json;
+    json["id"] = id_;
+    json["title"] = title_;
+    return json;
+}
