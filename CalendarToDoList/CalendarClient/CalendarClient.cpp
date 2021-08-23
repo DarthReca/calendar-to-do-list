@@ -11,8 +11,8 @@
   "https://apidata.googleusercontent.com/caldav/v2/" \
   "k8tsgo0usjdlipul5pb2vel68o@group.calendar.google.com/events"
 
-#define TASKLISTS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/users/@me/lists";
-#define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists";
+#define TASKLISTS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/users/@me/lists"
+#define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists"
 
 CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent) {
   auth_ = &auth;
@@ -279,4 +279,18 @@ void CalendarClient::deleteEvent(CalendarEvent& event, QString eTag) {
   });
 }
 
+
+
 //////////// Tasks APIs ////////////
+
+
+
+QNetworkReply *CalendarClient::getAllTaskLists()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
+    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL)));
+    cal_part.setRawHeader("Accept", "application/json");
+
+    return auth_->google->networkAccessManager()->sendCustomRequest(cal_part, QByteArray("GET"));
+}

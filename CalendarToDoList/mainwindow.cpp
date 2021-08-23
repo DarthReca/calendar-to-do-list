@@ -66,7 +66,13 @@ MainWindow::MainWindow(QWidget *parent)
     client_->setCTag(lista.at(0).toElement().text());
   });
 
+
   // Initial sync
+  reply = client_->getAllTaskLists();
+  connect(reply, &QNetworkReply::finished, [reply]() {
+      qDebug() << "\n\n\n" + reply->readAll() + "\n\n\n";
+  });
+
   refresh_calendar_events();
 
   timer_->start(10000);
