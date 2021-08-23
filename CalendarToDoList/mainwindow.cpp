@@ -16,7 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
       calendar_(new Calendar(this)),
       timer_(new QTimer(this)),
       showing_events_(nullptr),
-      single_shot_timer_(new QTimer(this)) {
+      single_shot_timer_(new QTimer(this)),
+      task_list_(QList<TaskList>()) {
   ui->setupUi(this);
   ui->calendarTable->horizontalHeader()->setSectionResizeMode(
       QHeaderView::Stretch);
@@ -265,17 +266,17 @@ void MainWindow::on_actionSincronizza_triggered() {
           auto events = res.elementsByTagName("caldav:calendar-data");
           auto href_list = res.elementsByTagName("D:href");
           for (int i = 0; i < events.size(); i++) {
-            //qDebug() << events.at(i).toElement().text() + "\n\n";
+            // qDebug() << events.at(i).toElement().text() + "\n\n";
 
             // salvo l'evento nella lista di eventi del calendario
             QString el = events.at(i).toElement().text();
             QTextStream stream(&el);
             QPointer<Calendar> tmp =
                 new Calendar(href_list.at(i).toElement().text(), "", stream);
-            for(CalendarEvent& ev : tmp->events()){
-                QString hrefToSearch = ev.getHREF();
-                QString eTagToPut = mapTmp.find(hrefToSearch).value();
-                ev.setETag(eTagToPut);
+            for (CalendarEvent &ev : tmp->events()) {
+              QString hrefToSearch = ev.getHREF();
+              QString eTagToPut = mapTmp.find(hrefToSearch).value();
+              ev.setETag(eTagToPut);
             }
             if (calendar_.isNull())
               calendar_ = tmp;

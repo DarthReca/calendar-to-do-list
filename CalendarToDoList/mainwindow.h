@@ -7,6 +7,7 @@
 #include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
 #include "calendar_classes/calendarevent.h"
+#include "calendar_classes/task.h"
 #include "widgets/createeventform.h"
 
 QT_BEGIN_NAMESPACE
@@ -48,6 +49,7 @@ class MainWindow : public QMainWindow {
   QPointer<CalendarEvent> editing_event_;
   QList<CalendarEvent> *showing_events_;
   QPointer<Calendar> calendar_;
+  QList<TaskList> task_list_;
 
   QPointer<GoogleAuth> auth_;
   QPointer<CalendarClient> client_;
