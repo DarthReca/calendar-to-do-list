@@ -2,6 +2,7 @@
 
 Calendar::Calendar(QObject *parent) : QObject(parent) {
   events_ = QVector<CalendarEvent>();
+  task_lists_ = QList<TaskList>();
 }
 
 Calendar::Calendar(const QString &href, const QString &eTag,

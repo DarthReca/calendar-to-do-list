@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include "calendarevent.h"
+#include "task.h"
 
 class Calendar : public QObject {
   Q_OBJECT
@@ -16,8 +17,10 @@ class Calendar : public QObject {
 
   QString ToICalendarObject();
 
-  QVector<CalendarEvent> &events();
+  QList<CalendarEvent> &events();
   void setEvents(const QVector<CalendarEvent> &newEvents);
+
+  QList<TaskList> &taskList() { return task_lists_; };
  signals:
   void displayNameChanged(QString display_name);
  public slots:
@@ -26,7 +29,8 @@ class Calendar : public QObject {
 
  private:
   QString display_name_;
-  QVector<CalendarEvent> events_;
+  QList<CalendarEvent> events_;
+  QList<TaskList> task_lists_;
 };
 
 #endif  // CALENDAR_H

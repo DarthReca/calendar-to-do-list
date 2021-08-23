@@ -15,9 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
       ui(new Ui::MainWindow),
       calendar_(new Calendar(this)),
       timer_(new QTimer(this)),
-      showing_events_(nullptr),
-      single_shot_timer_(new QTimer(this)),
-      task_list_(QList<TaskList>()) {
+      showing_events_(QList<CalendarEvent>()),
+      showing_tasks_(QList<Task>()),
+      single_shot_timer_(new QTimer(this)) {
   ui->setupUi(this);
   ui->calendarTable->horizontalHeader()->setSectionResizeMode(
       QHeaderView::Stretch);
@@ -67,27 +67,46 @@ MainWindow::MainWindow(QWidget *parent)
     client_->setCTag(lista.at(0).toElement().text());
   });
 
-
   // Initial sync
   reply = client_->getAllTaskLists();
-  connect(reply, &QNetworkReply::finished, [reply]() {
-      qDebug() << "\n\n\n" + reply->readAll() + "\n\n\n";
+  connect(reply, &QNetworkReply::finished, [reply, this]() {
+    QJsonDocument json = QJsonDocument().fromJson(reply->readAll());
+    QJsonArray task_lists = json["items"].toArray();
+    for (const auto &json_obj : task_lists)
+      calendar_->taskList() += TaskList(json_obj.toObject()["title"].toString(),
+                                        json_obj.toObject()["id"].toString());
+    refresh_calendar_events();
   });
-
-  refresh_calendar_events();
 
   timer_->start(10000);
 }
 
 MainWindow::~MainWindow() {
-  showing_events_->clear();
-  delete showing_events_;
+  showing_events_.clear();
+  showing_tasks_.clear();
   delete ui;
 }
 
 void MainWindow::refresh_calendar_events() {
-  auto reply = client_->getAllEvents();
+  // TASKS
+  for (TaskList &tl : calendar_->taskList()) {
+    auto task_reply = client_->getAllTasks(tl);
 
+    connect(task_reply, &QNetworkReply::finished,
+            [this, task_reply, &tl]() mutable {
+              calendar_->taskList().clear();
+              QJsonDocument json =
+                  QJsonDocument().fromJson(task_reply->readAll());
+              QJsonArray tasks = json["items"].toArray();
+              for (auto task : tasks) {
+                QJsonObject json_task = task.toObject();
+                tl += Task(json_task, calendar_);
+              }
+              updateTableToNDays(ui->calendarTable->columnCount());
+            });
+  }
+  // EVENTS
+  auto reply = client_->getAllEvents();
   connect(reply, &QNetworkReply::finished, [this, reply]() {
     calendar_->events().clear();
 
@@ -150,9 +169,7 @@ void MainWindow::on_showing_events_changed() {
 
   QDate selected_date = ui->calendarWidget->selectedDate();
 
-  if (showing_events_ == nullptr) return;
-
-  for (auto &event : *showing_events_) {
+  for (auto &event : showing_events_) {
     EventWidget *widget = new EventWidget(event, *client_, *calendar_,
                                           ui->calendarTable->viewport());
     QTime start_time = event.getStartDateTime().time();
@@ -183,11 +200,11 @@ void MainWindow::on_showing_events_changed() {
   }
 }
 
-QList<CalendarEvent> *MainWindow::showing_events() const {
+QList<CalendarEvent> MainWindow::showing_events() const {
   return showing_events_;
 }
 
-void MainWindow::setShowing_events(QList<CalendarEvent> *newShowing_events) {
+void MainWindow::setShowing_events(QList<CalendarEvent> newShowing_events) {
   // if (showing_events_ == newShowing_events) return;
   showing_events_ = newShowing_events;
   emit showing_eventsChanged();
@@ -300,6 +317,12 @@ void MainWindow::on_request_editing_form(CalendarEvent *event) {
   form.exec();
 }
 
+const QList<Task> &MainWindow::showing_tasks() const { return showing_tasks_; }
+
+void MainWindow::setShowing_tasks(const QList<Task> &newShowing_tasks) {
+  showing_tasks_ = newShowing_tasks;
+}
+
 void MainWindow::resizeEvent(QResizeEvent *event) {
   QWidget::resizeEvent(event);
   single_shot_timer_->start(500);
@@ -315,7 +338,8 @@ void MainWindow::updateTableToNDays(int n) {
         new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
     ui->calendarTable->setHorizontalHeaderItem(i, item);
   }
-  QList<CalendarEvent> *selected = new QList<CalendarEvent>;
+  // EVENTS
+  QList<CalendarEvent> selected;
   for (CalendarEvent &ev : calendar_->events()) {
     auto recurs =
         ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
@@ -326,8 +350,26 @@ void MainWindow::updateTableToNDays(int n) {
 
       new_ev.setStartDateTime(dt);
       new_ev.setEndDateTime(dt.addMSecs(diff));
-      selected->append(new_ev);
+      selected += new_ev;
     }
   }
   setShowing_events(selected);
+  // TASKS
+  QList<Task> selected_tasks;
+  for (TaskList &tl : calendar_->taskList()) {
+    for (Task t : tl) {
+      auto recurs =
+          t.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
+      for (const QDateTime &dt : recurs) {
+        Task new_task = t;
+        auto diff =
+            t.getStartDateTime().time().msecsTo(t.getEndDateTime().time());
+
+        new_task.setStartDateTime(dt);
+        new_task.setEndDateTime(dt.addMSecs(diff));
+        selected_tasks += new_task;
+      }
+    }
+  }
+  setShowing_tasks(selected_tasks);
 }

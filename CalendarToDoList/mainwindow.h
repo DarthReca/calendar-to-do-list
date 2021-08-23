@@ -23,8 +23,11 @@ class MainWindow : public QMainWindow {
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-  QList<CalendarEvent> *showing_events() const;
-  void setShowing_events(QList<CalendarEvent> *newShowing_events);
+  QList<CalendarEvent> showing_events() const;
+  void setShowing_events(QList<CalendarEvent> newShowing_events);
+
+  const QList<Task> &showing_tasks() const;
+  void setShowing_tasks(const QList<Task> &newShowing_tasks);
 
  signals:
   void showing_eventsChanged();
@@ -47,9 +50,10 @@ class MainWindow : public QMainWindow {
   Ui::MainWindow *ui;
 
   QPointer<CalendarEvent> editing_event_;
-  QList<CalendarEvent> *showing_events_;
+
+  QList<CalendarEvent> showing_events_;
+  QList<Task> showing_tasks_;
   QPointer<Calendar> calendar_;
-  QList<TaskList> task_list_;
 
   QPointer<GoogleAuth> auth_;
   QPointer<CalendarClient> client_;
