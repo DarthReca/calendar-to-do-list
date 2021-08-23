@@ -14,6 +14,7 @@
 #define TASKLISTS_REQUEST_URL \
   "https://tasks.googleapis.com/tasks/v1/users/@me/lists"
 #define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists"
+#define API_KEY "AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"
 
 CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent) {
   auth_ = &auth;
@@ -289,7 +290,7 @@ void CalendarClient::deleteEvent(CalendarEvent& event, QString eTag) {
 QNetworkReply *CalendarClient::getAllTaskLists()
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/users/@me/lists?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
 
@@ -300,7 +301,7 @@ QNetworkReply *CalendarClient::getAllTaskLists()
 QNetworkReply *CalendarClient::createTaskList(TaskList listToCreate)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/users/@me/lists?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "?key="  + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
@@ -315,7 +316,7 @@ QNetworkReply *CalendarClient::createTaskList(TaskList listToCreate)
 QNetworkReply *CalendarClient::updateTaskList(TaskList listToUpdate)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/users/@me/lists/" + listToUpdate.id() + "?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToUpdate.id() + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
@@ -330,7 +331,7 @@ QNetworkReply *CalendarClient::updateTaskList(TaskList listToUpdate)
 QNetworkReply *CalendarClient::deleteTaskList(TaskList listToDelete)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/users/@me/lists/" + listToDelete.id() + "?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToDelete.id() + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
@@ -345,7 +346,7 @@ QNetworkReply *CalendarClient::deleteTaskList(TaskList listToDelete)
 QNetworkReply *CalendarClient::getAllTasks(TaskList list)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/lists/" + list.id() + "/tasks?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
 
@@ -356,7 +357,7 @@ QNetworkReply *CalendarClient::getAllTasks(TaskList list)
 QNetworkReply *CalendarClient::getTask(TaskList list, Task taskToGet)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/lists/" + list.id() + "/tasks/" + taskToGet.getHREF() + "?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToGet.getHREF() + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
 
@@ -367,7 +368,7 @@ QNetworkReply *CalendarClient::getTask(TaskList list, Task taskToGet)
 QNetworkReply *CalendarClient::createTask(TaskList list, Task newTask)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/lists/" + list.id() + "/tasks?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
@@ -382,7 +383,7 @@ QNetworkReply *CalendarClient::createTask(TaskList list, Task newTask)
 QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/lists/" + list.id() + "/tasks?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
@@ -397,7 +398,7 @@ QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
 QNetworkReply *CalendarClient::deleteTask(TaskList list, Task taskToDelete)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl("https://tasks.googleapis.com/tasks/v1/lists/" + list.id() + "/tasks/" + taskToDelete.getHREF() + "?key=AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToDelete.getHREF() + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
 
