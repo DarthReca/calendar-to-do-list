@@ -310,7 +310,7 @@ QNetworkReply *CalendarClient::createTaskList(TaskList listToCreate)
     QByteArray body = doc.toJson();
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"), body);
+                cal_part, QByteArray("POST"), body);
 }
 
 QNetworkReply *CalendarClient::updateTaskList(TaskList listToUpdate)
@@ -340,7 +340,7 @@ QNetworkReply *CalendarClient::deleteTaskList(TaskList listToDelete)
     QByteArray body = doc.toJson();
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("PATCH"), body);
+                cal_part, QByteArray("DELETE"), body);
 }
 
 QNetworkReply *CalendarClient::getAllTasks(TaskList list)
@@ -377,7 +377,7 @@ QNetworkReply *CalendarClient::createTask(TaskList list, Task newTask)
     QByteArray body = doc.toJson();
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"), body);
+                cal_part, QByteArray("POST"), body);
 }
 
 QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
@@ -392,7 +392,7 @@ QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
     QByteArray body = doc.toJson();
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"), body);
+                cal_part, QByteArray("PATCH"), body);
 }
 
 QNetworkReply *CalendarClient::deleteTask(TaskList list, Task taskToDelete)
@@ -403,7 +403,7 @@ QNetworkReply *CalendarClient::deleteTask(TaskList list, Task taskToDelete)
     cal_part.setRawHeader("Accept", "application/json");
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"));
+                cal_part, QByteArray("DELETE"));
 }
 
 

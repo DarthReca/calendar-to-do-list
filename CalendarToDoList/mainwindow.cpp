@@ -73,8 +73,9 @@ MainWindow::MainWindow(QWidget *parent)
     QJsonDocument json = QJsonDocument().fromJson(reply->readAll());
     QJsonArray task_lists = json["items"].toArray();
     for (const auto &json_obj : task_lists)
-      calendar_->taskList() += TaskList(json_obj.toObject()["title"].toString(),
+        calendar_->taskLists() += TaskList(json_obj.toObject()["title"].toString(),
                                         json_obj.toObject()["id"].toString());
+
     refresh_calendar_events();
   });
 
@@ -89,12 +90,12 @@ MainWindow::~MainWindow() {
 
 void MainWindow::refresh_calendar_events() {
   // TASKS
-  for (TaskList &tl : calendar_->taskList()) {
+  for (TaskList &tl : calendar_->taskLists()) {
     auto task_reply = client_->getAllTasks(tl);
 
     connect(task_reply, &QNetworkReply::finished,
             [this, task_reply, &tl]() mutable {
-              calendar_->taskList().clear();
+              calendar_->taskLists().clear();
               QJsonDocument json =
                   QJsonDocument().fromJson(task_reply->readAll());
               QJsonArray tasks = json["items"].toArray();
@@ -135,17 +136,6 @@ void MainWindow::refresh_calendar_events() {
     updateTableToNDays(ui->calendarTable->columnCount());
   });
 }
-
-/*void MainWindow::on_receiveChanges_clicked()
-{
-    auto reply = CalendarClient_CalDAV::requestSyncToken(*auth->google);
-    connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
-        QDomDocument q;
-        q.setContent(reply->readAll());
-        CalendarClient_CalDAV::receiveChanges(*auth->google,
-q.elementsByTagName("D:sync-token").at(0).toElement().text());
-    });
-}*/
 
 void MainWindow::on_seeIfChanged_clicked() {
   auto reply = client_->obtainCTag();
@@ -356,7 +346,7 @@ void MainWindow::updateTableToNDays(int n) {
   setShowing_events(selected);
   // TASKS
   QList<Task> selected_tasks;
-  for (TaskList &tl : calendar_->taskList()) {
+  for (TaskList &tl : calendar_->taskLists()) {
     for (Task t : tl) {
       auto recurs =
           t.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
@@ -372,4 +362,8 @@ void MainWindow::updateTableToNDays(int n) {
     }
   }
   setShowing_tasks(selected_tasks);
+
+  /*for(Task t : selected_tasks){
+      qDebug() << "\nTask: " + t.summary() + "\n";
+  }*/
 }
