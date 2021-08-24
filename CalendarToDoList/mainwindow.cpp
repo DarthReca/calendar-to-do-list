@@ -95,13 +95,14 @@ void MainWindow::refresh_calendar_events() {
 
     connect(task_reply, &QNetworkReply::finished,
             [this, task_reply, &tl]() mutable {
-              calendar_->taskLists().clear();
+              //calendar_->taskLists().clear();
               QJsonDocument json =
                   QJsonDocument().fromJson(task_reply->readAll());
               QJsonArray tasks = json["items"].toArray();
               for (auto task : tasks) {
                 QJsonObject json_task = task.toObject();
-                tl += Task(json_task, calendar_);
+                Task newTask = Task(json_task, calendar_);
+                tl.getTasks().append(newTask);
               }
               updateTableToNDays(ui->calendarTable->columnCount());
             });
@@ -137,7 +138,7 @@ void MainWindow::refresh_calendar_events() {
   });
 }
 
-void MainWindow::on_seeIfChanged_clicked() {
+/*void MainWindow::on_seeIfChanged_clicked() {
   auto reply = client_->obtainCTag();
   connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
     QDomDocument q;
@@ -147,7 +148,7 @@ void MainWindow::on_seeIfChanged_clicked() {
       client_->lookForChanges();
     }
   });
-}
+}*/
 
 void MainWindow::on_showing_events_changed() {
   // Delete all previous widgets
@@ -347,7 +348,7 @@ void MainWindow::updateTableToNDays(int n) {
   // TASKS
   QList<Task> selected_tasks;
   for (TaskList &tl : calendar_->taskLists()) {
-    for (Task t : tl) {
+    for (Task t : tl.getTasks()) {
       auto recurs =
           t.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
       for (const QDateTime &dt : recurs) {
@@ -362,8 +363,4 @@ void MainWindow::updateTableToNDays(int n) {
     }
   }
   setShowing_tasks(selected_tasks);
-
-  /*for(Task t : selected_tasks){
-      qDebug() << "\nTask: " + t.summary() + "\n";
-  }*/
 }

@@ -37,11 +37,15 @@ class TaskList : public QList<Task> {
   const QString &id() const { return id_; }
   void setId(const QString &newId) { id_ = newId; }
 
+  QList<Task> &getTasks() { return tasks_; }
+  void setTasks(QList<Task> new_list) { tasks_ = new_list; }
+
   QJsonObject ToJson();
 
  private:
   QString title_;
   QString id_;
+  QList<Task> tasks_;
 };
 
 #endif  // TASK_H
