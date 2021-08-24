@@ -26,10 +26,13 @@ class Task : public CalendarEvent {
   QPair<bool, QDateTime> completed_;
 };
 
-class TaskList : public QList<Task> {
+class TaskList {
+
  public:
   TaskList(const QString &title, const QString &id)
-      : QList<Task>(), title_(title), id_(id){};
+      : title_(title), id_(id){
+      tasks_ = QList<Task>();
+  };
 
   const QString &title() const { return title_; }
   void setTitle(const QString &newTitle) { title_ = newTitle; }

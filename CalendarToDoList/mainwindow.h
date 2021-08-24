@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow {
   void setShowing_tasks(const QList<Task> &newShowing_tasks);
 
  signals:
-  void showing_eventsChanged();
+  void show();
 
  protected:
   void resizeEvent(QResizeEvent *event);
@@ -39,8 +39,8 @@ class MainWindow : public QMainWindow {
   void refresh_calendar_events();
 
   void on_calendarWidget_clicked(const QDate &date);
-  void on_seeIfChanged_clicked();
   void on_showing_events_changed();
+  void on_showing_tasks_changed();
   void on_actionSincronizza_triggered();
 
  private:

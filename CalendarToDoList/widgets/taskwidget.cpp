@@ -1,7 +1,7 @@
 #include "taskwidget.h"
 
 
-Taskwidget::Taskwidget(Task &task, CalendarClient &client,
+TaskWidget::TaskWidget(Task &task, CalendarClient &client,
                        Calendar &calendar, QWidget *parent)
     : QPushButton(parent) {
     task_ = &task;
@@ -16,7 +16,7 @@ Taskwidget::Taskwidget(Task &task, CalendarClient &client,
             : QString("%1\n%2 - %3").arg(task.summary(), start_time, end_time);
     setText(text);
     setStyleSheet(
-                QString("background-color: blue; color: white").arg(task.getColor()));
+                QString("background-color: %2; color: white").arg(task.getColor()));
 }
 
-QPointer<Task> Taskwidget::task() const { return task_; }
+QPointer<Task> TaskWidget::task() const { return task_; }

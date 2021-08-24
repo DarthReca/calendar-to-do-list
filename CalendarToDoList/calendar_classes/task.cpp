@@ -10,9 +10,11 @@ Task::Task(QJsonObject& json, QObject* parent) {
   if (title != QJsonValue::Undefined) setSummary(title.toString());
 
   if (end_date != QJsonValue::Undefined) {
-    setStartDateTime(QDateTime().fromString(end_date.toString()));
-    setEndDateTime(QDateTime().fromString(end_date.toString()));
+    QDateTime utcTime = QDateTime::fromString(end_date.toString(), Qt::ISODate);
+    setStartDateTime(utcTime.toLocalTime());
+    setEndDateTime(utcTime.toLocalTime());
   }
+
 
   completed_.first = completed != QJsonValue::Undefined;
   if (completed_.first)

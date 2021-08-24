@@ -87,6 +87,14 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               event_->setRRULE("FREQ=YEARLY");
             }
           });
+  // TASKLISTS
+  auto reply = client_->getAllTaskLists();
+  connect(reply, &QNetworkReply::finished, [this, reply](){
+      QJsonDocument json = QJsonDocument().fromJson(reply->readAll());
+      QJsonArray task_lists = json["items"].toArray();
+      for (const auto &json_obj : task_lists)
+          ui->taskLists->addItem(json_obj.toObject()["title"].toString());
+  });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {

@@ -298,7 +298,7 @@ QNetworkReply *CalendarClient::getAllTaskLists()
         cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::createTaskList(TaskList listToCreate)
+QNetworkReply *CalendarClient::createTaskList(TaskList& listToCreate)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "?key="  + QString(API_KEY)));
@@ -313,7 +313,7 @@ QNetworkReply *CalendarClient::createTaskList(TaskList listToCreate)
                 cal_part, QByteArray("POST"), body);
 }
 
-QNetworkReply *CalendarClient::updateTaskList(TaskList listToUpdate)
+QNetworkReply *CalendarClient::updateTaskList(TaskList& listToUpdate)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToUpdate.id() + "?key=" + QString(API_KEY)));
@@ -328,7 +328,7 @@ QNetworkReply *CalendarClient::updateTaskList(TaskList listToUpdate)
                 cal_part, QByteArray("PATCH"), body);
 }
 
-QNetworkReply *CalendarClient::deleteTaskList(TaskList listToDelete)
+QNetworkReply *CalendarClient::deleteTaskList(TaskList& listToDelete)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToDelete.id() + "?key=" + QString(API_KEY)));
@@ -343,7 +343,7 @@ QNetworkReply *CalendarClient::deleteTaskList(TaskList listToDelete)
                 cal_part, QByteArray("DELETE"), body);
 }
 
-QNetworkReply *CalendarClient::getAllTasks(TaskList list)
+QNetworkReply *CalendarClient::getAllTasks(TaskList& list)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
@@ -354,7 +354,7 @@ QNetworkReply *CalendarClient::getAllTasks(TaskList list)
                 cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::getTask(TaskList list, Task taskToGet)
+QNetworkReply *CalendarClient::getTask(TaskList& list, Task& taskToGet)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToGet.getHREF() + "?key=" + QString(API_KEY)));
@@ -365,7 +365,7 @@ QNetworkReply *CalendarClient::getTask(TaskList list, Task taskToGet)
                 cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::createTask(TaskList list, Task newTask)
+QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
@@ -380,7 +380,7 @@ QNetworkReply *CalendarClient::createTask(TaskList list, Task newTask)
                 cal_part, QByteArray("POST"), body);
 }
 
-QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
+QNetworkReply *CalendarClient::updateTask(TaskList& list, Task& taskToUpdate)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
@@ -395,7 +395,7 @@ QNetworkReply *CalendarClient::updateTask(TaskList list, Task taskToUpdate)
                 cal_part, QByteArray("PATCH"), body);
 }
 
-QNetworkReply *CalendarClient::deleteTask(TaskList list, Task taskToDelete)
+QNetworkReply *CalendarClient::deleteTask(TaskList& list, Task& taskToDelete)
 {
     QNetworkRequest cal_part;
     cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToDelete.getHREF() + "?key=" + QString(API_KEY)));
@@ -405,11 +405,4 @@ QNetworkReply *CalendarClient::deleteTask(TaskList list, Task taskToDelete)
     return auth_->google->networkAccessManager()->sendCustomRequest(
                 cal_part, QByteArray("DELETE"));
 }
-
-
-
-
-
-
-
 

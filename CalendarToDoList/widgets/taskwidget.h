@@ -8,11 +8,11 @@
 #include "calendar_classes/calendarevent.h"
 #include "createeventform.h"
 
-class Taskwidget : public QPushButton {
+class TaskWidget : public QPushButton {
     Q_OBJECT
 
 public:
-    explicit Taskwidget(Task& task, CalendarClient& client,
+    explicit TaskWidget(Task& task, CalendarClient& client,
                          Calendar& calendar, QWidget* parent = nullptr);
 
     QPointer<Task> task() const;
