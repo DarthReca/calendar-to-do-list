@@ -1,6 +1,6 @@
 #include "task.h"
 
-Task::Task(QJsonObject& json, QObject* parent) {
+Task::Task(QJsonObject& json, QObject* parent) : Task(parent) {
   auto id = json.value("id");
   auto title = json.value("title");
   auto end_date = json.value("due");
@@ -10,11 +10,15 @@ Task::Task(QJsonObject& json, QObject* parent) {
   if (title != QJsonValue::Undefined) setSummary(title.toString());
 
   if (end_date != QJsonValue::Undefined) {
-    QDateTime utcTime = QDateTime::fromString(end_date.toString(), Qt::ISODate);
+    QDateTime utcTime =
+        QDateTime::fromString(end_date.toString(), Qt::ISODateWithMs);
+    if (!utcTime.isValid())
+      qDebug() << ": "
+               << "could not parse" << end_date.toString();
     setStartDateTime(utcTime.toLocalTime());
     setEndDateTime(utcTime.toLocalTime());
+    setAll_day(true);
   }
-
 
   completed_.first = completed != QJsonValue::Undefined;
   if (completed_.first)
@@ -37,10 +41,9 @@ void Task::FlipCompleted() {
 
 const QPair<bool, QDateTime>& Task::completed() const { return completed_; }
 
-QJsonObject TaskList::ToJson()
-{
-    QJsonObject json;
-    json["id"] = id_;
-    json["title"] = title_;
-    return json;
+QJsonObject TaskList::ToJson() {
+  QJsonObject json;
+  json["id"] = id_;
+  json["title"] = title_;
+  return json;
 }
