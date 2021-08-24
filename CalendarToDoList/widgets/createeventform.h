@@ -32,6 +32,7 @@ class CreateEventForm : public QDialog {
   QPointer<CalendarClient> client_;
   QPointer<Calendar> calendar_;
   bool existing_;
+  bool isEvent_;
 };
 
 #endif  // CREATEEVENTFORM_H

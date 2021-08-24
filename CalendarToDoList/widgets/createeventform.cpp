@@ -12,6 +12,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       client_(&client),
       calendar_(&calendar),
       existing_(existing) {
+
   ui->setupUi(this);
 
   ResetFormFields();
@@ -21,10 +22,14 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   // TYPE
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
-            if (text == "Evento")
+            if (text == "Evento"){
               event_ = new CalendarEvent;
-            else
+              isEvent_ = true;
+            }
+            else{
               event_ = new Task;
+              isEvent_ = false;
+            }
             ResetFormFields();
           });
   // SUMMARY
@@ -98,24 +103,56 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      // serve l'eTag quando faccio la create dal server
-
-      client_->saveEvent(*event_);
-      calendar_->events().append(*event_);
-      qDebug() << "New event saved\n";
-    } else {
-      QString hrefToUpdate = event_->getHREF();
-      qDebug() << "\n\nETag: " +
-                      client_->getETags().find(hrefToUpdate).value() + "\n\n";
-      client_->updateEvent(*event_,
-                           client_->getETags().find(hrefToUpdate).value());
-      for (CalendarEvent& ev : calendar_->events()) {
-        if (ev.getHREF() == hrefToUpdate) {
-          calendar_->events().removeOne(ev);
+        if(isEvent_){
+            client_->saveEvent(*event_);
+            calendar_->events().append(*event_);
+            qDebug() << "New event saved\n";
         }
-      }
-      calendar_->events().append(*event_);
-      qDebug() << "Event " + event_->summary() + " updated\n";
+        else{
+            QString title = ui->taskLists->currentText();
+            for(TaskList& list : calendar_->taskLists()){
+                if(list.title() == title){
+                    Task *task = qobject_cast<Task *>(event_);
+                    client_->createTask(list, *task);
+                    list.getTasks().append(*task);
+                    break;
+                }
+            }
+            qDebug() << "New task saved\n";
+        }
+    } else {
+        if(isEvent_){
+            QString hrefToUpdate = event_->getHREF();
+            qDebug() << "\n\nETag: " +
+                      client_->getETags().find(hrefToUpdate).value() + "\n\n";
+            client_->updateEvent(*event_,
+                           client_->getETags().find(hrefToUpdate).value());
+            for (CalendarEvent& ev : calendar_->events()) {
+                if (ev.getHREF() == hrefToUpdate) {
+                calendar_->events().removeOne(ev);
+                }
+            }
+            calendar_->events().append(*event_);
+            qDebug() << "Event " + event_->summary() + " updated\n";
+        }
+        else{
+            QString title = ui->taskLists->currentText();
+            for(TaskList& list : calendar_->taskLists()){
+                if(list.title() == title){
+                    for(Task t : list.getTasks()){
+                        if(t.getHREF() == event_->getHREF()){
+                            list.getTasks().removeOne(t);
+                        }
+                    }
+                    Task *task = qobject_cast<Task *>(event_);
+                    client_->updateTask(list, *task);
+                    list.getTasks().append(*task);
+                    qDebug() << "Task " + task->summary() + " saved\n";
+                    break;
+                }
+            }
+
+        }
     }
     emit requestView();
     accept();
