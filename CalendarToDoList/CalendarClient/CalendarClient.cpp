@@ -373,13 +373,12 @@ QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
 
-    QString newDate = QDateTime::fromString(newTask.getEndDateTime().toString(), Qt::TextDate).toString(Qt::ISODateWithMs);
-    QDateTime newDateTime = QDateTime::fromString(newDate);
-    qDebug() << newDateTime.toString();
-    newTask.setEndDateTime(newDateTime);
-    newTask.setStartDateTime(newDateTime);
+    QString newDate = newTask.getEndDateTime().toString(Qt::ISODate);
+    QJsonObject obj = newTask.ToJson();
+    obj["due"] = newDate;
+    QJsonDocument doc(obj);
+    qDebug() << doc;
 
-    QJsonDocument doc(newTask.ToJson());
     QByteArray body = doc.toJson();
 
     //qDebug()<< body;
