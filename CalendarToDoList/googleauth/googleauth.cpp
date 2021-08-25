@@ -7,10 +7,22 @@
 #include "CalendarClient/CalendarClient.h"
 #include "calendar_classes/calendarevent.h"
 
-QDomElement cTag;
-
 GoogleAuth::GoogleAuth(QObject* parent) : QObject(parent) {
   google = new QOAuth2AuthorizationCodeFlow;
+
+  connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
+    qDebug() << "Granted";
+
+    QFile tokens = QFile("tokens.json");
+    tokens.open(QFile::WriteOnly);
+    QJsonObject json_obj;
+    json_obj.insert("accessToken", google->token());
+    json_obj.insert("refreshToken", google->refreshToken());
+    tokens.write(QJsonDocument(json_obj).toJson());
+  });
+
+  connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+          &QDesktopServices::openUrl);
 
   // Permessi richiesti a google. Vedi
   // https://developers.google.com/identity/protocols/oauth2/scopes
@@ -19,9 +31,6 @@ GoogleAuth::GoogleAuth(QObject* parent) : QObject(parent) {
       "https://www.googleapis.com/auth/calendar.events "
       "https://www.googleapis.com/auth/calendar.settings.readonly "
       "https://www.googleapis.com/auth/tasks");
-
-  connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
-          &QDesktopServices::openUrl);
 
   // Read authentication data
   QFile data = QFile("auth.json");
@@ -55,24 +64,6 @@ GoogleAuth::GoogleAuth(QObject* parent) : QObject(parent) {
   } else {
     google->grant();
   }
-
-  connect(google, &QOAuth2AuthorizationCodeFlow::error,
-          [this](const QString& error, const QString& desc, const QUrl& uri) {
-            qDebug() << "error";
-            qDebug() << error;
-            QT_THROW(error);
-          });
-
-  connect(google, &QOAuth2AuthorizationCodeFlow::granted, [this]() {
-    qDebug() << "Granted";
-
-    QFile tokens = QFile("tokens.json");
-    tokens.open(QFile::WriteOnly);
-    QJsonObject json_obj;
-    json_obj.insert("accessToken", google->token());
-    json_obj.insert("refreshToken", google->refreshToken());
-    tokens.write(QJsonDocument(json_obj).toJson());
-  });
 }
 
 GoogleAuth::~GoogleAuth() {

@@ -19,6 +19,7 @@ class CalendarEvent : public QObject {
   ///////// STATIC UTILS //////
 
   static int WeekDayFromString(const QString& weekday_string);
+  static QString StringFromWeekDay(int weekday);
 
   //////// OPERATORS //////////
 

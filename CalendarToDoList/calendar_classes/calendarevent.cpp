@@ -44,9 +44,7 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
         utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
       if (!utcTime.isValid())
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
-      if (!utcTime.isValid())
-        qDebug() << ": "
-                 << "could not parse" << line;
+      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
 
       setStartDateTime(utcTime.toLocalTime());
     } else if (key.startsWith(QLatin1String("DTEND"))) {
@@ -59,9 +57,7 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
         all_day_ = true;
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
       }
-      if (!utcTime.isValid())
-        qDebug() << ": "
-                 << "could not parse" << line;
+      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
 
       setEndDateTime(utcTime.toLocalTime());
     } else if (key == QLatin1String("RRULE")) {
@@ -148,6 +144,26 @@ int CalendarEvent::WeekDayFromString(const QString& weekday_string) {
   return iRet;
 }
 
+QString CalendarEvent::StringFromWeekDay(int weekday) {
+  switch (weekday) {
+    case 1:
+      return "MO";
+    case 2:
+      return "TU";
+    case 3:
+      return "WE";
+    case 4:
+      return "TH";
+    case 5:
+      return "FR";
+    case 6:
+      return "SA";
+    case 7:
+      return "SU";
+  }
+  return "";
+}
+
 QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
                                                    QDateTime to) {
   // Look at QList<QObject*> CalendarClient::eventsForDate(const QDate& date)
@@ -176,11 +192,24 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
         if (by_day.contains(i.date().dayOfWeek())) tmp += i;
     }
     if (freq == "MONTHLY") {
+      // Parse BYMONTHDAY
+      int day_of_month = rules_map["BYMONTHDAY"].toInt();
+      for (QDateTime i = start; i < to; i = i.addDays(1))
+        if (i.date().day() == day_of_month) tmp += i;
     }
     if (freq == "YEARLY") {
+      // Parse BYMONTH, BYMONTHDAY
+      int day_of_month = rules_map["BYMONTHDAY"].toInt();
+      int month = rules_map["BYMONTH"].toInt();
+      if (month == 0) month = start_date_time_.date().month();
+      if (day_of_month == 0) day_of_month = start_date_time_.date().day();
+      for (QDateTime i = start; i < to; i = i.addDays(1))
+        if (i.date().month() == month && i.date().day() == day_of_month)
+          tmp += i;
     }
     list += tmp;
   }
+  for (QDateTime& dt : list) dt.setTime(start_date_time_.time());
   return list;
 }
 
