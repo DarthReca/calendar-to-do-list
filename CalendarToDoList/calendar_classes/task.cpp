@@ -15,8 +15,8 @@ Task::Task(QJsonObject& json, QObject* parent) : Task(parent) {
     if (!utcTime.isValid())
       qDebug() << ": "
                << "could not parse" << end_date.toString();
-    setStartDateTime(utcTime.toLocalTime());
-    setEndDateTime(utcTime.toLocalTime());
+    setStartDateTime(utcTime);
+    setEndDateTime(utcTime);
     setAll_day(true);
   }
 
