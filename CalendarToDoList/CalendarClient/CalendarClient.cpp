@@ -373,8 +373,16 @@ QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
 
+    QString newDate = QDateTime::fromString(newTask.getEndDateTime().toString(), Qt::TextDate).toString(Qt::ISODateWithMs);
+    QDateTime newDateTime = QDateTime::fromString(newDate);
+    qDebug() << newDateTime.toString();
+    newTask.setEndDateTime(newDateTime);
+    newTask.setStartDateTime(newDateTime);
+
     QJsonDocument doc(newTask.ToJson());
     QByteArray body = doc.toJson();
+
+    //qDebug()<< body;
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
                 cal_part, QByteArray("POST"), body);

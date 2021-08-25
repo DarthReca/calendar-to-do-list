@@ -113,7 +113,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             for(TaskList& list : calendar_->taskLists()){
                 if(list.title() == title){
                     Task *task = qobject_cast<Task *>(event_);
-                    client_->createTask(list, *task);
+                    auto reply = client_->createTask(list, *task);
+
+                    connect(reply, &QNetworkReply::finished, [reply](){
+                       qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toString();
+                    });
+
+
                     list.getTasks().append(*task);
                     break;
                 }
@@ -160,16 +166,36 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      event_.clear();
-      qDebug() << "Event not created\n";
+        if(isEvent_){
+            qDebug() << "Event not created\n";
+        }
+        else{
+            qDebug() << "Task not created\n";
+        }
+        event_.clear();
     } else {
-      QString hrefToDelete = event_->getHREF();
-      QString eTag = event_->eTag();
-      calendar_->events().removeOne(*event_);
-      client_->deleteETag(hrefToDelete);
-      client_->deleteEvent(*event_, eTag);
-      qDebug() << "Event " + event_->summary() + " deleted\n";
-      emit requestView();
+        if(isEvent_){
+            QString hrefToDelete = event_->getHREF();
+            QString eTag = event_->eTag();
+            calendar_->events().removeOne(*event_);
+            client_->deleteETag(hrefToDelete);
+            client_->deleteEvent(*event_, eTag);
+            qDebug() << "Event " + event_->summary() + " deleted\n";
+        }
+        else{
+            QString title = ui->taskLists->currentText();
+            for(TaskList& list : calendar_->taskLists()){
+                if(list.title() == title){
+                    Task *task = qobject_cast<Task *>(event_);
+                    client_->deleteTask(list, *task);
+                    list.getTasks().removeOne(*task);
+                    qDebug() << "Task " + (*task).summary() + " deleted\n";
+                    break;
+                }
+            }
+
+        }
+        emit requestView();
     }
     accept();
   });
