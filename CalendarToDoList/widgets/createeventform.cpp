@@ -4,14 +4,15 @@
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
-                                 Calendar& calendar, bool existing,
+                                 Calendar& calendar, bool existing, bool isEvent,
                                  QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
       event_(event),
       client_(&client),
       calendar_(&calendar),
-      existing_(existing) {
+      existing_(existing),
+      isEvent_(isEvent) {
 
   ui->setupUi(this);
 
@@ -20,14 +21,24 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   if (existing_) ui->typeSelection->hide();
 
   // TYPE
+  if(isEvent){
+      ui->typeSelection->setCurrentText("Evento");
+  }
+  else{
+      ui->typeSelection->setCurrentText("Attività");
+  }
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
             if (text == "Evento"){
-              event_ = new CalendarEvent;
+              if(!existing_){
+                  event_ = new CalendarEvent;
+              }
               isEvent_ = true;
             }
             else{
-              event_ = new Task;
+              if(!existing_){
+                  event_ = new Task;
+              }
               isEvent_ = false;
             }
             ResetFormFields();
@@ -114,12 +125,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 if(list.title() == title){
                     Task *task = qobject_cast<Task *>(event_);
                     auto reply = client_->createTask(list, *task);
-
-                    connect(reply, &QNetworkReply::finished, [reply](){
-                       qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toString();
-                    });
-
-
                     list.getTasks().append(*task);
                     break;
                 }
@@ -145,13 +150,18 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             QString title = ui->taskLists->currentText();
             for(TaskList& list : calendar_->taskLists()){
                 if(list.title() == title){
-                    for(Task t : list.getTasks()){
+                    for(Task& t : list.getTasks()){
                         if(t.getHREF() == event_->getHREF()){
                             list.getTasks().removeOne(t);
                         }
                     }
                     Task *task = qobject_cast<Task *>(event_);
-                    client_->updateTask(list, *task);
+                    auto reply = client_->updateTask(list, *task);
+
+                    connect(reply, &QNetworkReply::finished, [reply](){
+                       qDebug() << reply->readAll();
+                    });
+
                     list.getTasks().append(*task);
                     qDebug() << "Task " + task->summary() + " saved\n";
                     break;
