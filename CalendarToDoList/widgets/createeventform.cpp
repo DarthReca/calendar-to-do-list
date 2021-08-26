@@ -64,21 +64,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   // SDATETIME
   connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
-            QDateTime max = ui->endDateTime->dateTime();
-            if (datetime > max) {
-              ui->startDateTime->setDateTime(max);
-              return;
-            }
             event_->setStartDateTime(datetime);
           });
   // EDATETIME
   connect(ui->endDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
-            QDateTime min = ui->startDateTime->dateTime();
-            if (datetime < min) {
-              ui->endDateTime->setDateTime(min);
-              return;
-            }
             event_->setEndDateTime(datetime);
           });
   // RRULE
@@ -114,21 +104,33 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
-    /*
-  if (!existing_) {
-    if (isEvent_) {
-      client_->saveEvent(*event_);
-      calendar_->events().append(*event_);
-      qDebug() << "New event saved\n";
-      // RandomComment
-    } else {
-      QString title = ui->taskLists->currentText();
-      for (TaskList& list : calendar_->taskLists()) {
-        if (list.title() == title) {
-          Task* task = qobject_cast<Task*>(event_);
-          auto reply = client_->createTask(list, *task);
-          list.getTasks().append(*task);
-          break;
+    if (!existing_) {
+        if(isEvent_){
+            QDateTime max = ui->endDateTime->dateTime();
+            if (ui->startDateTime->dateTime() > max) {
+              max.setTime(ui->startDateTime->time());
+              (*event_).setStartDateTime(max);
+              qDebug() << event_->getStartDateTime().toString() + "     " + event_->getStartDateTime().toString();
+            }
+            client_->saveEvent(*event_);
+
+            auto reply = client_->lookForChanges();
+            connect(reply, &QNetworkReply::finished, [reply, this](){
+                QString hrefToSearch = (*event_).getHREF();
+                QDomDocument res;
+                res.setContent(reply->readAll());
+                auto href_list = res.elementsByTagName("D:href");
+                auto eTagList = res.elementsByTagName("D:getetag");
+                for(int i=0; i<href_list.size(); i++){
+                    if(href_list.at(i).toElement().text() == hrefToSearch){
+                        (*event_).setETag(eTagList.at(i).toElement().text());
+                        break;
+                    }
+                }
+                qDebug() << (*event_).eTag();
+                calendar_->events().append(*event_);
+            });
+            qDebug() << "New event saved\n";
         }
       }
       qDebug() << "New task saved\n";
@@ -145,7 +147,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         if (ev.getHREF() == hrefToUpdate) {
           calendar_->events().removeOne(ev);
         }
-      }
     } else {
       QString title = ui->taskLists->currentText();
       for (TaskList& list : calendar_->taskLists()) {
@@ -155,26 +156,29 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               list.getTasks().removeOne(t);
             }
           }
-          Task* task = qobject_cast<Task*>(event_);
-          auto reply = client_->updateTask(list, *task);
+        }
+      } else{
+            QString title = ui->taskLists->currentText();
+            for(TaskList& list : calendar_->taskLists()){
+                if(list.title() == title){
+                    for(Task& t : list.getTasks()){
+                        if(t.getHREF() == event_->getHREF()){
+                            list.getTasks().removeOne(t);
+                        }
+                    }
+                    Task *task = qobject_cast<Task *>(event_);
+                    auto reply = client_->updateTask(list, *task);
 
           connect(reply, &QNetworkReply::finished,
                   [reply]() { qDebug() << reply->readAll(); });
 
-          list.getTasks().append(*task);
-          qDebug() << "Task " + task->summary() + " saved\n";
-          break;
-        }
-      }
-      Task* task = qobject_cast<Task*>(event_);
-      client_->updateTask(list, *task);
-      list.getTasks().append(*task);
-      qDebug() << "Task " + task->summary() + " saved\n";
-      break;
-    }
-  }
-  }
-  */
+                    list.getTasks().append(*task);
+                    qDebug() << "Task " + task->summary() + " saved\n";
+                    break;
+                }
+            }
+          }
+        }  
     emit requestView();
     accept();
   });
