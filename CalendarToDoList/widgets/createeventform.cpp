@@ -116,7 +116,23 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               qDebug() << event_->getStartDateTime().toString() + "     " + event_->getStartDateTime().toString();
             }
             client_->saveEvent(*event_);
-            calendar_->events().append(*event_);
+
+            auto reply = client_->lookForChanges();
+            connect(reply, &QNetworkReply::finished, [reply, this](){
+                QString hrefToSearch = (*event_).getHREF();
+                QDomDocument res;
+                res.setContent(reply->readAll());
+                auto href_list = res.elementsByTagName("D:href");
+                auto eTagList = res.elementsByTagName("D:getetag");
+                for(int i=0; i<href_list.size(); i++){
+                    if(href_list.at(i).toElement().text() == hrefToSearch){
+                        (*event_).setETag(eTagList.at(i).toElement().text());
+                        break;
+                    }
+                }
+                qDebug() << (*event_).eTag();
+                calendar_->events().append(*event_);
+            });
             qDebug() << "New event saved\n";
         }
         else{
