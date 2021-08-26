@@ -4,8 +4,8 @@
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
-                                 Calendar& calendar, bool existing, bool isEvent,
-                                 QWidget* parent)
+                                 Calendar& calendar, bool existing,
+                                 bool isEvent, QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
       event_(event),
@@ -13,7 +13,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       calendar_(&calendar),
       existing_(existing),
       isEvent_(isEvent) {
-
   ui->setupUi(this);
 
   ResetFormFields();
@@ -21,23 +20,21 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   if (existing_) ui->typeSelection->hide();
 
   // TYPE
-  if(isEvent){
-      ui->typeSelection->setCurrentText("Evento");
-  }
-  else{
-      ui->typeSelection->setCurrentText("Attività");
+  if (isEvent) {
+    ui->typeSelection->setCurrentText("Evento");
+  } else {
+    ui->typeSelection->setCurrentText("Attività");
   }
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
-            if (text == "Evento"){
-              if(!existing_){
-                  event_ = new CalendarEvent;
+            if (text == "Evento") {
+              if (!existing_) {
+                event_ = new CalendarEvent;
               }
               isEvent_ = true;
-            }
-            else{
-              if(!existing_){
-                  event_ = new Task;
+            } else {
+              if (!existing_) {
+                event_ = new Task;
               }
               isEvent_ = false;
             }
@@ -117,69 +114,67 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
-    if (!existing_) {
-        if(isEvent_){
-            client_->saveEvent(*event_);
-            calendar_->events().append(*event_);
-            qDebug() << "New event saved\n";
-            // RandomComment
+    /*
+  if (!existing_) {
+    if (isEvent_) {
+      client_->saveEvent(*event_);
+      calendar_->events().append(*event_);
+      qDebug() << "New event saved\n";
+      // RandomComment
+    } else {
+      QString title = ui->taskLists->currentText();
+      for (TaskList& list : calendar_->taskLists()) {
+        if (list.title() == title) {
+          Task* task = qobject_cast<Task*>(event_);
+          auto reply = client_->createTask(list, *task);
+          list.getTasks().append(*task);
+          break;
         }
-        else{
-            QString title = ui->taskLists->currentText();
-            for(TaskList& list : calendar_->taskLists()){
-                if(list.title() == title){
-                    Task *task = qobject_cast<Task *>(event_);
-                    auto reply = client_->createTask(list, *task);
-                    list.getTasks().append(*task);
-                    break;
-                }
-            }
-            qDebug() << "New task saved\n";
+      }
+      qDebug() << "New task saved\n";
+    }
+    qDebug() << "New task saved\n";
+  } else {
+    if (isEvent_) {
+      QString hrefToUpdate = event_->getHREF();
+      qDebug() << "\n\nETag: " +
+                      client_->getETags().find(hrefToUpdate).value() + "\n\n";
+      client_->updateEvent(*event_,
+                           client_->getETags().find(hrefToUpdate).value());
+      for (CalendarEvent& ev : calendar_->events()) {
+        if (ev.getHREF() == hrefToUpdate) {
+          calendar_->events().removeOne(ev);
         }
-        qDebug() << "New task saved\n";
       }
     } else {
-      if (isEvent_) {
-        QString hrefToUpdate = event_->getHREF();
-        qDebug() << "\n\nETag: " +
-                        client_->getETags().find(hrefToUpdate).value() + "\n\n";
-        client_->updateEvent(*event_,
-                             client_->getETags().find(hrefToUpdate).value());
-        for (CalendarEvent& ev : calendar_->events()) {
-          if (ev.getHREF() == hrefToUpdate) {
-            calendar_->events().removeOne(ev);
-          }
-        }
-        else{
-            QString title = ui->taskLists->currentText();
-            for(TaskList& list : calendar_->taskLists()){
-                if(list.title() == title){
-                    for(Task& t : list.getTasks()){
-                        if(t.getHREF() == event_->getHREF()){
-                            list.getTasks().removeOne(t);
-                        }
-                    }
-                    Task *task = qobject_cast<Task *>(event_);
-                    auto reply = client_->updateTask(list, *task);
-
-                    connect(reply, &QNetworkReply::finished, [reply](){
-                       qDebug() << reply->readAll();
-                    });
-
-                    list.getTasks().append(*task);
-                    qDebug() << "Task " + task->summary() + " saved\n";
-                    break;
-                }
+      QString title = ui->taskLists->currentText();
+      for (TaskList& list : calendar_->taskLists()) {
+        if (list.title() == title) {
+          for (Task& t : list.getTasks()) {
+            if (t.getHREF() == event_->getHREF()) {
+              list.getTasks().removeOne(t);
             }
-            Task* task = qobject_cast<Task*>(event_);
-            client_->updateTask(list, *task);
-            list.getTasks().append(*task);
-            qDebug() << "Task " + task->summary() + " saved\n";
-            break;
           }
+          Task* task = qobject_cast<Task*>(event_);
+          auto reply = client_->updateTask(list, *task);
+
+          connect(reply, &QNetworkReply::finished,
+                  [reply]() { qDebug() << reply->readAll(); });
+
+          list.getTasks().append(*task);
+          qDebug() << "Task " + task->summary() + " saved\n";
+          break;
         }
       }
+      Task* task = qobject_cast<Task*>(event_);
+      client_->updateTask(list, *task);
+      list.getTasks().append(*task);
+      qDebug() << "Task " + task->summary() + " saved\n";
+      break;
     }
+  }
+  }
+  */
     emit requestView();
     accept();
   });
