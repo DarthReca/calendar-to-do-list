@@ -45,7 +45,7 @@ class MainWindow : public QMainWindow {
 
  private:
   void updateTableToNDays(int n);
-  void on_request_editing_form(CalendarEvent *event = nullptr);
+  void on_request_editing_form(CalendarEvent *event = nullptr, bool isEvent = true);
 
   Ui::MainWindow *ui;
 

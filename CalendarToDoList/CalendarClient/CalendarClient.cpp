@@ -375,7 +375,7 @@ QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
 
     QString newDate = newTask.getEndDateTime().toString(Qt::ISODate);
     QJsonObject obj = newTask.ToJson();
-    obj["due"] = newDate;
+    obj["due"] = "";
     QJsonDocument doc(obj);
     qDebug() << doc;
 
@@ -390,13 +390,17 @@ QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
 QNetworkReply *CalendarClient::updateTask(TaskList& list, Task& taskToUpdate)
 {
     QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
+    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToUpdate.getHREF() + "?key=" + QString(API_KEY)));
     cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
     cal_part.setRawHeader("Accept", "application/json");
     cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
 
-    QJsonDocument doc(taskToUpdate.ToJson());
+    QJsonObject obj = taskToUpdate.ToJson();
+    obj["due"] = "";
+    QJsonDocument doc(obj);
     QByteArray body = doc.toJson();
+
+    qDebug() << body;
 
     return auth_->google->networkAccessManager()->sendCustomRequest(
                 cal_part, QByteArray("PATCH"), body);

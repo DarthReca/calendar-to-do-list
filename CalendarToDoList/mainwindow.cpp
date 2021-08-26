@@ -183,7 +183,7 @@ void MainWindow::on_showing_events_changed() {
 
     // Connection to edit
     connect(widget, &EventWidget::clicked,
-            [this, widget]() { on_request_editing_form(widget->event()); });
+            [this, widget]() { on_request_editing_form(widget->event(), true); });
     widget->show();
   }
 }
@@ -219,7 +219,7 @@ void MainWindow::on_showing_tasks_changed() {
 
     // Connection to edit
     connect(widget, &EventWidget::clicked,
-            [this, widget]() { on_request_editing_form(widget->event()); });
+            [this, widget]() { on_request_editing_form(widget->event(), false); });
     widget->show();
   }
 }
@@ -331,10 +331,10 @@ void MainWindow::on_actionSincronizza_triggered() {
   });
 }
 
-void MainWindow::on_request_editing_form(CalendarEvent *event) {
+void MainWindow::on_request_editing_form(CalendarEvent *event, bool isEvent) {
   bool existing = event != nullptr;
   if (!existing) event = new CalendarEvent;
-  CreateEventForm form(event, *client_, *calendar_, existing, this);
+  CreateEventForm form(event, *client_, *calendar_, existing, isEvent, this);
   connect(&form, &CreateEventForm::requestView,
           [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
   form.exec();
