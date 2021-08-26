@@ -67,21 +67,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   // SDATETIME
   connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
-            QDateTime max = ui->endDateTime->dateTime();
-            if (datetime > max) {
-              ui->startDateTime->setDateTime(max);
-              return;
-            }
             event_->setStartDateTime(datetime);
           });
   // EDATETIME
   connect(ui->endDateTime, &QDateTimeEdit::dateTimeChanged,
           [this](const QDateTime& datetime) {
-            QDateTime min = ui->startDateTime->dateTime();
-            if (datetime < min) {
-              ui->endDateTime->setDateTime(min);
-              return;
-            }
             event_->setEndDateTime(datetime);
           });
   // RRULE
@@ -119,10 +109,15 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {
         if(isEvent_){
+            QDateTime max = ui->endDateTime->dateTime();
+            if (ui->startDateTime->dateTime() > max) {
+              max.setTime(ui->startDateTime->time());
+              (*event_).setStartDateTime(max);
+              qDebug() << event_->getStartDateTime().toString() + "     " + event_->getStartDateTime().toString();
+            }
             client_->saveEvent(*event_);
             calendar_->events().append(*event_);
             qDebug() << "New event saved\n";
-            // RandomComment
         }
         else{
             QString title = ui->taskLists->currentText();
@@ -136,7 +131,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             }
             qDebug() << "New task saved\n";
         }
-        qDebug() << "New task saved\n";
     } else {
       if (isEvent_) {
         QString hrefToUpdate = event_->getHREF();
