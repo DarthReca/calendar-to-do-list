@@ -137,7 +137,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             qDebug() << "New task saved\n";
         }
         qDebug() << "New task saved\n";
-      }
     } else {
       if (isEvent_) {
         QString hrefToUpdate = event_->getHREF();
@@ -150,7 +149,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             calendar_->events().removeOne(ev);
           }
         }
-        else{
+      } else{
             QString title = ui->taskLists->currentText();
             for(TaskList& list : calendar_->taskLists()){
                 if(list.title() == title){
@@ -171,15 +170,8 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                     break;
                 }
             }
-            Task* task = qobject_cast<Task*>(event_);
-            client_->updateTask(list, *task);
-            list.getTasks().append(*task);
-            qDebug() << "Task " + task->summary() + " saved\n";
-            break;
           }
-        }
-      }
-    }
+        }  
     emit requestView();
     accept();
   });
