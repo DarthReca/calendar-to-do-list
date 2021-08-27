@@ -28,10 +28,10 @@ MainWindow::MainWindow(QWidget *parent)
 
   // Force user to authenticate
   // if (auth_.isNull()) auth_ = new Authenticator(this);
-  QEventLoop loop;
+  // QEventLoop loop;
   // connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
   //        &QEventLoop::quit);
-  loop.exec();
+  // loop.exec();
 
   // Internal signals
   connect(this, &MainWindow::show, this,
@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
     res.setContent(reply->readAll());
     auto lista = res.elementsByTagName("cs:getctag");
     client_->setCTag(lista.at(0).toElement().text());
+    qDebug() << res.toString();
   });
 
   // Initial sync
@@ -114,6 +115,7 @@ void MainWindow::refresh_calendar_events() {
 
     QDomDocument res;
     res.setContent(reply->readAll());
+
     auto calendars = res.elementsByTagName("caldav:calendar-data");
     auto hrefs_list = res.elementsByTagName("D:href");
     auto eTags = res.elementsByTagName("D:getetag");

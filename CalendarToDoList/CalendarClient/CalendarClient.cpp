@@ -17,6 +17,7 @@ CalendarClient::CalendarClient(QObject* parent)
     : network_manager_(QNetworkAccessManager()) {
   QFile auth_file("auth.json");
   if (!auth_file.exists()) QT_THROW("Missing file auth.json");
+  auth_file.open(QFile::OpenModeFlag::ReadOnly);
   QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();
 
   endpoint_ = QUrl(json["url"].toString());
