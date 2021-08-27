@@ -1,19 +1,23 @@
 #ifndef CALENDARCLIENT_CALDAV_H
 #define CALENDARCLIENT_CALDAV_H
 
+#include <QAuthenticator>
 #include <QDomDocument>
+#include <QJsonDocument>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QObject>
+#include <QPointer>
 
 #include "calendar_classes/calendarevent.h"
-#include "googleauth/googleauth.h"
 #include "calendar_classes/task.h"
 
 class CalendarClient : public QObject {
   Q_OBJECT
 
  public:
-  CalendarClient(GoogleAuth& auth, QObject* parent = nullptr);
-  ~CalendarClient();
+  CalendarClient(const QString& username, const QString& password,
+                 QObject* parent = nullptr);
 
   /**
    * @brief Obtain the ctag from the server.
@@ -107,12 +111,12 @@ class CalendarClient : public QObject {
   QNetworkReply* deleteTask(TaskList& list, Task& taskToDelete);
 
  private:
-  QPointer<GoogleAuth> auth_;
   QString cTag_;
   QMap<QString, QString> eTags_;
   QList<QString> changedItems_;
 
-  QPointer<QNetworkAccessManager> network_manager_;
+  QNetworkAccessManager network_manager_;
+  QByteArray credentials_;
 };
 
 #endif  // CALENDARCLIENT_CALDAV_H

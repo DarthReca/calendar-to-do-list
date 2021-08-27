@@ -1,4 +1,4 @@
-#include "calendarclient.h"
+#include "CalendarClient.h"
 
 #include <QByteArray>
 #include <QDomDocument>
@@ -16,18 +16,17 @@
 #define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists"
 #define API_KEY "AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"
 
-CalendarClient::CalendarClient(GoogleAuth& auth, QObject* parent) {
-  auth_ = &auth;
+CalendarClient::CalendarClient(const QString& username, const QString& password,
+                               QObject* parent)
+    : network_manager_(QNetworkAccessManager()) {
+  credentials_ = (username + ":" + password).toUtf8().toBase64();
 }
-
-CalendarClient::~CalendarClient() { delete auth_; }
 
 //////////// Events APIs ////////////
 
 QNetworkReply* CalendarClient::obtainCTag() {
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(QUrl(EVENTS_REQUEST_URL));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
@@ -46,14 +45,13 @@ QNetworkReply* CalendarClient::obtainCTag() {
   tagProp.appendChild(xml.createElement("cs:getctag"));
   root.appendChild(tagProp);
 
-  return auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"),
+                                            xml.toByteArray());
 }
 
 QNetworkReply* CalendarClient::getAllEvents() {
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(QUrl(EVENTS_REQUEST_URL));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
@@ -77,14 +75,13 @@ QNetworkReply* CalendarClient::getAllEvents() {
   tagFilter.appendChild(tagCompFilter);
   root.appendChild(tagFilter);
 
-  return auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("REPORT"), xml.toByteArray());
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
+                                            xml.toByteArray());
 }
 
 QNetworkReply* CalendarClient::lookForChanges() {
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(QUrl(EVENTS_REQUEST_URL));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
@@ -107,14 +104,13 @@ QNetworkReply* CalendarClient::lookForChanges() {
   tagFilter.appendChild(tagCompFilter);
   root.appendChild(tagFilter);
 
-  return auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("REPORT"), xml.toByteArray());
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
+                                            xml.toByteArray());
 }
 
 QNetworkReply* CalendarClient::getChangedEvents() {
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(QUrl(EVENTS_REQUEST_URL));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
@@ -139,14 +135,13 @@ QNetworkReply* CalendarClient::getChangedEvents() {
     root.appendChild(tagHref);
   }
 
-  return auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("REPORT"), xml.toByteArray());
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
+                                            xml.toByteArray());
 }
 
 void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(QUrl(EVENTS_REQUEST_URL));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
@@ -175,7 +170,7 @@ void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
   tagCompFilter.appendChild(tagTime);
   root.appendChild(tagFilter);
 
-  auto reply = auth_->google->networkAccessManager()->sendCustomRequest(
+  auto reply = network_manager_.sendCustomRequest(
       cal_part, QByteArray("REPORT"), xml.toByteArray());
 
   connect(reply, &QNetworkReply::finished,
@@ -195,8 +190,7 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
           .toUtf8();
 
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(
       QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
@@ -210,8 +204,8 @@ void CalendarClient::saveEvent(CalendarEvent& event) {
 
   // Bisogna ottenere il .ics corretto
   // (/home/lisa/calendars/events/qwue23489.ics)
-  auto reply = auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("PUT"), request_string);
+  auto reply = network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
+                                                  request_string);
 
   qDebug() << "Put request sent\n";
 }
@@ -229,8 +223,7 @@ void CalendarClient::updateEvent(CalendarEvent event, QString eTag) {
           .toUtf8();
 
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(
       QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
@@ -239,8 +232,8 @@ void CalendarClient::updateEvent(CalendarEvent event, QString eTag) {
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
 
-  auto reply = auth_->google->networkAccessManager()->sendCustomRequest(
-      cal_part, QByteArray("PUT"), request_string);
+  auto reply = network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
+                                                  request_string);
 
   qDebug() << "Put request for update sent\n";
   qDebug() << reply->readAll();
@@ -259,154 +252,150 @@ void CalendarClient::deleteEvent(CalendarEvent& event, QString eTag) {
   qDebug() << "deleting event with eTag" << eTag;
 
   QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization",
-                        ("Bearer " + auth_->google->token()).toUtf8());
+  cal_part.setRawHeader("Authorization", ("Bearer "));
   cal_part.setUrl(
       QUrl(QString(EVENTS_REQUEST_URL) + "/" + event.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
 
-  auto reply = auth_->google->networkAccessManager()->deleteResource(cal_part);
+  auto reply = network_manager_.deleteResource(cal_part);
 
   connect(reply, &QNetworkReply::finished, []() {
 
   });
 }
 
-
-
 //////////// Tasks APIs ////////////
 
+QNetworkReply* CalendarClient::getAllTaskLists() {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(
+      QUrl(QString(TASKLISTS_REQUEST_URL) + "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
 
-
-QNetworkReply *CalendarClient::getAllTaskLists()
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-        cal_part, QByteArray("GET"));
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::createTaskList(TaskList& listToCreate)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "?key="  + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
+QNetworkReply* CalendarClient::createTaskList(TaskList& listToCreate) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(
+      QUrl(QString(TASKLISTS_REQUEST_URL) + "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/json");
 
-    QJsonDocument doc(listToCreate.ToJson());
-    QByteArray body = doc.toJson();
+  QJsonDocument doc(listToCreate.ToJson());
+  QByteArray body = doc.toJson();
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("POST"), body);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("POST"), body);
 }
 
-QNetworkReply *CalendarClient::updateTaskList(TaskList& listToUpdate)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToUpdate.id() + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
+QNetworkReply* CalendarClient::updateTaskList(TaskList& listToUpdate) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" +
+                       listToUpdate.id() + "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/json");
 
-    QJsonDocument doc(listToUpdate.ToJson());
-    QByteArray body = doc.toJson();
+  QJsonDocument doc(listToUpdate.ToJson());
+  QByteArray body = doc.toJson();
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("PATCH"), body);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("PATCH"),
+                                            body);
 }
 
-QNetworkReply *CalendarClient::deleteTaskList(TaskList& listToDelete)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" + listToDelete.id() + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
+QNetworkReply* CalendarClient::deleteTaskList(TaskList& listToDelete) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKLISTS_REQUEST_URL) + "/" +
+                       listToDelete.id() + "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/json");
 
-    QJsonDocument doc(listToDelete.ToJson());
-    QByteArray body = doc.toJson();
+  QJsonDocument doc(listToDelete.ToJson());
+  QByteArray body = doc.toJson();
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("DELETE"), body);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("DELETE"),
+                                            body);
 }
 
-QNetworkReply *CalendarClient::getAllTasks(TaskList& list)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
+QNetworkReply* CalendarClient::getAllTasks(TaskList& list) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() +
+                       "/tasks?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"));
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::getTask(TaskList& list, Task& taskToGet)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToGet.getHREF() + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
+QNetworkReply* CalendarClient::getTask(TaskList& list, Task& taskToGet) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() +
+                       "/tasks/" + taskToGet.getHREF() +
+                       "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("GET"));
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("GET"));
 }
 
-QNetworkReply *CalendarClient::createTask(TaskList& list, Task& newTask)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
+QNetworkReply* CalendarClient::createTask(TaskList& list, Task& newTask) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() +
+                       "/tasks?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/json");
 
-    QString newDate = newTask.getEndDateTime().toString(Qt::ISODate);
-    QJsonObject obj = newTask.ToJson();
-    obj["due"] = "";
-    QJsonDocument doc(obj);
-    qDebug() << doc;
+  QString newDate = newTask.getEndDateTime().toString(Qt::ISODate);
+  QJsonObject obj = newTask.ToJson();
+  obj["due"] = "";
+  QJsonDocument doc(obj);
+  qDebug() << doc;
 
-    QByteArray body = doc.toJson();
+  QByteArray body = doc.toJson();
 
-    //qDebug()<< body;
+  // qDebug()<< body;
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("POST"), body);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("POST"), body);
 }
 
-QNetworkReply *CalendarClient::updateTask(TaskList& list, Task& taskToUpdate)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToUpdate.getHREF() + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
+QNetworkReply* CalendarClient::updateTask(TaskList& list, Task& taskToUpdate) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() +
+                       "/tasks/" + taskToUpdate.getHREF() +
+                       "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/json");
 
-    QJsonObject obj = taskToUpdate.ToJson();
-    obj["due"] = "";
-    QJsonDocument doc(obj);
-    QByteArray body = doc.toJson();
+  QJsonObject obj = taskToUpdate.ToJson();
+  obj["due"] = "";
+  QJsonDocument doc(obj);
+  QByteArray body = doc.toJson();
 
-    qDebug() << body;
+  qDebug() << body;
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("PATCH"), body);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("PATCH"),
+                                            body);
 }
 
-QNetworkReply *CalendarClient::deleteTask(TaskList& list, Task& taskToDelete)
-{
-    QNetworkRequest cal_part;
-    cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() + "/tasks/" + taskToDelete.getHREF() + "?key=" + QString(API_KEY)));
-    cal_part.setRawHeader("Authorization", ("Bearer " + auth_->google->token()).toUtf8());
-    cal_part.setRawHeader("Accept", "application/json");
+QNetworkReply* CalendarClient::deleteTask(TaskList& list, Task& taskToDelete) {
+  QNetworkRequest cal_part;
+  cal_part.setUrl(QUrl(QString(TASKS_REQUEST_URL) + "/" + list.id() +
+                       "/tasks/" + taskToDelete.getHREF() +
+                       "?key=" + QString(API_KEY)));
+  cal_part.setRawHeader("Authorization", ("Bearer "));
+  cal_part.setRawHeader("Accept", "application/json");
 
-    return auth_->google->networkAccessManager()->sendCustomRequest(
-                cal_part, QByteArray("DELETE"));
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("DELETE"));
 }
-

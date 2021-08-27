@@ -45,7 +45,8 @@ class MainWindow : public QMainWindow {
 
  private:
   void updateTableToNDays(int n);
-  void on_request_editing_form(CalendarEvent *event = nullptr, bool isEvent = true);
+  void on_request_editing_form(CalendarEvent *event = nullptr,
+                               bool isEvent = true);
 
   Ui::MainWindow *ui;
 
@@ -55,7 +56,6 @@ class MainWindow : public QMainWindow {
   QList<Task> showing_tasks_;
   QPointer<Calendar> calendar_;
 
-  QPointer<GoogleAuth> auth_;
   QPointer<CalendarClient> client_;
 
   QPointer<QTimer> timer_;

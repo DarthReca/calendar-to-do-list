@@ -1,6 +1,6 @@
 #include "createeventform.h"
 
-#include "CalendarClient/calendarclient.h"
+#include "CalendarClient/CalendarClient.h"
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,

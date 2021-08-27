@@ -2,6 +2,7 @@
 #define CREATEEVENTFORM_H
 
 #include <QDialog>
+#include <QJsonArray>
 #include <QOAuth2AuthorizationCodeFlow>
 
 #include "CalendarClient/calendarclient.h"

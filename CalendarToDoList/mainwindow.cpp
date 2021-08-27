@@ -7,7 +7,6 @@
 
 #include "./ui_mainwindow.h"
 #include "CalendarClient/CalendarClient.h"
-#include "googleauth/googleauth.h"
 #include "widgets/eventwidget.h"
 #include "widgets/taskwidget.h"
 
@@ -28,10 +27,10 @@ MainWindow::MainWindow(QWidget *parent)
   qDebug() << "Starting...\n";
 
   // Force user to authenticate
-  if (auth_.isNull()) auth_ = new GoogleAuth(this);
+  // if (auth_.isNull()) auth_ = new Authenticator(this);
   QEventLoop loop;
-  connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
-          &QEventLoop::quit);
+  // connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
+  //        &QEventLoop::quit);
   loop.exec();
 
   // Internal signals
@@ -58,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->createEvent, &QPushButton::clicked,
           [this]() { on_request_editing_form(); });
 
-  client_ = new CalendarClient(*auth_, this);
+  client_ = new CalendarClient("USERNAME", "PASSWORD", this);
 
   // ottengo il cTag e tutti gli eventi nel calendario
   auto reply = client_->obtainCTag();
@@ -182,8 +181,9 @@ void MainWindow::on_showing_events_changed() {
     }
 
     // Connection to edit
-    connect(widget, &EventWidget::clicked,
-            [this, widget]() { on_request_editing_form(widget->event(), true); });
+    connect(widget, &EventWidget::clicked, [this, widget]() {
+      on_request_editing_form(widget->event(), true);
+    });
     widget->show();
   }
 }
@@ -218,8 +218,9 @@ void MainWindow::on_showing_tasks_changed() {
     }
 
     // Connection to edit
-    connect(widget, &EventWidget::clicked,
-            [this, widget]() { on_request_editing_form(widget->event(), false); });
+    connect(widget, &EventWidget::clicked, [this, widget]() {
+      on_request_editing_form(widget->event(), false);
+    });
     widget->show();
   }
 }
