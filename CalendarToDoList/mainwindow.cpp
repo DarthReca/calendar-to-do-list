@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->createEvent, &QPushButton::clicked,
           [this]() { on_request_editing_form(); });
 
-  client_ = new CalendarClient("USERNAME", "PASSWORD", this);
+  client_ = new CalendarClient(this);
 
   // ottengo il cTag e tutti gli eventi nel calendario
   auto reply = client_->obtainCTag();

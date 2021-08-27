@@ -16,8 +16,7 @@ class CalendarClient : public QObject {
   Q_OBJECT
 
  public:
-  CalendarClient(const QString& username, const QString& password,
-                 QObject* parent = nullptr);
+  CalendarClient(QObject* parent = nullptr);
 
   /**
    * @brief Obtain the ctag from the server.
@@ -117,6 +116,8 @@ class CalendarClient : public QObject {
 
   QNetworkAccessManager network_manager_;
   QByteArray credentials_;
+
+  QUrl endpoint_;
 };
 
 #endif  // CALENDARCLIENT_CALDAV_H
