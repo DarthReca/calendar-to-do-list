@@ -7,6 +7,7 @@
 
 #include "./ui_mainwindow.h"
 #include "CalendarClient/CalendarClient.h"
+#include "widgets/calendartable.h"
 #include "widgets/eventwidget.h"
 #include "widgets/taskwidget.h"
 
@@ -32,6 +33,12 @@ MainWindow::MainWindow(QWidget *parent)
   // connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
   //        &QEventLoop::quit);
   // loop.exec();
+
+  /* TESTING CALENDAR TABLE
+  CalendarTable *t = new CalendarTable();
+  ui->horizontalLayout->addWidget(t);
+  t->SetDays({"Monday", "Tuesday"});
+  */
 
   // Internal signals
   connect(this, &MainWindow::show, this,
@@ -69,7 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << res.toString();
   });
 
-    refresh_calendar_events();
+  refresh_calendar_events();
 }
 
 MainWindow::~MainWindow() {
@@ -79,7 +86,6 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::refresh_calendar_events() {
-
   auto reply = client_->getAllElements();
   connect(reply, &QNetworkReply::finished, [this, reply]() {
     calendar_->events().clear();
@@ -101,10 +107,9 @@ void MainWindow::refresh_calendar_events() {
       QString line = stream.readLine();
       while (!line.isNull()) {
         if (line.contains("BEGIN:VEVENT")) {
-            calendar_->events().append(tmp->events());
-        }
-        else{
-            calendar_->tasks().append(tmp->tasks());
+          calendar_->events().append(tmp->events());
+        } else {
+          calendar_->tasks().append(tmp->tasks());
         }
       }
     }
