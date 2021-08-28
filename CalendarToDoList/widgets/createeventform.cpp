@@ -112,7 +112,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           qDebug() << event_->getStartDateTime().toString() + "     " +
                           event_->getStartDateTime().toString();
         }
-        client_->saveEvent(*event_);
+        client_->saveElement(*event_);
 
         auto reply = client_->lookForChanges();
         connect(reply, &QNetworkReply::finished, [reply, this]() {
@@ -148,7 +148,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         QString hrefToUpdate = event_->getHREF();
         qDebug() << "\n\nETag: " +
                         client_->getETags().find(hrefToUpdate).value() + "\n\n";
-        client_->updateEvent(*event_,
+        client_->updateElement(*event_,
                              client_->getETags().find(hrefToUpdate).value());
         for (CalendarEvent& ev : calendar_->events()) {
           if (ev.getHREF() == hrefToUpdate) {
@@ -195,7 +195,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         QString eTag = event_->eTag();
         calendar_->events().removeOne(*event_);
         client_->deleteETag(hrefToDelete);
-        client_->deleteEvent(*event_, eTag);
+        client_->deleteElement(*event_, eTag);
         qDebug() << "Event " + event_->summary() + " deleted\n";
       } else {
         QString title = ui->taskLists->currentText();

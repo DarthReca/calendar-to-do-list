@@ -109,7 +109,7 @@ void MainWindow::refresh_calendar_events() {
             });
   }
   // EVENTS
-  auto reply = client_->getAllEvents();
+  auto reply = client_->getAllElements();
   connect(reply, &QNetworkReply::finished, [this, reply]() {
     calendar_->events().clear();
 
@@ -302,7 +302,7 @@ void MainWindow::on_actionSincronizza_triggered() {
           }
         }
 
-        auto reply = client_->getChangedEvents();
+        auto reply = client_->getChangedElements();
         connect(reply, &QNetworkReply::finished, [this, reply, mapTmp]() {
           QDomDocument res;
           res.setContent(reply->readAll());

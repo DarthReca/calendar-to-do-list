@@ -43,7 +43,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Gets all events from the calDAV server.
    */
-  QNetworkReply* getAllEvents();
+  QNetworkReply* getAllElements();
   /**
    * @brief Gets all events in a specific time range.
    */
@@ -55,59 +55,21 @@ class CalendarClient : public QObject {
   /**
    * @brief Fetches the changed things in the calendar.
    */
-  QNetworkReply* getChangedEvents();
+  QNetworkReply* getChangedElements();
   /**
    * @brief Saves a event to the calDAV server.
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveEvent(CalendarEvent& event);
+  void saveElement(CalendarEvent& event);
   /**
    * @brief Updates a event in the calDAV server.
    */
-  void updateEvent(CalendarEvent event, QString eTag);
+  void updateElement(CalendarEvent event, QString eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteEvent(CalendarEvent& event, QString eTag);
-
-  //////////// Tasks APIs ////////////
-  /**
-   * @brief Gets all taskLists from the server.
-   */
-  QNetworkReply* getAllTaskLists();
-  /**
-   * @brief Creates a new taskList in the user's taskLists.
-   */
-  QNetworkReply* createTaskList(TaskList& listToCreate);
-  /**
-   * @brief Updates an existing taskList among the user's taskLists.
-   */
-  QNetworkReply* updateTaskList(TaskList& listToUpdate);
-  /**
-   * @brief Deletes an existing taskList among the user's taskLists.
-   */
-  QNetworkReply* deleteTaskList(TaskList& listToDelete);
-  /**
-   * @brief Gets all tasks in a specified user's taskLists.
-   */
-  QNetworkReply* getAllTasks(TaskList& list);
-  /**
-   * @brief Gets a certain tasks in a specified user's taskLists.
-   */
-  QNetworkReply* getTask(TaskList& list, Task& taskToGet);
-  /**
-   * @brief Creates a new tasks in a specified user's taskLists.
-   */
-  QNetworkReply* createTask(TaskList& list, Task& newTask);
-  /**
-   * @brief Updates a certain tasks in a specified user's taskLists.
-   */
-  QNetworkReply* updateTask(TaskList& list, Task& taskToUpdate);
-  /**
-   * @brief Deletes a certain tasks in a specified user's taskLists.
-   */
-  QNetworkReply* deleteTask(TaskList& list, Task& taskToDelete);
+  void deleteElement(CalendarEvent& event, QString eTag);
 
  private:
   QString cTag_;
