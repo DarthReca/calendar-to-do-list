@@ -26,7 +26,8 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
     : CalendarEvent(parent) {
   QString line;
   QDateTime utcTime;
-  while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT"))) {
+  while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")) &&
+         !(line = ical_object.readLine()).contains(QByteArray("END:VTODO"))) {
     const int deliminatorPosition = line.indexOf(QLatin1Char(':'));
     const QString key = line.mid(0, deliminatorPosition);
     QString value = (line.mid(deliminatorPosition + 1, -1)
@@ -60,6 +61,18 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
       if (!utcTime.isValid()) qDebug() << "could not parse" << line;
 
       setEndDateTime(utcTime.toLocalTime());
+    } else if (key.startsWith(QLatin1String("DUE"))) {
+      utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
+      if (!utcTime.isValid())
+        utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss");
+      if (!utcTime.isValid())
+        utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
+      if (!utcTime.isValid())
+        utcTime = QDateTime::fromString(value, "yyyyMMdd");
+      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
+
+      setStartDateTime(utcTime.toLocalTime());
+      setEndDateTime(utcTime.toLocalTime());
     } else if (key == QLatin1String("RRULE")) {
       setRRULE(value);
     } else if (key == QLatin1String("EXDATE")) {
@@ -82,7 +95,7 @@ CalendarEvent::CalendarEvent(const CalendarEvent& other) : QObject() {
   copyFrom(other);
 }
 
-QString CalendarEvent::ToICalendarObject() {
+QString CalendarEvent::ToVEvent() {
   QString ical_object =
       "BEGIN:VEVENT\r\n"
       "UID:" +

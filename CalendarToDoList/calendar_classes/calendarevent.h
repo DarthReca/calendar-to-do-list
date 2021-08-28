@@ -13,7 +13,7 @@ class CalendarEvent : public QObject {
   CalendarEvent(QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
-  QString ToICalendarObject();
+  QString ToVEvent();
   QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 
   ///////// STATIC UTILS //////
@@ -93,7 +93,7 @@ class CalendarEvent : public QObject {
   QString getHREF(void) const;
   void setHREF(const QString& href);
 
- private:
+ protected:
   /**
    * @brief Transform rrule string to a map
    */
