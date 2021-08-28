@@ -19,7 +19,7 @@
      <x>10</x>
      <y>10</y>
      <width>326</width>
-     <height>254</height>
+     <height>263</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -147,13 +147,6 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
-     <widget class="QTextEdit" name="descriptionEdit">
-      <property name="placeholderText">
-       <string>Aggiungi descrizione</string>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0">
      <widget class="QLabel" name="label_2">
       <property name="sizePolicy">
@@ -179,10 +172,14 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
-     <widget class="QComboBox" name="taskLists"/>
+    <item row="3" column="1">
+     <widget class="QTextEdit" name="descriptionEdit">
+      <property name="placeholderText">
+       <string>Aggiungi descrizione</string>
+      </property>
+     </widget>
     </item>
-    <item row="5" column="1">
+    <item row="4" column="1">
      <widget class="QPushButton" name="completionButton">
       <property name="text">
        <string>Segna come completa</string>
@@ -196,8 +193,8 @@
     <rect>
      <x>370</x>
      <y>20</y>
-     <width>158</width>
-     <height>51</height>
+     <width>168</width>
+     <height>52</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="righthLayout">

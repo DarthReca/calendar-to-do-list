@@ -69,18 +69,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << res.toString();
   });
 
-  // Initial sync
-  reply = client_->getAllTaskLists();
-  connect(reply, &QNetworkReply::finished, [reply, this]() {
-    QJsonDocument json = QJsonDocument().fromJson(reply->readAll());
-    QJsonArray task_lists = json["items"].toArray();
-    for (const auto &json_obj : task_lists)
-      calendar_->taskLists().append(
-          TaskList(json_obj.toObject()["title"].toString(),
-                   json_obj.toObject()["id"].toString()));
-
     refresh_calendar_events();
-  });
 }
 
 MainWindow::~MainWindow() {
@@ -90,25 +79,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::refresh_calendar_events() {
-  // TASKS
-  for (TaskList &tl : calendar_->taskLists()) {
-    auto task_reply = client_->getAllTasks(tl);
 
-    connect(task_reply, &QNetworkReply::finished,
-            [this, task_reply, &tl]() mutable {
-              // calendar_->taskLists().clear();
-              QJsonDocument json =
-                  QJsonDocument().fromJson(task_reply->readAll());
-              QJsonArray tasks = json["items"].toArray();
-              for (auto task : tasks) {
-                QJsonObject json_task = task.toObject();
-                Task newTask = Task(json_task, calendar_);
-                tl.getTasks().append(newTask);
-              }
-              updateTableToNDays(ui->calendarTable->columnCount());
-            });
-  }
-  // EVENTS
   auto reply = client_->getAllElements();
   connect(reply, &QNetworkReply::finished, [this, reply]() {
     calendar_->events().clear();
@@ -126,7 +97,16 @@ void MainWindow::refresh_calendar_events() {
       QString eTag = eTags.at(i).toElement().text();
       QTextStream stream(&el);
       QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
-      calendar_->events().append(tmp->events());
+
+      QString line = stream.readLine();
+      while (!line.isNull()) {
+        if (line.contains("BEGIN:VEVENT")) {
+            calendar_->events().append(tmp->events());
+        }
+        else{
+            calendar_->tasks().append(tmp->tasks());
+        }
+      }
     }
 
     // salvo gli eTags per vedere i futuri cambiamenti
@@ -382,18 +362,13 @@ void MainWindow::updateTableToNDays(int n) {
   setShowing_events(selected);
   // TASKS
   QList<Task> selected_tasks;
-  for (TaskList &tl : calendar_->taskLists()) {
-    for (Task &t : tl.getTasks()) {
-      if (t.getEndDateTime() >= d.startOfDay() &&
-          t.getEndDateTime() <= d.addDays(n).endOfDay()) {
-        selected_tasks += t;
-      }
+  for (Task &t : calendar_->tasks()) {
+    if (t.getEndDateTime() >= d.startOfDay() &&
+        t.getEndDateTime() <= d.addDays(n).endOfDay()) {
+      selected_tasks += t;
     }
   }
   setShowing_tasks(selected_tasks);
-  /*for(Task t : selected_tasks){
-      qDebug() << t.summary();
-  }*/
 
   // Delete all previous widgets
   for (auto child : ui->calendarTable->viewport()->children())

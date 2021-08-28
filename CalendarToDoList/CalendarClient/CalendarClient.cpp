@@ -183,7 +183,7 @@ void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
 }
 
 void CalendarClient::saveElement(CalendarEvent& event) {
-  qDebug() << "saving new event:\n\n" << event.ToICalendarObject();
+  qDebug() << "saving new event:\n\n" << event.ToVEvent();
 
   if (event.getUID().isEmpty()) {
     event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
@@ -191,7 +191,7 @@ void CalendarClient::saveElement(CalendarEvent& event) {
   }
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n")
+      ("BEGIN:VCALENDAR\r\n" + event.ToVEvent() + "END:VCALENDAR\r\n")
           .toUtf8();
 
   QNetworkRequest cal_part;
@@ -223,7 +223,7 @@ void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   }
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.ToICalendarObject() + "END:VCALENDAR\r\n")
+      ("BEGIN:VCALENDAR\r\n" + event.ToVEvent() + "END:VCALENDAR\r\n")
           .toUtf8();
 
   QNetworkRequest cal_part;

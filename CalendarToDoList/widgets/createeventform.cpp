@@ -93,14 +93,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               event_->setRRULE("FREQ=YEARLY");
             }
           });
-  // TASKLISTS
-  auto reply = client_->getAllTaskLists();
-  connect(reply, &QNetworkReply::finished, [this, reply]() {
-    QJsonDocument json = QJsonDocument().fromJson(reply->readAll());
-    QJsonArray task_lists = json["items"].toArray();
-    for (const auto& json_obj : task_lists)
-      ui->taskLists->addItem(json_obj.toObject()["title"].toString());
-  });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {
@@ -132,17 +124,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         });
         qDebug() << "New event saved\n";
       } else {
-        QString title = ui->taskLists->currentText();
-        for (TaskList& list : calendar_->taskLists()) {
-          if (list.title() == title) {
-            Task* task = qobject_cast<Task*>(event_);
-            auto reply = client_->createTask(list, *task);
-            list.getTasks().append(*task);
-            break;
-          }
+          Task* task = qobject_cast<Task*>(event_);
+          //auto reply = client_->createTask(list, *task);
+          //list.getTasks().append(*task);
         }
         qDebug() << "New task saved\n";
-      }
     } else {
       if (isEvent_) {
         QString hrefToUpdate = event_->getHREF();
@@ -156,29 +142,15 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           }
         }
       } else {
-        QString title = ui->taskLists->currentText();
-        for (TaskList& list : calendar_->taskLists()) {
-          if (list.title() == title) {
-            for (Task& t : list.getTasks()) {
-              if (t.getHREF() == event_->getHREF()) {
-                list.getTasks().removeOne(t);
-              }
-            }
-            Task* task = qobject_cast<Task*>(event_);
-            auto reply = client_->updateTask(list, *task);
-
-            connect(reply, &QNetworkReply::finished,
-                    [reply]() { qDebug() << reply->readAll(); });
-
-            list.getTasks().append(*task);
+           //list.getTasks().removeOne(t);
+           Task* task = qobject_cast<Task*>(event_);
+           //auto reply = client_->updateTask(list, *task);
+            //list.getTasks().append(*task);
             qDebug() << "Task " + task->summary() + " saved\n";
-            break;
-          }
-        }
-      }
     }
     emit requestView();
     accept();
+    }
   });
 
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
@@ -198,16 +170,10 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         client_->deleteElement(*event_, eTag);
         qDebug() << "Event " + event_->summary() + " deleted\n";
       } else {
-        QString title = ui->taskLists->currentText();
-        for (TaskList& list : calendar_->taskLists()) {
-          if (list.title() == title) {
-            Task* task = qobject_cast<Task*>(event_);
-            client_->deleteTask(list, *task);
-            list.getTasks().removeOne(*task);
-            qDebug() << "Task " + (*task).summary() + " deleted\n";
-            break;
-          }
-        }
+          Task* task = qobject_cast<Task*>(event_);
+          //client_->deleteTask(list, *task);
+          //list.getTasks().removeOne(*task);
+          qDebug() << "Task " + (*task).summary() + " deleted\n";
       }
       emit requestView();
     }
@@ -230,14 +196,12 @@ void CreateEventForm::ResetFormFields() {
     ui->locationEdit->hide();
     ui->startDateTime->hide();
     // Show
-    ui->taskLists->show();
     ui->completionButton->show();
     // Completion button
     QString text = task->completed().first ? "Segna come non completata"
                                            : "Segna come completata";
     ui->completionButton->setText(text);
   } else {
-    ui->taskLists->hide();
     ui->completionButton->hide();
     // Show
     ui->RRule->show();

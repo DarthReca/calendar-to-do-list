@@ -55,32 +55,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="153"/>
+        <location filename="widgets/createeventform.ui" line="178"/>
         <source>Aggiungi descrizione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="188"/>
+        <location filename="widgets/createeventform.ui" line="185"/>
         <source>Segna come completa</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="226"/>
+        <location filename="widgets/createeventform.ui" line="223"/>
         <source>Salva</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="234"/>
+        <location filename="widgets/createeventform.ui" line="231"/>
         <source>Evento</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="239"/>
+        <location filename="widgets/createeventform.ui" line="236"/>
         <source>Attività</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/createeventform.ui" line="213"/>
+        <location filename="widgets/createeventform.ui" line="210"/>
         <source>Elimina</source>
         <translation type="unfinished"></translation>
     </message>

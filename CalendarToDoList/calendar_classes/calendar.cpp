@@ -2,7 +2,7 @@
 
 Calendar::Calendar(QObject *parent) : QObject(parent) {
   events_ = QVector<CalendarEvent>();
-  task_lists_ = QList<TaskList>();
+  tasks_ = QVector<Task>();
 }
 
 Calendar::Calendar(const QString &href, const QString &eTag,
@@ -18,6 +18,14 @@ Calendar::Calendar(const QString &href, const QString &eTag,
         events_.append(event);
       }
     }
+    else if (line.contains("BEGIN:VTODO")) {
+      Task task = Task(ical_object, this);
+      task.setHREF(href);
+      task.setETag(eTag);
+      if (task.summary() != "") {
+        tasks_.append(task);
+      }
+    }
     if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];
     }
@@ -27,7 +35,7 @@ Calendar::Calendar(const QString &href, const QString &eTag,
 
 QString Calendar::ToICalendarObject() {
   QString ical_object = "BEGIN:VCALENDAR\r\n";
-  for (CalendarEvent e : events_) ical_object.append(e.ToICalendarObject());
+  for (CalendarEvent e : events_) ical_object.append(e.ToVEvent());
   ical_object.append("END:VCALENDAR");
   return ical_object;
 }
@@ -44,5 +52,13 @@ void Calendar::setDisplayName(QString name) {
 QVector<CalendarEvent> &Calendar::events() { return events_; }
 
 void Calendar::setEvents(const QVector<CalendarEvent> &newEvents) {
-  events_ = newEvents;
+    events_ = newEvents;
 }
+
+QList<Task> &Calendar::tasks() { return tasks_; }
+
+void Calendar::setTasks(const QVector<Task> &newTasks)
+{
+    tasks_ = newTasks;
+}
+

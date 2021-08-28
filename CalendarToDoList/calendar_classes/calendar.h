@@ -20,7 +20,9 @@ class Calendar : public QObject {
   QList<CalendarEvent> &events();
   void setEvents(const QVector<CalendarEvent> &newEvents);
 
-  QList<TaskList> &taskLists() { return task_lists_; };
+  QList<Task> &tasks();
+  void setTasks(const QVector<Task> &newTasks);
+
  signals:
   void displayNameChanged(QString display_name);
  public slots:
@@ -30,7 +32,7 @@ class Calendar : public QObject {
  private:
   QString display_name_;
   QList<CalendarEvent> events_;
-  QList<TaskList> task_lists_;
+  QList<Task> tasks_;
 };
 
 #endif  // CALENDAR_H
