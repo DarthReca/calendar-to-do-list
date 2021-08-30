@@ -182,6 +182,59 @@ void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
           [reply]() { qDebug() << reply->readAll(); });
 }
 
+QNetworkReply *CalendarClient::requestSyncToken()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Depth", "0");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:cs", endpoint_.toString());
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:displayname"));
+    tagProp.appendChild(xml.createElement("cs:getctag"));
+    tagProp.appendChild(xml.createElement("d:sync-token"));
+    root.appendChild(tagProp);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+}
+
+QNetworkReply *CalendarClient::receiveChangesBySyncToken()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setRawHeader("Host", "dav.example.org");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("xml");
+    root.setAttribute("version", "1.0");
+    root.setAttribute("encoding", "utf-8");
+    xml.appendChild(root);
+    QDomElement tagCollection = xml.createElement("d:sync-collection");
+    tagCollection.setAttribute("xmlns:d", "DAV:");
+    root.appendChild(tagCollection);
+    QDomElement tagToken = xml.createElement("d:sync-token");
+    tagToken.appendChild(xml.createTextNode(syncToken_));
+    tagCollection.appendChild(tagToken);
+    QDomElement tagLevel = xml.createElement("d:sync-level");
+    tagLevel.appendChild(xml.createTextNode("1"));
+    tagCollection.appendChild(tagLevel);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:getetag"));
+    tagCollection.appendChild(tagProp);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
+}
+
 void CalendarClient::saveElement(CalendarEvent& event) {
   qDebug() << "saving new event:\n\n" << event.ToVEvent();
 

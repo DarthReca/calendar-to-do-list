@@ -26,6 +26,9 @@ class CalendarClient : public QObject {
   const QString& getCTag() { return cTag_; };
   void setCTag(const QString& new_cTag) { cTag_ = new_cTag; };
 
+  const QString& getSyncToken() { return syncToken_; };
+  void setSyncToken(const QString& new_syncToken) { syncToken_ = new_syncToken; };
+
   QMap<QString, QString>& getETags() { return eTags_; }
   void addETag(QString href, const QString& new_eTag) {
     eTags_.insert(href, new_eTag);
@@ -48,6 +51,14 @@ class CalendarClient : public QObject {
    * @brief Gets all events in a specific time range.
    */
   void getDateRangeEvents(QDateTime start, QDateTime end);
+  /**
+   * @brief Requests the sync token from the server.
+   */
+  QNetworkReply* requestSyncToken();
+  /**
+   * @brief Receives the changed elements through the sync token.
+   */
+  QNetworkReply* receiveChangesBySyncToken();
   /**
    * @brief Looks for changes done in the server.
    */
@@ -73,6 +84,7 @@ class CalendarClient : public QObject {
 
  private:
   QString cTag_;
+  QString syncToken_;
   QMap<QString, QString> eTags_;
   QList<QString> changedItems_;
 

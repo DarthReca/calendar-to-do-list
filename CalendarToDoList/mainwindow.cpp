@@ -66,16 +66,30 @@ MainWindow::MainWindow(QWidget *parent)
 
   client_ = new CalendarClient(this);
 
-  // ottengo il cTag e tutti gli eventi nel calendario
-  auto reply = client_->obtainCTag();
-  connect(reply, &QNetworkReply::finished, [this, reply]() {
+  // ottengo il cTag
+  auto reply1 = client_->obtainCTag();
+  connect(reply1, &QNetworkReply::finished, [this, reply1]() {
     QDomDocument res;
-    res.setContent(reply->readAll());
+    res.setContent(reply1->readAll());
     auto lista = res.elementsByTagName("cs:getctag");
     client_->setCTag(lista.at(0).toElement().text());
-    qDebug() << res.toString();
   });
 
+  // ottengo il sync-token
+  auto reply2 = client_->requestSyncToken();
+  connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
+    QDomDocument res;
+    res.setContent(reply2->readAll());
+    auto lista = res.elementsByTagName("d:sync-token");
+    client_->setSyncToken(lista.at(0).toElement().text());
+
+    reply2 = client_->receiveChangesBySyncToken();
+    connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
+        qDebug() << reply2->readAll();
+    });
+  });
+
+  //ottengo tutti gli eventi nel calendario
   refresh_calendar_events();
 }
 
