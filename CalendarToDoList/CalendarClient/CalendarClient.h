@@ -44,6 +44,26 @@ class CalendarClient : public QObject {
 
   //////////// Events APIs ////////////
   /**
+   * @brief Discovers the principal user.
+   */
+  QNetworkReply* discoverUser();
+  /**
+   * @brief Discovers the principal user's calendars.
+   */
+  QNetworkReply* discoverUserCalendars();
+  /**
+   * @brief Lists the principal user's calendars.
+   */
+  QNetworkReply* listUserCalendars();
+  /**
+   * @brief Finds out which operations the server supports.
+   */
+  QNetworkReply* findOutCalendarSupport();
+  /**
+   * @brief Finds out the properties returned.
+   */
+  QNetworkReply* findOutSupportedProperties();
+  /**
    * @brief Gets all events from the calDAV server.
    */
   QNetworkReply* getAllElements();

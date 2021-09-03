@@ -66,6 +66,20 @@ MainWindow::MainWindow(QWidget *parent)
 
   client_ = new CalendarClient(this);
 
+  /*auto reply = client_->findOutCalendarSupport();
+  connect(reply, &QNetworkReply::finished, [reply](){
+     auto list = reply->rawHeaderPairs();
+     for(auto el : list){
+         qDebug() << el.first + ":     " + el.second;
+     }
+  });*/
+
+  auto reply = client_->findOutSupportedProperties();
+    connect(reply, &QNetworkReply::finished, [reply](){
+
+       qDebug() << reply->readAll();
+   });
+
   // ottengo il cTag
   auto reply1 = client_->obtainCTag();
   connect(reply1, &QNetworkReply::finished, [this, reply1]() {
@@ -85,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     reply2 = client_->receiveChangesBySyncToken();
     connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
-        qDebug() << reply2->readAll();
+        //qDebug() << reply2->readAll();
     });
   });
 

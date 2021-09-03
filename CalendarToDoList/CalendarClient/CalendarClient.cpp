@@ -54,6 +54,116 @@ QNetworkReply* CalendarClient::obtainCTag() {
                                             xml.toByteArray());
 }
 
+QNetworkReply *CalendarClient::discoverUser()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl("/"));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                       "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Depth", "0");
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                       "application/xml; charset=utf-8");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:current-user-principal"));
+    root.appendChild(tagProp);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+}
+
+QNetworkReply *CalendarClient::discoverUserCalendars()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                       "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Depth", "0");
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                       "application/xml; charset=utf-8");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("c:calendar-home-set"));
+    root.appendChild(tagProp);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+}
+
+QNetworkReply *CalendarClient::listUserCalendars()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                       "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Depth", "1");
+    cal_part.setRawHeader("Prefer", "return-minimal");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                       "application/xml; charset=utf-8");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("d:propfind");
+    root.setAttribute("xmlns:d", "DAV:");
+    root.setAttribute("xmlns:cs", "http://calendarserver.org/ns/");
+    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+    xml.appendChild(root);
+    QDomElement tagProp = xml.createElement("d:prop");
+    tagProp.appendChild(xml.createElement("d:resourcetype"));
+    tagProp.appendChild(xml.createElement("d:displayname"));
+    tagProp.appendChild(xml.createElement("cs:getctag"));
+    tagProp.appendChild(xml.createElement("c:supported-calendar-component-set"));
+    root.appendChild(tagProp);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"), xml.toByteArray());
+}
+
+QNetworkReply *CalendarClient::findOutCalendarSupport()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                       "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Host", "cal.example.com");
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("OPTIONS"));
+}
+
+QNetworkReply *CalendarClient::findOutSupportedProperties()
+{
+    QNetworkRequest cal_part;
+    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+    cal_part.setUrl(QUrl(endpoint_));
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                       "CalendarClient_CalDAV");
+    cal_part.setRawHeader("Host", "www.example.com");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                       "application/xml; charset=utf-8");
+    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader,
+                       "xxxx");
+
+    QDomDocument xml;
+    QDomElement root = xml.createElement("propfind");
+    root.setAttribute("xmlns", "DAV:");
+    root.appendChild(xml.createElement("propname"));
+    xml.appendChild(root);
+
+    return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"),
+                                              xml.toByteArray());
+}
+
 QNetworkReply* CalendarClient::getAllElements() {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
