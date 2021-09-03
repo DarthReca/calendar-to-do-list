@@ -325,22 +325,18 @@ QNetworkReply *CalendarClient::receiveChangesBySyncToken()
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
 
     QDomDocument xml;
-    QDomElement root = xml.createElement("xml");
-    root.setAttribute("version", "1.0");
-    root.setAttribute("encoding", "utf-8");
+    QDomElement root = xml.createElement("d:sync-collection");
+    root.setAttribute("xmlns:d", "DAV:");
     xml.appendChild(root);
-    QDomElement tagCollection = xml.createElement("d:sync-collection");
-    tagCollection.setAttribute("xmlns:d", "DAV:");
-    root.appendChild(tagCollection);
     QDomElement tagToken = xml.createElement("d:sync-token");
     tagToken.appendChild(xml.createTextNode(syncToken_));
-    tagCollection.appendChild(tagToken);
+    root.appendChild(tagToken);
     QDomElement tagLevel = xml.createElement("d:sync-level");
     tagLevel.appendChild(xml.createTextNode("1"));
-    tagCollection.appendChild(tagLevel);
+    root.appendChild(tagLevel);
     QDomElement tagProp = xml.createElement("d:prop");
     tagProp.appendChild(xml.createElement("d:getetag"));
-    tagCollection.appendChild(tagProp);
+    root.appendChild(tagProp);
 
     return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 }
