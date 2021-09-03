@@ -70,16 +70,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(reply, &QNetworkReply::finished, [reply, this](){
         auto list = reply->rawHeaderPairs();
         for(auto el : list){
-            if(el.first=="Allow"){
+            if(el.first=="Allow" || el.first=="allow"){
                 for(auto method : el.second.split(',')){
-                    qDebug() << method;
-                    client_->getSupportedMethods().insert(method.trimmed());
+                    client_->getSupportedMethods().insert(QString(method.trimmed()));
                 }
+                break;
             }
         }
     });
-
-
 
     reply = client_->findOutSupportedProperties();
     connect(reply, &QNetworkReply::finished, [reply, this](){
@@ -99,8 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
             client_->setCTag(lista1.at(0).toElement().text());
         }
 
-        res.setContent(reply->readAll());
-        auto lista2 = res.elementsByTagName("d:sync-token");
+        auto lista2 = res.elementsByTagName("s:sync-token");
         if(lista2.at(0).toElement().text().isEmpty()){
             auto reply2 = client_->requestSyncToken();
             connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
