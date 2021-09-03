@@ -273,6 +273,8 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date) {
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
+    qDebug() << "Entrato";
+
     // ottengo il nuovo cTag e lo confronto con il vecchio
     if(client_->getSyncToken().isEmpty()){
         auto reply = client_->obtainCTag();
@@ -285,10 +287,10 @@ void MainWindow::on_actionSincronizza_triggered() {
                 qDebug() << "Calendar already up to date";
             } else {  // se non sono uguali, qualcosa è cambiato
                 client_->setCTag(newCTag);
-                auto reply2 = client_->lookForChanges();  // ottengo gli eTag per vedere quali sono cambiati
-                connect(reply2, &QNetworkReply::finished, [this, reply2]() {
+                auto reply1 = client_->lookForChanges();  // ottengo gli eTag per vedere quali sono cambiati
+                connect(reply1, &QNetworkReply::finished, [this, reply1]() {
                     QHash<QString, QString> mapTmp;
-                    compareElements(reply2, mapTmp);
+                    compareElements(*reply1, mapTmp);
                     fetchChangedElements(mapTmp);
                 });
             }
@@ -299,16 +301,17 @@ void MainWindow::on_actionSincronizza_triggered() {
         auto reply2 = client_->receiveChangesBySyncToken();
         connect(reply2, &QNetworkReply::finished, [this, reply2]() {
             QHash<QString, QString> mapTmp;
-            compareElements(reply2, mapTmp);
+            compareElements(*reply2, mapTmp);
             fetchChangedElements(mapTmp);
         });
     }
 }
 
-void MainWindow::compareElements(QNetworkReply *reply, QHash<QString, QString>& mapTmp){
+void MainWindow::compareElements(QNetworkReply& reply, QHash<QString, QString>& mapTmp){
     // creo una mappa con gli href e gli etag nuovi
+    qDebug() << reply.readAll();
     QDomDocument res;
-    res.setContent(reply->readAll());
+    res.setContent(reply.readAll());
     auto hrefs_list = res.elementsByTagName("D:href");
     auto eTags = res.elementsByTagName("D:getetag");
     for (int i = 0; i < eTags.size(); i++) {
