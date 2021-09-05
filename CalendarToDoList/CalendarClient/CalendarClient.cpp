@@ -30,6 +30,11 @@ CalendarClient::CalendarClient(QObject* parent)
 //////////// Events APIs ////////////
 
 QNetworkReply* CalendarClient::obtainCTag() {
+  if(!supportedMethods_.contains("PROPFIND")){
+      qDebug() << "Method PROPFIND not supported in call obtainCTag";
+      return nullptr;
+  }
+
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", "Basic " + credentials_);
   cal_part.setUrl(QUrl(endpoint_));
@@ -56,6 +61,11 @@ QNetworkReply* CalendarClient::obtainCTag() {
 
 QNetworkReply *CalendarClient::discoverUser()
 {
+    if(!supportedMethods_.contains("PROPFIND")){
+        qDebug() << "Method PROPFIND not supported in call discoverUser";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl("/"));
@@ -79,6 +89,11 @@ QNetworkReply *CalendarClient::discoverUser()
 
 QNetworkReply *CalendarClient::discoverUserCalendars()
 {
+    if(!supportedMethods_.contains("PROPFIND")){
+        qDebug() << "Method PROPFIND not supported in call discoverUserCalendars";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -103,6 +118,11 @@ QNetworkReply *CalendarClient::discoverUserCalendars()
 
 QNetworkReply *CalendarClient::listUserCalendars()
 {
+    if(!supportedMethods_.contains("PROPFIND")){
+        qDebug() << "Method PROPFIND not supported in call listUserCalendars";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -131,6 +151,11 @@ QNetworkReply *CalendarClient::listUserCalendars()
 
 QNetworkReply *CalendarClient::findOutCalendarSupport()
 {
+    if(!supportedMethods_.contains("OPTIONS")){
+        qDebug() << "Method OPTIONS not supported in call findOutCalendarSupport";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -143,6 +168,11 @@ QNetworkReply *CalendarClient::findOutCalendarSupport()
 
 QNetworkReply *CalendarClient::findOutSupportedProperties()
 {
+    if(!supportedMethods_.contains("PROPFIND")){
+        qDebug() << "Method PROPFIND not supported in call findOutSupportedProperties";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -164,7 +194,13 @@ QNetworkReply *CalendarClient::findOutSupportedProperties()
                                               xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getAllElements() {
+QNetworkReply* CalendarClient::getAllElements()
+{
+  if(!supportedMethods_.contains("REPORT")){
+      qDebug() << "Method REPORT not supported in call getAllElements";
+      return nullptr;
+  }
+
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
@@ -194,7 +230,13 @@ QNetworkReply* CalendarClient::getAllElements() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::lookForChanges() {
+QNetworkReply* CalendarClient::lookForChanges()
+{
+  if(!supportedMethods_.contains("REPORT")){
+      qDebug() << "Method REPORT not supported in call lookForChanges";
+      return nullptr;
+  }
+
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
@@ -223,7 +265,13 @@ QNetworkReply* CalendarClient::lookForChanges() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getChangedElements() {
+QNetworkReply* CalendarClient::getChangedElements()
+{
+  if(!supportedMethods_.contains("REPORT")){
+      qDebug() << "Method REPORT not supported in call getChangedElements";
+      return nullptr;
+  }
+
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
@@ -254,7 +302,13 @@ QNetworkReply* CalendarClient::getChangedElements() {
                                             xml.toByteArray());
 }
 
-void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
+void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end)
+{
+  if(!supportedMethods_.contains("REPORT")){
+      qDebug() << "Method REPORT not supported in call getDateRangeEvents";
+      return;
+  }
+
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
@@ -294,6 +348,11 @@ void CalendarClient::getDateRangeEvents(QDateTime start, QDateTime end) {
 
 QNetworkReply *CalendarClient::requestSyncToken()
 {
+    if(!supportedMethods_.contains("PROPFIND")){
+        qDebug() << "Method PROPFIND not supported in call requestSyncToken";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -317,6 +376,11 @@ QNetworkReply *CalendarClient::requestSyncToken()
 
 QNetworkReply *CalendarClient::receiveChangesBySyncToken()
 {
+    if(!supportedMethods_.contains("REPORT")){
+        qDebug() << "Method REPORT not supported in call receiveChangesBySyncToken";
+        return nullptr;
+    }
+
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
@@ -325,27 +389,29 @@ QNetworkReply *CalendarClient::receiveChangesBySyncToken()
     cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "CalendarClient_CalDAV");
 
     QDomDocument xml;
-    QDomElement root = xml.createElement("xml");
-    root.setAttribute("version", "1.0");
-    root.setAttribute("encoding", "utf-8");
+    QDomElement root = xml.createElement("d:sync-collection");
+    root.setAttribute("xmlns:d", "DAV:");
     xml.appendChild(root);
-    QDomElement tagCollection = xml.createElement("d:sync-collection");
-    tagCollection.setAttribute("xmlns:d", "DAV:");
-    root.appendChild(tagCollection);
     QDomElement tagToken = xml.createElement("d:sync-token");
     tagToken.appendChild(xml.createTextNode(syncToken_));
-    tagCollection.appendChild(tagToken);
+    root.appendChild(tagToken);
     QDomElement tagLevel = xml.createElement("d:sync-level");
     tagLevel.appendChild(xml.createTextNode("1"));
-    tagCollection.appendChild(tagLevel);
+    root.appendChild(tagLevel);
     QDomElement tagProp = xml.createElement("d:prop");
     tagProp.appendChild(xml.createElement("d:getetag"));
-    tagCollection.appendChild(tagProp);
+    root.appendChild(tagProp);
 
     return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"), xml.toByteArray());
 }
 
-void CalendarClient::saveElement(CalendarEvent& event) {
+void CalendarClient::saveElement(CalendarEvent& event)
+{
+  if(!supportedMethods_.contains("PUT")){
+      qDebug() << "Method PUT not supported in call saveElement";
+      return;
+  }
+
   qDebug() << "saving new event:\n\n" << event.ToVEvent();
 
   if (event.getUID().isEmpty()) {
@@ -377,7 +443,12 @@ void CalendarClient::saveElement(CalendarEvent& event) {
   qDebug() << "Put request sent\n";
 }
 
-void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
+void CalendarClient::updateElement(CalendarEvent event, QString eTag)
+{
+  if(!supportedMethods_.contains("PUT")){
+      qDebug() << "Method PUT not supported in call updateElement";
+      return;
+  }
   qDebug() << "updating an existing event: " << event.getUID();
 
   if (event.getUID().isEmpty()) {
@@ -410,7 +481,12 @@ void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   });
 }
 
-void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
+void CalendarClient::deleteElement(CalendarEvent& event, QString eTag)
+{
+  if(!supportedMethods_.contains("DELETE")){
+      qDebug() << "Method DELETE not supported in call deleteElement";
+      return;
+  }
   if (eTag.isEmpty()) {
     return;
   }

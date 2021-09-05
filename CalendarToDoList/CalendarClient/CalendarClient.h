@@ -26,6 +26,9 @@ class CalendarClient : public QObject {
   const QString& getCTag() { return cTag_; };
   void setCTag(const QString& new_cTag) { cTag_ = new_cTag; };
 
+  QSet<QString>& getSupportedMethods() { return supportedMethods_; };
+  void setSupportedMethods(const QSet<QString>& new_supportedMethods) { supportedMethods_ = new_supportedMethods; };
+
   const QString& getSyncToken() { return syncToken_; };
   void setSyncToken(const QString& new_syncToken) { syncToken_ = new_syncToken; };
 
@@ -107,6 +110,7 @@ class CalendarClient : public QObject {
   QString syncToken_;
   QMap<QString, QString> eTags_;
   QList<QString> changedItems_;
+  QSet<QString> supportedMethods_;
 
   QNetworkAccessManager network_manager_;
   QByteArray credentials_;
