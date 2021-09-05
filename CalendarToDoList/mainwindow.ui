@@ -111,7 +111,7 @@ background-color: rgb(37, 255, 99);</string>
      </spacer>
     </item>
     <item>
-     <widget class="QTableWidget" name="calendarTable">
+     <widget class="CalendarTable" name="calendarTable">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -141,7 +141,7 @@ background-color: rgb(37, 255, 99);</string>
        <bool>true</bool>
       </property>
       <property name="rowCount">
-       <number>25</number>
+       <number>0</number>
       </property>
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
@@ -158,166 +158,6 @@ background-color: rgb(37, 255, 99);</string>
       <attribute name="verticalHeaderMinimumSectionSize">
        <number>30</number>
       </attribute>
-      <row>
-       <property name="text">
-        <string/>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>00:00 - 01:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>01:00 - 02:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>02:00 - 03:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>03:00 - 04:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>04:00 - 05:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>05:00 - 06:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>06:00 - 07:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>07:00 - 08:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>08:00 - 09:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>09:00 - 10:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>10:00 - 11:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>11:00 - 12:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>12:00 - 13:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>13:00 - 14:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>14:00 - 15:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>15:00 - 16:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>16:00 - 17:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>17:00 - 18:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>18:00 - 19:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>19:00 - 20:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>20:00 - 21:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>21:00 - 22:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>22:00 - 23:00</string>
-       </property>
-      </row>
-      <row>
-       <property name="text">
-        <string>23:00 - 00:00</string>
-       </property>
-      </row>
-      <column>
-       <property name="text">
-        <string>Lun</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Mar</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Mer</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Gio</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ven</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Sab</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Dom</string>
-       </property>
-      </column>
      </widget>
     </item>
    </layout>
@@ -413,6 +253,13 @@ background-color: rgb(37, 255, 99);</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CalendarTable</class>
+   <extends>QTableWidget</extends>
+   <header location="global">widgets/calendartable.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

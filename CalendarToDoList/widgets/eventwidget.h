@@ -11,15 +11,12 @@ class EventWidget : public QPushButton {
   Q_OBJECT
 
  public:
-  explicit EventWidget(CalendarEvent& event, CalendarClient& client,
-                       Calendar& calendar, QWidget* parent = nullptr);
+  explicit EventWidget(CalendarEvent& event, QWidget* parent = nullptr);
 
-  QPointer<CalendarEvent> event() const;
+    QPointer<CalendarEvent> GetEvent() const { return event_; };
 
  private:
   QPointer<CalendarEvent> event_;
-  QPointer<CalendarClient> client_;
-  QPointer<Calendar> calendar_;
 };
 
 #endif  // EVENTWIDGET_H

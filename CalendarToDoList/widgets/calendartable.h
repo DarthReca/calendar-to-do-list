@@ -8,19 +8,36 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QList>
 
-class CalendarTable : public QWidget {
+#include "eventwidget.h"
+#include "calendar_classes/calendarevent.h"
+
+enum class TimeFrame {
+    kDaily,
+    kWeekly
+};
+
+class CalendarTable : public QTableWidget {
   Q_OBJECT
  public:
   explicit CalendarTable(QWidget* parent = nullptr);
+  void Init();
 
-  void SetDays(QStringList days);
- signals:
+  EventWidget& CreateEventWidget(CalendarEvent& event);
+
+  void SetVisualMode(TimeFrame new_time_frame, QDateTime today);
+
+signals:
+ protected:
+    void resizeEvent(QResizeEvent* event);
  private:
-  QPointer<QVBoxLayout> first_level_layout_;
-  QPointer<QGridLayout> header_;
-  QPointer<QScrollArea> body_;
-  QPointer<QVBoxLayout> columns_;
+    void ResizeAndMove(EventWidget* widget);
+
+    TimeFrame time_frame_;
+    QDateTime today_;
+
+    QList<QPointer<EventWidget>> showing_events_;
 };
 
 #endif  // CALENDARTABLE_H

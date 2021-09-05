@@ -20,10 +20,14 @@ MainWindow::MainWindow(QWidget *parent)
       showing_tasks_(QList<Task>()),
       single_shot_timer_(new QTimer(this)) {
   ui->setupUi(this);
-  ui->calendarTable->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::Stretch);
-  ui->calendarTable->verticalHeader()->setSectionResizeMode(
-      QHeaderView::Stretch);
+
+  ui->calendarTable->Init();
+
+  CalendarEvent ev;
+  ev.setSummary("New summary");
+
+  ui->calendarTable->CreateEventWidget(ev);
+
   single_shot_timer_->setSingleShot(true);
   qDebug() << "Starting...\n";
 
@@ -33,12 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
   // connect(auth_->google, &QOAuth2AuthorizationCodeFlow::granted, &loop,
   //        &QEventLoop::quit);
   // loop.exec();
-
-  /* TESTING CALENDAR TABLE
-  CalendarTable *t = new CalendarTable();
-  ui->horizontalLayout->addWidget(t);
-  t->SetDays({"Monday", "Tuesday"});
-  */
 
   // Internal signals
   connect(this, &MainWindow::show, this,
@@ -104,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
   });
 
   //ottengo tutti gli eventi nel calendario
-  refresh_calendar_events();
+  // refresh_calendar_events();
 }
 
 MainWindow::~MainWindow() {
@@ -172,6 +170,7 @@ void MainWindow::on_showing_events_changed() {
   QDate selected_date = ui->calendarWidget->selectedDate();
 
   for (auto &event : showing_events_) {
+    /* USELESS
     EventWidget *widget = new EventWidget(event, *client_, *calendar_,
                                           ui->calendarTable->viewport());
     QTime start_time = event.getStartDateTime().time();
@@ -194,12 +193,14 @@ void MainWindow::on_showing_events_changed() {
       widget->move(x_pos, 0);
       widget->resize((days_long + 1) * column_width, row_heigth);
     }
+    widget->show();
+    */
 
-    // Connection to edit
-    connect(widget, &EventWidget::clicked, [this, widget]() {
+    // USEFUL Connection to edit
+    /*connect(widget, &EventWidget::clicked, [this, widget]() {
       on_request_editing_form(widget->event(), true);
     });
-    widget->show();
+    */
   }
 }
 
@@ -210,8 +211,7 @@ void MainWindow::on_showing_tasks_changed() {
   QDate selected_date = ui->calendarWidget->selectedDate();
 
   for (auto &task : showing_tasks_) {
-    EventWidget *widget = new EventWidget(task, *client_, *calendar_,
-                                          ui->calendarTable->viewport());
+    EventWidget *widget = new EventWidget(task, ui->calendarTable->viewport());
     QTime start_time = task.getStartDateTime().time();
     int days_long = task.getStartDateTime().daysTo(task.getEndDateTime());
 
@@ -234,7 +234,7 @@ void MainWindow::on_showing_tasks_changed() {
 
     // Connection to edit
     connect(widget, &EventWidget::clicked, [this, widget]() {
-      on_request_editing_form(widget->event(), false);
+      on_request_editing_form(widget->GetEvent(), false);
     });
     widget->show();
   }
