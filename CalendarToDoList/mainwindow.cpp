@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     client_ = new CalendarClient(this);
 
+    // Chiedo quali sono i metodi supportati dal server
     auto reply = client_->findOutCalendarSupport();
     connect(reply, &QNetworkReply::finished, [reply, this](){
         auto list = reply->rawHeaderPairs();
@@ -73,12 +74,14 @@ MainWindow::MainWindow(QWidget *parent)
             if(el.first=="Allow" || el.first=="allow"){
                 for(auto method : el.second.split(',')){
                     client_->getSupportedMethods().insert(QString(method.trimmed()));
+                    qDebug() << QString(method.trimmed());
                 }
                 break;
             }
         }
     });
 
+    //ottengo il cTag
     reply = client_->findOutSupportedProperties();
     connect(reply, &QNetworkReply::finished, [reply, this](){
         QDomDocument res;
@@ -96,20 +99,15 @@ MainWindow::MainWindow(QWidget *parent)
         else{
             client_->setCTag(lista1.at(0).toElement().text());
         }
+    });
 
-        auto lista2 = res.elementsByTagName("s:sync-token");
-        if(lista2.at(0).toElement().text().isEmpty()){
-            auto reply2 = client_->requestSyncToken();
-            connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
-                QDomDocument res;
-                res.setContent(reply2->readAll());
-                auto lista = res.elementsByTagName("d:sync-token");
-                client_->setSyncToken(lista.at(0).toElement().text());
-            });
-        }
-        else{
-            client_->setSyncToken(lista2.at(0).toElement().text());
-        }
+    //ottengo il sync-token
+    auto reply2 = client_->requestSyncToken();
+    connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
+        QDomDocument res;
+        res.setContent(reply2->readAll());
+        auto lista = res.elementsByTagName("d:sync-token");
+        client_->setSyncToken(lista.at(0).toElement().text());
     });
 
     //ottengo tutti gli eventi nel calendario
@@ -273,10 +271,9 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date) {
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
-    qDebug() << "Entrato";
 
-    // ottengo il nuovo cTag e lo confronto con il vecchio
     if(client_->getSyncToken().isEmpty()){
+        // ottengo il nuovo cTag e lo confronto con il vecchio
         auto reply = client_->obtainCTag();
         connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
             QDomDocument res;
@@ -302,18 +299,25 @@ void MainWindow::on_actionSincronizza_triggered() {
         connect(reply2, &QNetworkReply::finished, [this, reply2]() {
             QHash<QString, QString> mapTmp;
             compareElements(*reply2, mapTmp);
-            fetchChangedElements(mapTmp);
+            if(!mapTmp.isEmpty()){
+                fetchChangedElements(mapTmp);
+            }
         });
     }
 }
 
 void MainWindow::compareElements(QNetworkReply& reply, QHash<QString, QString>& mapTmp){
     // creo una mappa con gli href e gli etag nuovi
-    qDebug() << reply.readAll();
     QDomDocument res;
     res.setContent(reply.readAll());
     auto hrefs_list = res.elementsByTagName("D:href");
     auto eTags = res.elementsByTagName("D:getetag");
+
+    if(eTags.isEmpty()){
+        qDebug() << "Calendar already up to date";
+        return;
+    }
+
     for (int i = 0; i < eTags.size(); i++) {
         mapTmp.insert(hrefs_list.at(i).toElement().text(),
                       eTags.at(i).toElement().text());
