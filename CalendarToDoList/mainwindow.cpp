@@ -274,6 +274,9 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date) {
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
+    if(client_->getSyncToken().isEmpty() && client_->getCTag().isEmpty()){
+        return;
+    }
 
     if(client_->getSyncToken().isEmpty()){
         // ottengo il nuovo cTag e lo confronto con il vecchio
@@ -333,10 +336,14 @@ void MainWindow::compareElements(QNetworkReply& reply, QHash<QString, QString>& 
     for (CalendarEvent &ev : calendar_->events()) {
         QString href = ev.getHREF();
         if (mapTmp.contains(href)) {
-            qDebug() << "Item with href " + href +
-                        "has a new etag: " + mapTmp[href] + "\n\n";
-            client_->deleteChangedItem(href);
-            client_->addChangedItem(href);
+            if(mapTmp[href].isEmpty()){
+                qDebug() << "Item with href " + href + "has been deleted\n\n";
+            }else{
+                qDebug() << "Item with href " + href +
+                            "has a new etag: " + mapTmp[href] + "\n\n";
+                client_->deleteChangedItem(href);
+                client_->addChangedItem(href);
+            }
         } else {
             qDebug() << "Item with href " + href + "has been deleted\n\n";
         }
