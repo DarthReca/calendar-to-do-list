@@ -4,6 +4,7 @@
 #include <QDomDocument>
 #include <QFile>
 #include <QMap>
+#include <QMessageBox>
 #include <QString>
 
 #include "calendar_classes/calendar.h"
@@ -16,7 +17,12 @@
 CalendarClient::CalendarClient(QObject* parent)
     : network_manager_(QNetworkAccessManager()) {
   QFile auth_file("auth.json");
-  if (!auth_file.exists()) QT_THROW("Missing file auth.json");
+  if (!auth_file.exists()) {
+    QWidget* parent_widget = qobject_cast<QWidget*>(parent);
+    QMessageBox::critical(parent_widget, "Missing file",
+                          "The file auth.json is required", QMessageBox::Ok);
+    exit(-1);
+  }
   auth_file.open(QFile::OpenModeFlag::ReadOnly);
   QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();
 

@@ -25,54 +25,23 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
 CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
     : CalendarEvent(parent) {
   QString line;
-  QDateTime utcTime;
   while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")) &&
          !(line = ical_object.readLine()).contains(QByteArray("END:VTODO"))) {
-    const int deliminatorPosition = line.indexOf(QLatin1Char(':'));
-    const QString key = line.mid(0, deliminatorPosition);
-    QString value = (line.mid(deliminatorPosition + 1, -1)
-                         .replace("\\n", "\n"));  //.toLatin1();
+    QStringList key_value = line.split(":");
+    if (key_value.size() != 2) return;
+    const QString key = key_value[0];
+    QString value = key_value[1].replace("\\n", "\n");  //.toLatin1();
     QString testEncodingString = value.toUtf8();
-    if (false == testEncodingString.contains("�")) {
-      value = testEncodingString;
-    }
+    if (!testEncodingString.contains("�")) value = testEncodingString;
 
     if (key.startsWith(QLatin1String("DTSTART"))) {
-      utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMdd");
-      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
-
-      setStartDateTime(utcTime /*.toLocalTime()*/);
+      setStartDateTime(DateTimeFromString(value).toLocalTime());
     } else if (key.startsWith(QLatin1String("DTEND"))) {
-      utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
-      if (!utcTime.isValid()) {
-        all_day_ = true;
-        utcTime = QDateTime::fromString(value, "yyyyMMdd");
-      }
-      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
-      qDebug() << value;
-      setEndDateTime(utcTime /*.toLocalTime()*/);
+      setEndDateTime(DateTimeFromString(value).toLocalTime());
     } else if (key.startsWith(QLatin1String("DUE"))) {
-      utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMddhhmmss");
-      if (!utcTime.isValid())
-        utcTime = QDateTime::fromString(value, "yyyyMMdd");
-      if (!utcTime.isValid()) qDebug() << "could not parse" << line;
-
-      setStartDateTime(utcTime.toLocalTime());
-      setEndDateTime(utcTime.toLocalTime());
+      QDateTime date_time = DateTimeFromString(value).toLocalTime();
+      setStartDateTime(date_time);
+      setEndDateTime(date_time);
     } else if (key == QLatin1String("RRULE")) {
       setRRULE(value);
     } else if (key == QLatin1String("EXDATE")) {
@@ -95,6 +64,8 @@ CalendarEvent::CalendarEvent(const CalendarEvent& other) : QObject() {
   copyFrom(other);
 }
 
+CalendarEvent CalendarEvent::FromVEvent(const QString& icalendar) {}
+
 QString CalendarEvent::ToVEvent() {
   QString ical_object =
       "BEGIN:VEVENT\r\n"
@@ -109,12 +80,12 @@ QString CalendarEvent::ToVEvent() {
       summary_ +
       "\r\n"
       "DTSTART:" +
-      (all_day_ ? start_date_time_.toString("yyyyMMdd")
-                : start_date_time_.toString("yyyyMMddTHHmmss")) +
+      (all_day_ ? start_date_time_.toUTC().toString("yyyyMMdd")
+                : start_date_time_.toUTC().toString("yyyyMMdd'T'HHmmss'Z'")) +
       "\r\n"
       "DTEND:" +
-      (all_day_ ? end_date_time_.toString("yyyyMMdd")
-                : end_date_time_.toString("yyyyMMddTHHmmss")) +
+      (all_day_ ? end_date_time_.toUTC().toString("yyyyMMdd")
+                : end_date_time_.toUTC().toString("yyyyMMdd'T'HHmmss'Z'")) +
       "\r\n"
       "LOCATION:" +
       location_ +
@@ -226,6 +197,19 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
   return list;
 }
 
+QDateTime CalendarEvent::DateTimeFromString(const QString& date_time_string) {
+  QDateTime date_time =
+      QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss'Z'");
+  if (!date_time.isValid())
+    date_time = QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss");
+  if (!date_time.isValid())
+    date_time = QDateTime::fromString(date_time_string, "yyyyMMddhhmmss");
+  if (!date_time.isValid())
+    date_time = QDateTime::fromString(date_time_string, "yyyyMMdd");
+  if (!date_time.isValid()) qDebug() << "could not parse" << date_time_string;
+  return date_time;
+}
+
 CalendarEvent& CalendarEvent::operator=(const CalendarEvent& other) {
   copyFrom(other);
   return (*this);
@@ -288,11 +272,8 @@ QHash<QString, QString> CalendarEvent::parseRRule() {
         ruleString.trimmed().split("=", Qt::SkipEmptyParts);
     // result must have 2 elements
     if (rruleElements.length() != 2) {
-      qDebug() << ""
-               << ": "
-               << "ERROR: invalid rule element count" << rruleElements.length()
+      qDebug() << "ERROR: invalid rule element count" << rruleElements.length()
                << "in rule" << ruleString;
-      continue;
     }
     if (rruleElements.at(0).toUpper() == "FREQ") {
       map["FREQ"] = rruleElements.at(1);
@@ -317,9 +298,7 @@ QHash<QString, QString> CalendarEvent::parseRRule() {
     } else if (rruleElements.at(0).toUpper() == "BYSETPOS") {
       map["BYSETPOS"] = rruleElements.at(1);
     } else {
-      qDebug() << "m_DisplayName"
-               << ": "
-               << "WARNING: unsupported rrule element" << rruleElements.at(0);
+      qDebug() << "WARNING: unsupported rrule element" << rruleElements.at(0);
     }
   }
   return map;

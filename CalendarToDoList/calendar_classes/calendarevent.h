@@ -13,11 +13,14 @@ class CalendarEvent : public QObject {
   CalendarEvent(QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
+  static CalendarEvent FromVEvent(const QString& icalendar);
   QString ToVEvent();
+
   QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 
   ///////// STATIC UTILS //////
 
+  static QDateTime DateTimeFromString(const QString& date_time_string);
   static int WeekDayFromString(const QString& weekday_string);
   static QString StringFromWeekDay(int weekday);
 

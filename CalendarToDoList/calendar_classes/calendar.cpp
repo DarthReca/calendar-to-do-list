@@ -17,16 +17,14 @@ Calendar::Calendar(const QString &href, const QString &eTag,
       if (event.summary() != "") {
         events_.append(event);
       }
-    }
-    else if (line.contains("BEGIN:VTODO")) {
+    } else if (line.contains("BEGIN:VTODO")) {
       Task task = Task(ical_object, this);
       task.setHREF(href);
       task.setETag(eTag);
       if (task.summary() != "") {
         tasks_.append(task);
       }
-    }
-    if (line.contains("CALNAME:")) {
+    } else if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];
     }
     line = ical_object.readLine();
@@ -52,13 +50,9 @@ void Calendar::setDisplayName(QString name) {
 QVector<CalendarEvent> &Calendar::events() { return events_; }
 
 void Calendar::setEvents(const QVector<CalendarEvent> &newEvents) {
-    events_ = newEvents;
+  events_ = newEvents;
 }
 
 QList<Task> &Calendar::tasks() { return tasks_; }
 
-void Calendar::setTasks(const QVector<Task> &newTasks)
-{
-    tasks_ = newTasks;
-}
-
+void Calendar::setTasks(const QVector<Task> &newTasks) { tasks_ = newTasks; }
