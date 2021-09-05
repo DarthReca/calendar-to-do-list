@@ -151,11 +151,6 @@ QNetworkReply *CalendarClient::listUserCalendars()
 
 QNetworkReply *CalendarClient::findOutCalendarSupport()
 {
-    if(!supportedMethods_.contains("OPTIONS")){
-        qDebug() << "Method OPTIONS not supported in call findOutCalendarSupport";
-        return nullptr;
-    }
-
     QNetworkRequest cal_part;
     cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
     cal_part.setUrl(QUrl(endpoint_));
