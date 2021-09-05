@@ -47,7 +47,7 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
       if (!utcTime.isValid()) qDebug() << "could not parse" << line;
 
-      setStartDateTime(utcTime.toLocalTime());
+      setStartDateTime(utcTime /*.toLocalTime()*/);
     } else if (key.startsWith(QLatin1String("DTEND"))) {
       utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
       if (!utcTime.isValid())
@@ -59,8 +59,8 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
         utcTime = QDateTime::fromString(value, "yyyyMMdd");
       }
       if (!utcTime.isValid()) qDebug() << "could not parse" << line;
-
-      setEndDateTime(utcTime.toLocalTime());
+      qDebug() << value;
+      setEndDateTime(utcTime /*.toLocalTime()*/);
     } else if (key.startsWith(QLatin1String("DUE"))) {
       utcTime = QDateTime::fromString(value, "yyyyMMdd'T'hhmmss'Z'");
       if (!utcTime.isValid())

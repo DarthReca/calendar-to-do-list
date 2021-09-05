@@ -9,6 +9,9 @@ CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
 }
 
 void CalendarTable::Init() {
+  // Stretch
+  horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   // Vertical Header
   setRowCount(24);
   setVerticalHeaderItem(0, new QTableWidgetItem(""));
@@ -18,42 +21,17 @@ void CalendarTable::Init() {
         new QTableWidgetItem(t.toString("hh:mm") + " - " +
                              t.addSecs(60 * 60).toString("hh:mm")));
   setVerticalHeaderItem(23, new QTableWidgetItem("23:00 - 00:00"));
-  // Stretch
-  horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
   SetVisualMode(TimeFrame::kWeekly, QDateTime::currentDateTime());
 }
 
 void CalendarTable::resizeEvent(QResizeEvent *event) {
-  QWidget::resizeEvent(event);
-  for (auto widget : showing_events_) {
-    /*
-    int width = columnWidth(day_from_start);
-    int heigth = rowHeight(start_time.hour());
-    widget->resize()
-    */
-  }
+  for (auto &widget : showing_events_) ResizeAndMove(widget);
+  QTableWidget::resizeEvent(event);
 }
 
-void CalendarTable::SetVisualMode(TimeFrame new_time_frame, QDateTime today) {
-  time_frame_ = new_time_frame;
-  today_ = today;
-  switch (time_frame_) {
-    case TimeFrame::kDaily:
-      setColumnCount(1);
-      break;
-    default:
-      setColumnCount(7);
-      break;
-  }
-  for (int i = 0; i < columnCount(); i++)
-    setHorizontalHeaderItem(
-        0, new QTableWidgetItem(today.addDays(i).toString("ddd\ndd")));
-}
-
-EventWidget &CalendarTable::CreateEventWidget(CalendarEvent &event) {
-  EventWidget *widget = new EventWidget(event, viewport());
-
+void CalendarTable::ResizeAndMove(EventWidget *widget) {
+  CalendarEvent event = widget->GetEvent().data();
   QTime start_time = event.getStartDateTime().time();
   int day_from_start = today_.date().daysTo(event.getStartDateTime().date());
 
@@ -79,8 +57,34 @@ EventWidget &CalendarTable::CreateEventWidget(CalendarEvent &event) {
     widget->resize((days_long + 1) * width, heigth);
   }
   widget->show();
+}
+
+void CalendarTable::SetVisualMode(TimeFrame new_time_frame, QDateTime today) {
+  time_frame_ = new_time_frame;
+  today_ = today;
+  switch (time_frame_) {
+    case TimeFrame::kDaily:
+      setColumnCount(1);
+      break;
+    default:
+      setColumnCount(7);
+      break;
+  }
+  for (int i = 0; i < columnCount(); i++)
+    setHorizontalHeaderItem(
+        i, new QTableWidgetItem(today.addDays(i).toString("ddd\ndd")));
+}
+
+EventWidget &CalendarTable::CreateEventWidget(CalendarEvent &event) {
+  EventWidget *widget = new EventWidget(event, viewport());
+  ResizeAndMove(widget);
 
   showing_events_ += widget;
 
   return *widget;
+}
+
+void CalendarTable::ClearShowingWidgets() {
+  for (auto widget : showing_events_) widget->deleteLater();
+  showing_events_.clear();
 }

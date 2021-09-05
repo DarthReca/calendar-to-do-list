@@ -31,9 +31,7 @@ class MainWindow : public QMainWindow {
 
  signals:
   void show();
-
- protected:
-  void resizeEvent(QResizeEvent *event);
+  void initialized();
 
  private slots:
   void refresh_calendar_events();
@@ -42,8 +40,8 @@ class MainWindow : public QMainWindow {
   void on_showing_events_changed();
   void on_showing_tasks_changed();
   void on_actionSincronizza_triggered();
-  void compareElements(QNetworkReply& reply, QHash<QString, QString>& mapTmp);
-  void fetchChangedElements(QHash<QString, QString>& mapTmp);
+  void compareElements(QNetworkReply &reply, QHash<QString, QString> &mapTmp);
+  void fetchChangedElements(QHash<QString, QString> &mapTmp);
 
  private:
   void updateTableToNDays(int n);
