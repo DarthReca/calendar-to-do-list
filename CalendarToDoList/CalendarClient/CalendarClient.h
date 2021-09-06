@@ -103,7 +103,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Updates a event in the calDAV server.
    */
-  void updateElement(CalendarEvent event, QString eTag);
+  QNetworkReply* updateElement(CalendarEvent event, QString eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */

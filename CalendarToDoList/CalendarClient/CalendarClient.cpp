@@ -441,12 +441,12 @@ QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
                                                   request_string);
 }
 
-void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
+QNetworkReply* CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   if (!supportedMethods_.contains("PUT")) {
     qDebug() << "Method PUT not supported in call updateElement";
-    return;
+    return nullptr;
   }
-  qDebug() << "updating an existing event: " << event.getUID();
+  qDebug() << "updating an existing event: " << event.toiCalendar();
 
   if (event.getUID().isEmpty()) {
     event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
@@ -465,16 +465,8 @@ void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
 
-  auto reply = network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
                                                   request_string);
-
-  qDebug() << "Put request for update sent\n";
-  qDebug() << reply->readAll();
-
-  connect(reply, &QNetworkReply::finished, [reply]() {
-    qDebug() << reply->attribute(
-        QNetworkRequest::Attribute::HttpStatusCodeAttribute);
-  });
 }
 
 void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
@@ -496,8 +488,4 @@ void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
 
   auto reply = network_manager_.deleteResource(cal_part);
-
-  connect(reply, &QNetworkReply::finished, []() {
-
-  });
 }
