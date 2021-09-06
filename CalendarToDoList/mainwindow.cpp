@@ -117,8 +117,8 @@ void MainWindow::refresh_calendar_events() {
         QDomDocument res;
         res.setContent(reply->readAll());
 
-        qDebug() << res.toString();
-        qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+        //qDebug() << res.toString();
+        //qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
         auto calendars = res.elementsByTagName("cal:calendar-data");
         auto hrefs_list = res.elementsByTagName("d:href");

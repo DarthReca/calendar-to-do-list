@@ -101,34 +101,41 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         if (ui->startDateTime->dateTime() > max) {
           max.setTime(ui->startDateTime->time());
           (*event_).setStartDateTime(max);
-          qDebug() << event_->getStartDateTime().toString() + "     " +
+          qDebug() << "Date: "+event_->getStartDateTime().toString() + "     " +
                           event_->getStartDateTime().toString();
         }
-        client_->saveElement(*event_);
-
-        auto reply = client_->lookForChanges();
-        connect(reply, &QNetworkReply::finished, [reply, this]() {
-          QString hrefToSearch = (*event_).getHREF();
-          QDomDocument res;
-          res.setContent(reply->readAll());
-          auto href_list = res.elementsByTagName("D:href");
-          auto eTagList = res.elementsByTagName("D:getetag");
-          for (int i = 0; i < href_list.size(); i++) {
-            if (href_list.at(i).toElement().text() == hrefToSearch) {
-              (*event_).setETag(eTagList.at(i).toElement().text());
-              break;
-            }
-          }
-          qDebug() << (*event_).eTag();
-          calendar_->events().append(*event_);
+        auto reply = client_->saveElement(*event_);
+        connect(reply, &QNetworkReply::finished, [this]() {
+            qDebug() << "Entrato1";
+            //imposto il nuovo eTag dell'elemento
+            auto reply1 = client_->lookForChanges();
+            connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+              qDebug() << "Entrato2";
+              QSet<QString> allETags;
+              for(auto ev : calendar_->events()){
+                  allETags.insert(ev.eTag());
+              }
+              QDomDocument res;
+              res.setContent(reply1->readAll());
+              auto href_list = res.elementsByTagName("d:href");
+              auto eTagList = res.elementsByTagName("d:getetag");
+              for (int i = 0; i < eTagList.size(); i++) {
+                if (!allETags.contains(eTagList.at(i).toElement().text())) {
+                  (*event_).setETag(eTagList.at(i).toElement().text());
+                  (*event_).setHREF(href_list.at(i).toElement().text());
+                  break;
+                }
+              }
+              calendar_->events().append(*event_);
+              qDebug() << "New event saved\n";
+            });
         });
-        qDebug() << "New event saved\n";
       } else {
           Task* task = qobject_cast<Task*>(event_);
           //auto reply = client_->createTask(list, *task);
           //list.getTasks().append(*task);
+          qDebug() << "New task saved\n";
         }
-        qDebug() << "New task saved\n";
     } else {
       if (isEvent_) {
         QString hrefToUpdate = event_->getHREF();

@@ -99,7 +99,7 @@ class CalendarClient : public QObject {
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  void saveElement(CalendarEvent& event);
+  QNetworkReply* saveElement(CalendarEvent& event);
   /**
    * @brief Updates a event in the calDAV server.
    */

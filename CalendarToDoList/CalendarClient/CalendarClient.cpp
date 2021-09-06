@@ -407,10 +407,10 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
                                             xml.toByteArray());
 }
 
-void CalendarClient::saveElement(CalendarEvent& event) {
+QNetworkReply* CalendarClient::saveElement(CalendarEvent& event) {
   if (!supportedMethods_.contains("PUT")) {
     qDebug() << "Method PUT not supported in call saveElement";
-    return;
+    return nullptr;
   }
 
   qDebug() << "saving new event:\n\n" << event.ToVEvent();
@@ -437,10 +437,8 @@ void CalendarClient::saveElement(CalendarEvent& event) {
 
   // Bisogna ottenere il .ics corretto
   // (/home/lisa/calendars/events/qwue23489.ics)
-  auto reply = network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("PUT"),
                                                   request_string);
-
-  qDebug() << "Put request sent\n";
 }
 
 void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
