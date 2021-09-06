@@ -407,25 +407,25 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::saveElement(CalendarEvent& event) {
+QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
   if (!supportedMethods_.contains("PUT")) {
     qDebug() << "Method PUT not supported in call saveElement";
     return nullptr;
   }
 
-  qDebug() << "saving new event:\n\n" << event.ToVEvent();
-
-  if (event.getUID().isEmpty()) {
-    event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
-                 "-0000-" + event.getStartDateTime().toString("yyyyMMddHHMM"));
+  if (newElement.getUID().isEmpty()) {
+    newElement.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
+                 "-0000-" + newElement.getStartDateTime().toString("yyyyMMddHHMM"));
   }
 
+  qDebug() << "saving task "+ newElement.toiCalendar();
+
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.ToVEvent() + "END:VCALENDAR\r\n").toUtf8();
+      ("BEGIN:VCALENDAR\r\n" + newElement.toiCalendar() + "END:VCALENDAR\r\n").toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + newElement.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -454,7 +454,7 @@ void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   }
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.ToVEvent() + "END:VCALENDAR\r\n").toUtf8();
+      ("BEGIN:VCALENDAR\r\n" + event.toiCalendar() + "END:VCALENDAR\r\n").toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));

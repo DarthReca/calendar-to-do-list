@@ -64,9 +64,9 @@ CalendarEvent::CalendarEvent(const CalendarEvent& other) : QObject() {
   copyFrom(other);
 }
 
-CalendarEvent CalendarEvent::FromVEvent(const QString& icalendar) {}
+CalendarEvent CalendarEvent::FromiCalendar(const QString& icalendar) {}
 
-QString CalendarEvent::ToVEvent() {
+QString CalendarEvent::toiCalendar() {
   QString ical_object =
       "BEGIN:VEVENT\r\n"
       "UID:" +

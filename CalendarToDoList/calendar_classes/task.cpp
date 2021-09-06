@@ -1,6 +1,6 @@
 #include "task.h"
 
-QString Task::toVTodo() {
+QString Task::toiCalendar() {
   QString ical_object =
       "BEGIN:VTODO\r\n"
       "UID:" +
@@ -31,7 +31,7 @@ QString Task::toVTodo() {
   if (!exdates_.isEmpty()) {
     ical_object.append("EXDATE:" + exdates_ + "\r\n");
   }
-  ical_object.append("END:VEVENT\r\n");
+  ical_object.append("END:VTODO\r\n");
 
   return ical_object;
 }

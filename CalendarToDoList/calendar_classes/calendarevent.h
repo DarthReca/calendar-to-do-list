@@ -13,8 +13,8 @@ class CalendarEvent : public QObject {
   CalendarEvent(QTextStream& ical_object, QObject* parent);
   CalendarEvent(const CalendarEvent& other);
 
-  static CalendarEvent FromVEvent(const QString& icalendar);
-  QString ToVEvent();
+  static CalendarEvent FromiCalendar(const QString& icalendar);
+  virtual QString toiCalendar();
 
   QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 

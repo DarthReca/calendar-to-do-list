@@ -21,7 +21,7 @@ class Task : public CalendarEvent {
     setColor(QColor(Qt::blue).name());
   };
 
-  QString toVTodo();
+  QString toiCalendar() override;
   void FlipCompleted();
 
   const QPair<bool, QDateTime> &completed() const;
