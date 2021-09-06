@@ -42,6 +42,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         }
         ResetFormFields();
     });
+    
     // SUMMARY
     connect(ui->titleEdit, &QLineEdit::textChanged,
             [this](const QString& text) { event_->setSummary(text); });
