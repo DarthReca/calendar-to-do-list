@@ -24,7 +24,7 @@ class CreateEventForm : public QDialog {
 
   ~CreateEventForm();
 
-  void ResetFormFields();
+  void resetFormFields();
  signals:
   void requestView();
 

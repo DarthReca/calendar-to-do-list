@@ -36,7 +36,7 @@ class CalendarClient : public QObject {
     syncToken_ = new_syncToken;
   };
 
-  QMap<QString, QString>& getETags() { return eTags_; }
+  QMap<QString, QString>& eTags() { return eTags_; }
   void addETag(QString href, const QString& new_eTag) {
     eTags_.insert(href, new_eTag);
   };

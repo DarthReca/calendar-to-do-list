@@ -9,16 +9,16 @@ class CalendarEvent {
  public:
   CalendarEvent();
 
-  virtual CalendarEvent& FromICalendar(QTextStream& icalendar);
-  virtual QString ToICalendar();
+  virtual CalendarEvent& fromICalendar(QTextStream& icalendar);
+  virtual QString toICalendar();
 
-  QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
+  QList<QDateTime> recurrencesInRange(QDateTime from, QDateTime to);
 
   ///////// STATIC UTILS //////
 
-  static QDateTime DateTimeFromString(const QString& date_time_string);
-  static int WeekDayFromString(const QString& weekday_string);
-  static QString StringFromWeekDay(int weekday);
+  static QDateTime dateTimeFromString(const QString& date_time_string);
+  static int weekDayFromString(const QString& weekday_string);
+  static QString stringFromWeekDay(int weekday);
 
   //////// OPERATORS //////////
 
@@ -26,18 +26,18 @@ class CalendarEvent {
     return (this->start_date_time_ < other.start_date_time_);
   };
   bool operator==(const CalendarEvent& other) const {
-    return (this->UID_ == other.UID_);
+    return (this->uid_ == other.uid_);
   };
 
   //////// GETTERS SETTERS /////////
 
   const QString& eTag() const;
-  void setETag(const QString& newETag);
+  void setETag(const QString& new_eTag);
 
   bool all_day() const;
-  void setAll_day(bool newAll_day);
+  void setAllDay(bool newAll_day);
 
-  QString getColor(void) const;
+  QString getColor() const;
   void setColor(const QString& color);
 
   QString calendarName() const;
@@ -52,26 +52,26 @@ class CalendarEvent {
   QString description() const;
   void setDescription(const QString& description);
 
-  QDateTime getStartDateTime() const;
+  QDateTime startDateTime() const;
   void setStartDateTime(const QDateTime& startDateTime);
 
-  QDateTime getEndDateTime(void) const;
+  QDateTime endDateTime() const;
   void setEndDateTime(const QDateTime& endDateTime);
 
-  QString getRRULE() const;
+  QString RRULE() const;
   void setRRULE(const QString& rRule);
 
-  QString getExdates() const;
+  QString exdates() const;
   void setExdates(const QString& exdates);
 
-  QString getCategories() const;
+  QString categories() const;
   void setCategories(const QString& categories);
 
-  QString getUID(void) const;
-  void setUID(const QString& uid);
+  QString uid() const;
+  void setUid(const QString& uid);
 
-  QString getHREF(void) const;
-  void setHREF(const QString& href);
+  QString href() const;
+  void setHref(const QString& href);
 
  protected:
   /**
@@ -92,8 +92,8 @@ class CalendarEvent {
   QString RRULE_;
   QString exdates_;
   QString categories_;
-  QString UID_;
-  QString HREF_;
+  QString uid_;
+  QString href_;
 
   QString eTag_;
 };

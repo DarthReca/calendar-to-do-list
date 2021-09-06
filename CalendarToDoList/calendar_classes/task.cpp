@@ -1,10 +1,10 @@
 #include "task.h"
 
-QString Task::ToICalendar() {
+QString Task::toICalendar() {
   QString ical_object =
       "BEGIN:VTODO\r\n"
       "UID:" +
-      UID_ +
+      uid_ +
       "\r\n"
       "VERSION:2.0\r\n"
       "DTSTAMP:" +
@@ -36,9 +36,9 @@ QString Task::ToICalendar() {
   return ical_object;
 }
 
-void Task::FlipCompleted() {
+void Task::flipCompleted() {
   completed_.first = !completed_.first;
   completed_.second = QDateTime::currentDateTime();
 }
 
-const QPair<bool, QDateTime>& Task::GetCompleted() const { return completed_; }
+const QPair<bool, QDateTime>& Task::completed() const { return completed_; }

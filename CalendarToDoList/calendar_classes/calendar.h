@@ -15,7 +15,7 @@ class Calendar : public QObject {
            QObject *parent = nullptr);
   ~Calendar();
 
-  QString ToICalendarObject();
+  QString toICalendarObject();
 
   QList<CalendarEvent> &events();
   void setEvents(const QVector<CalendarEvent> &newEvents);

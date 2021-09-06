@@ -15,7 +15,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       isEvent_(isEvent) {
   ui->setupUi(this);
 
-  ResetFormFields();
+  resetFormFields();
 
   if (existing_) ui->typeSelection->hide();
 
@@ -38,7 +38,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               }
               isEvent_ = false;
             }
-            ResetFormFields();
+            resetFormFields();
           });
 
   // SUMMARY
@@ -52,14 +52,14 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           [this]() { event_->setDescription(ui->descriptionEdit->toHtml()); });
   // ALLDAY
   connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
-    event_->setAll_day(state == Qt::CheckState::Checked);
+    event_->setAllDay(state == Qt::CheckState::Checked);
   });
   // COMPLETION
   connect(ui->completionButton, &QPushButton::clicked, [this]() {
     Task* task = dynamic_cast<Task*>(event_);
-    task->FlipCompleted();
-    QString text = task->GetCompleted().first ? "Segna come non completata"
-                                              : "Segna come completata";
+    task->flipCompleted();
+    QString text = task->completed().first ? "Segna come non completata"
+                                           : "Segna come completata";
     ui->completionButton->setText(text);
   });
   // SDATETIME
@@ -74,7 +74,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   // RRULE
   connect(ui->RRule, &QComboBox::currentTextChanged,
           [this](const QString& text) {
-            QDate start_date = event_->getStartDateTime().date();
+            QDate start_date = event_->startDateTime().date();
             if (text == "Non si ripete") {
               event_->setRRULE("");
             }
@@ -83,7 +83,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             }
             if (text == "Ogni settimana") {
               event_->setRRULE(QString("FREQ=WEEKLY; BYDAY=%1")
-                                   .arg(CalendarEvent::StringFromWeekDay(
+                                   .arg(CalendarEvent::stringFromWeekDay(
                                        start_date.dayOfWeek())));
             }
             if (text == "Ogni mese") {
@@ -102,8 +102,8 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         if (ui->startDateTime->dateTime() > max) {
           max.setTime(ui->startDateTime->time());
           (*event_).setStartDateTime(max);
-          qDebug() << "Date: " + event_->getStartDateTime().toString() +
-                          "     " + event_->getStartDateTime().toString();
+          qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
+                          event_->startDateTime().toString();
         }
         auto reply = client_->saveElement(*event_);
         connect(reply, &QNetworkReply::finished, [this]() {
@@ -121,9 +121,9 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             for (int i = 0; i < eTagList.size(); i++) {
               if (!allETags.contains(eTagList.at(i).toElement().text())) {
                 (*event_).setETag(eTagList.at(i).toElement().text());
-                (*event_).setHREF(href_list.at(i).toElement().text());
-                client_->getETags().insert(href_list.at(i).toElement().text(),
-                                           eTagList.at(i).toElement().text());
+                (*event_).setHref(href_list.at(i).toElement().text());
+                client_->eTags().insert(href_list.at(i).toElement().text(),
+                                        eTagList.at(i).toElement().text());
                 break;
               }
             }
@@ -149,9 +149,9 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             for (int i = 0; i < eTagList.size(); i++) {
               if (!allETags.contains(eTagList.at(i).toElement().text())) {
                 task->setETag(eTagList.at(i).toElement().text());
-                task->setHREF(href_list.at(i).toElement().text());
-                client_->getETags().insert(href_list.at(i).toElement().text(),
-                                           eTagList.at(i).toElement().text());
+                task->setHref(href_list.at(i).toElement().text());
+                client_->eTags().insert(href_list.at(i).toElement().text(),
+                                        eTagList.at(i).toElement().text());
                 break;
               }
             }
@@ -162,17 +162,17 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       }
     } else {
       if (isEvent_) {
-        QString hrefToUpdate = event_->getHREF();
+        QString hrefToUpdate = event_->href();
         // elimino l'evento vecchio dalla lista
         for (CalendarEvent& ev : calendar_->events()) {
-          if (ev.getHREF() == hrefToUpdate) {
+          if (ev.href() == hrefToUpdate) {
             calendar_->events().removeOne(ev);
           }
         }
         // elimino il vecchio eTag dalla lista
-        for (auto el : client_->getETags().keys()) {
+        for (auto el : client_->eTags().keys()) {
           if (el == hrefToUpdate) {
-            client_->getETags().remove(el);
+            client_->eTags().remove(el);
           }
         }
         auto reply = client_->updateElement(*event_, event_->eTag());
@@ -184,7 +184,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 "ETag") {  // eTag direttamente restituito dal server
               (*event_).setETag(el.second);
               calendar_->events().append(*event_);
-              client_->getETags().insert(hrefToUpdate, el.second);
+              client_->eTags().insert(hrefToUpdate, el.second);
               flag = true;
             }
           }
@@ -204,7 +204,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                   for (int i = 0; i < eTagList.size(); i++) {
                     if (!allETags.contains(eTagList.at(i).toElement().text())) {
                       (*event_).setETag(eTagList.at(i).toElement().text());
-                      client_->getETags().insert(
+                      client_->eTags().insert(
                           hrefToUpdate, eTagList.at(i).toElement().text());
                       break;
                     }
@@ -217,16 +217,16 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       } else {
         Task* task = dynamic_cast<Task*>(event_);
         // elimino il task vecchio dalla lista
-        QString hrefToUpdate = task->getHREF();
+        QString hrefToUpdate = task->href();
         for (Task& t : calendar_->tasks()) {
-          if (t.getHREF() == hrefToUpdate) {
+          if (t.href() == hrefToUpdate) {
             calendar_->tasks().removeOne(t);
           }
         }
         // elimino il vecchio eTag dalla lista
-        for (auto el : client_->getETags().keys()) {
+        for (auto el : client_->eTags().keys()) {
           if (el == hrefToUpdate) {
-            client_->getETags().remove(el);
+            client_->eTags().remove(el);
           }
         }
         auto reply = client_->updateElement(*task, task->eTag());
@@ -239,7 +239,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 if (el.first ==
                     "ETag") {  // eTag direttamente restituito dal server
                   (*event_).setETag(el.second);
-                  client_->getETags().insert(hrefToUpdate, el.second);
+                  client_->eTags().insert(hrefToUpdate, el.second);
                   calendar_->tasks().append(*task);
                   flag = true;
                 }
@@ -261,7 +261,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                         if (!allETags.contains(
                                 eTagList.at(i).toElement().text())) {
                           (*task).setETag(eTagList.at(i).toElement().text());
-                          client_->getETags().insert(
+                          client_->eTags().insert(
                               hrefToUpdate, eTagList.at(i).toElement().text());
                           break;
                         }
@@ -284,8 +284,8 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         if (ui->startDateTime->dateTime() > max) {
           max.setTime(ui->startDateTime->time());
           (*event_).setStartDateTime(max);
-          qDebug() << "Date: " + event_->getStartDateTime().toString() +
-                          "     " + event_->getStartDateTime().toString();
+          qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
+                          event_->startDateTime().toString();
         }
         auto reply = client_->saveElement(*event_);
         connect(reply, &QNetworkReply::finished, [this]() {
@@ -298,7 +298,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             }
             event_ = nullptr;
             if (isEvent_) {
-              QString hrefToDelete = event_->getHREF();
+              QString hrefToDelete = event_->href();
               QString eTag = event_->eTag();
               calendar_->events().removeOne(*event_);
               client_->deleteETag(hrefToDelete);
@@ -306,7 +306,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
               qDebug() << "Event " + event_->summary() + " deleted\n";
             } else {
               Task* task = dynamic_cast<Task*>(event_);
-              QString hrefToDelete = task->getHREF();
+              QString hrefToDelete = task->href();
               QString eTag = task->eTag();
               calendar_->tasks().removeOne(*task);
               client_->deleteETag(hrefToDelete);
@@ -335,13 +335,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             for (int i = 0; i < eTagList.size(); i++) {
               if (!allETags.contains(eTagList.at(i).toElement().text())) {
                 task->setETag(eTagList.at(i).toElement().text());
-                task->setHREF(href_list.at(i).toElement().text());
+                task->setHref(href_list.at(i).toElement().text());
                 break;
               }
             }
             calendar_->tasks().append(*task);
             for (auto ev : calendar_->tasks()) {
-              qDebug() << "Tasks: " + ev.summary() + "    " + ev.getHREF() +
+              qDebug() << "Tasks: " + ev.summary() + "    " + ev.href() +
                               "   " + ev.eTag();
             }
             qDebug() << "New task saved\n";
@@ -350,13 +350,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       }
     } else {
       if (isEvent_) {
-        QString hrefToUpdate = event_->getHREF();
-        qDebug() << "\n\nETag: " +
-                        client_->getETags().find(hrefToUpdate).value() + "\n\n";
+        QString hrefToUpdate = event_->href();
+        qDebug() << "\n\nETag: " + client_->eTags().find(hrefToUpdate).value() +
+                        "\n\n";
         client_->updateElement(*event_,
-                               client_->getETags().find(hrefToUpdate).value());
+                               client_->eTags().find(hrefToUpdate).value());
         for (CalendarEvent& ev : calendar_->events()) {
-          if (ev.getHREF() == hrefToUpdate) {
+          if (ev.href() == hrefToUpdate) {
             calendar_->events().removeOne(ev);
           }
         }
@@ -382,7 +382,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       event_ = nullptr;
     } else {
       if (isEvent_) {
-        QString hrefToDelete = event_->getHREF();
+        QString hrefToDelete = event_->href();
         QString eTag = event_->eTag();
         calendar_->events().removeOne(*event_);
         client_->deleteETag(hrefToDelete);
@@ -402,10 +402,10 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
 CreateEventForm::~CreateEventForm() { delete ui; }
 
-void CreateEventForm::ResetFormFields() {
+void CreateEventForm::resetFormFields() {
   ui->titleEdit->setText(event_->summary());
-  ui->startDateTime->setDateTime(event_->getStartDateTime());
-  ui->endDateTime->setDateTime(event_->getEndDateTime());
+  ui->startDateTime->setDateTime(event_->startDateTime());
+  ui->endDateTime->setDateTime(event_->endDateTime());
   ui->allDayBox->setChecked(event_->all_day());
   ui->locationEdit->setText(event_->location());
 
@@ -417,8 +417,8 @@ void CreateEventForm::ResetFormFields() {
     // Show
     ui->completionButton->show();
     // Completion button
-    QString text = task->GetCompleted().first ? "Segna come non completata"
-                                              : "Segna come completata";
+    QString text = task->completed().first ? "Segna come non completata"
+                                           : "Segna come completata";
     ui->completionButton->setText(text);
   } else {
     ui->completionButton->hide();

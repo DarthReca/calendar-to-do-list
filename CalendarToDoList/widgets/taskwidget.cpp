@@ -7,8 +7,8 @@ TaskWidget::TaskWidget(Task &task, CalendarClient &client, Calendar &calendar,
   client_ = &client;
   calendar_ = &calendar;
 
-  QString start_time = task.getStartDateTime().toString("hh:mm");
-  QString end_time = task.getEndDateTime().toString("hh:mm");
+  QString start_time = task.startDateTime().toString("hh:mm");
+  QString end_time = task.endDateTime().toString("hh:mm");
   QString text =
       task.all_day()
           ? task.summary()

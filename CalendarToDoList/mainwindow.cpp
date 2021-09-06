@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
       single_shot_timer_(new QTimer(this)) {
   ui->setupUi(this);
 
-  ui->calendarTable->Init();
+  ui->calendarTable->init();
   single_shot_timer_->setSingleShot(true);
   qDebug() << "Starting...\n";
 
@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(reply, &QNetworkReply::finished, [reply, this]() {
     auto list = reply->rawHeaderPairs();
     for (auto &el : list) {
-      if (el.first == "Allow" || el.first == "allow") {
+      if (el.first.toLower() == "allow") {
         for (auto &method : el.second.split(',')) {
           client_->getSupportedMethods().insert(QString(method.trimmed()));
         }
@@ -109,6 +109,7 @@ void MainWindow::refresh_calendar_events() {
   auto reply = /*client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   */ client_->getAllElements();
+  ui->calendarTable->clearShowingWidgets();
   connect(reply, &QNetworkReply::finished,
           [this, reply, selected_date, end_date]() {
             calendar_->events().clear();
@@ -116,50 +117,34 @@ void MainWindow::refresh_calendar_events() {
             QDomDocument res;
             res.setContent(reply->readAll());
 
-            // qDebug() << res.toString();
-            // qDebug() <<
-            // reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
             auto calendars = res.elementsByTagName("cal:calendar-data");
             auto hrefs_list = res.elementsByTagName("d:href");
             auto eTags = res.elementsByTagName("d:getetag");
 
             for (int i = 0; i < calendars.size(); i++) {
-              QString el = calendars.at(i).toElement().text();
+              QString icalendar = calendars.at(i).toElement().text();
               QString href = hrefs_list.at(i).toElement().text();
               QString eTag = eTags.at(i).toElement().text();
-              QTextStream stream(&el);
+              QTextStream stream(&icalendar);
               QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
 
               for (CalendarEvent &ev : tmp->events()) {
                 auto recurrences =
-                    ev.RecurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
+                    ev.recurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
                                           QDateTime(end_date, QTime(0, 0)));
                 for (QDateTime &rec : recurrences) {
-                  /*
-                CalendarEvent *new_event = new CalendarEvent(ev);
-                auto diff = ev.getStartDateTime().time().msecsTo(
-                    ev.getEndDateTime().time());
-                new_event->setStartDateTime(rec);
-                new_event->setEndDateTime(rec.addMSecs(diff));
-                qDebug() << new_event->getEndDateTime();
-                EventWidget &widget =
-                    ui->calendarTable->CreateEventWidget(*new_event);
-                connect(&widget, &EventWidget::clicked, [this, &widget]() {
-                  on_request_editing_form(widget.GetEvent(), true);
-                });
-                */
+                  CalendarEvent *new_event = new CalendarEvent(ev);
+                  auto diff = ev.startDateTime().time().msecsTo(
+                      ev.endDateTime().time());
+                  new_event->setStartDateTime(rec);
+                  new_event->setEndDateTime(rec.addMSecs(diff));
+                  EventWidget &widget =
+                      ui->calendarTable->createEventWidget(*new_event);
+                  connect(&widget, &EventWidget::clicked, [this, &widget]() {
+                    on_request_editing_form(widget.event(), true);
+                  });
                 }
               }
-              /*
-              QString line = stream.readLine();
-              while (!line.isNull()) {
-                if (line.contains("BEGIN:VEVENT")) {
-                  calendar_->events().append(tmp->events());
-                } else {
-                  calendar_->tasks().append(tmp->tasks());
-                }
-              }*/
             }
 
             // salvo gli eTags per vedere i futuri cambiamenti
@@ -183,66 +168,22 @@ void MainWindow::refresh_calendar_events() {
   });
 }*/
 
-void MainWindow::on_showing_events_changed() {
-  qDebug() << showing_events_.size();
-  for (auto &event : showing_events_) {
-    EventWidget &widget = ui->calendarTable->CreateEventWidget(event);
+// KEPT FOR COMPATIBILITY
+void MainWindow::on_showing_events_changed() {}
 
-    connect(&widget, &EventWidget::clicked, [this, &widget]() {
-      on_request_editing_form(widget.GetEvent(), true);
-    });
-  }
-}
-
-void MainWindow::on_showing_tasks_changed() {
-  /*
-int column_width = ui->calendarTable->columnWidth(0);
-int row_heigth = ui->calendarTable->rowHeight(0);
-
-QDate selected_date = ui->calendarWidget->selectedDate();
-
-for (auto &task : showing_tasks_) {
-  EventWidget *widget = new EventWidget(task, ui->calendarTable->viewport());
-  QTime start_time = task.getStartDateTime().time();
-  int days_long = task.getStartDateTime().daysTo(task.getEndDateTime());
-
-  int x_pos =
-      column_width * selected_date.daysTo(task.getStartDateTime().date());
-
-  int y_pos = 0;
-  for (int i = 0; i <= start_time.hour(); i++)
-    y_pos += ui->calendarTable->rowHeight(i);
-  y_pos += (start_time.minute() / 60.0) * ui->calendarTable->rowHeight(0);
-
-  ui->calendarTable->scrollToTop();
-  if (days_long == 0 && !task.all_day()) {
-    widget->resize(column_width, row_heigth);
-    widget->move(x_pos, y_pos);
-  } else {
-    widget->move(x_pos, 0);
-    widget->resize((days_long + 1) * column_width, row_heigth);
-  }
-
-  // Connection to edit
-  connect(widget, &EventWidget::clicked, [this, widget]() {
-    on_request_editing_form(widget->GetEvent(), false);
-  });
-  widget->show();
-}
-*/
-}
+// KEPT FOR COMPATIBILITY
+void MainWindow::on_showing_tasks_changed() {}
 
 QList<CalendarEvent> MainWindow::showing_events() const {
   return showing_events_;
 }
 
 void MainWindow::setShowing_events(QList<CalendarEvent> newShowing_events) {
-  // if (showing_events_ == newShowing_events) return;
   showing_events_ = newShowing_events;
 }
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date) {
-  ui->calendarTable->SetVisualMode(ui->calendarTable->GetVisualMode(),
+  ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(),
                                    QDateTime(date, QTime::currentTime()));
 }
 
@@ -308,7 +249,7 @@ void MainWindow::compareElements(QNetworkReply &reply,
   QSet<QString> processed;
   // Deleted and updated events
   for (CalendarEvent &ev : calendar_->events()) {
-    QString href = ev.getHREF();
+    QString href = ev.href();
     if (mapTmp.contains(href)) {
       if (mapTmp[href].isEmpty()) {
         qDebug() << "Item with href " + href + "has been deleted\n\n";
@@ -349,7 +290,7 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
       QPointer<Calendar> tmp =
           new Calendar(href_list.at(i).toElement().text(), "", stream);
       for (CalendarEvent &ev : tmp->events()) {
-        QString hrefToSearch = ev.getHREF();
+        QString hrefToSearch = ev.href();
         QString eTagToPut = mapTmp.find(hrefToSearch).value();
         ev.setETag(eTagToPut);
       }
@@ -393,17 +334,16 @@ void MainWindow::updateTableToNDays(int n) {
   QList<CalendarEvent> selected;
   for (CalendarEvent &ev : calendar_->events()) {
     auto recurs =
-        ev.RecurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
+        ev.recurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
     for (const QDateTime &dt : recurs) {
       CalendarEvent new_ev = ev;
-      auto diff =
-          ev.getStartDateTime().time().msecsTo(ev.getEndDateTime().time());
+      auto diff = ev.startDateTime().time().msecsTo(ev.endDateTime().time());
 
       new_ev.setStartDateTime(dt);
       new_ev.setEndDateTime(dt.addMSecs(diff));
-      EventWidget &widget = ui->calendarTable->CreateEventWidget(new_ev);
+      EventWidget &widget = ui->calendarTable->createEventWidget(new_ev);
       connect(&widget, &EventWidget::clicked, [this, &widget]() {
-        on_request_editing_form(widget.GetEvent(), true);
+        on_request_editing_form(widget.event(), true);
       });
       // selected += new_ev;
     }
@@ -411,11 +351,11 @@ void MainWindow::updateTableToNDays(int n) {
   // TASKS
   QList<Task> selected_tasks;
   for (Task &t : calendar_->tasks()) {
-    if (t.getEndDateTime() >= d.startOfDay() &&
-        t.getEndDateTime() <= d.addDays(n).endOfDay()) {
-      EventWidget &widget = ui->calendarTable->CreateEventWidget(t);
+    if (t.endDateTime() >= d.startOfDay() &&
+        t.endDateTime() <= d.addDays(n).endOfDay()) {
+      EventWidget &widget = ui->calendarTable->createEventWidget(t);
       connect(&widget, &EventWidget::clicked, [this, &widget]() {
-        on_request_editing_form(widget.GetEvent(), true);
+        on_request_editing_form(widget.event(), true);
       });
       // selected_tasks += t;
     }

@@ -13,12 +13,12 @@ class Task : public CalendarEvent {
     setColor(QColor(Qt::blue).name());
   };
 
-  Task &FromICalendar(QTextStream &icalendar) override { return *this; };
-  QString ToICalendar() override;
+  Task &fromICalendar(QTextStream &icalendar) override { return *this; };
+  QString toICalendar() override;
 
-  void FlipCompleted();
+  void flipCompleted();
 
-  const QPair<bool, QDateTime> &GetCompleted() const;
+  const QPair<bool, QDateTime> &completed() const;
 
  private:
   QPair<bool, QDateTime> completed_;

@@ -19,20 +19,20 @@ class CalendarTable : public QTableWidget {
   Q_OBJECT
  public:
   explicit CalendarTable(QWidget* parent = nullptr);
-  void Init();
+  void init();
 
-  EventWidget& CreateEventWidget(CalendarEvent& event);
-  void ClearShowingWidgets();
+  EventWidget& createEventWidget(CalendarEvent& event);
+  void clearShowingWidgets();
 
-  void SetVisualMode(TimeFrame new_time_frame, QDateTime today);
-  const TimeFrame& GetVisualMode() { return time_frame_; };
+  void setVisualMode(TimeFrame new_time_frame, QDateTime today);
+  const TimeFrame& visualMode() { return time_frame_; };
 
  signals:
  protected:
   void resizeEvent(QResizeEvent* event);
 
  private:
-  void ResizeAndMove(EventWidget* widget);
+  void resizeAndMove(EventWidget* widget);
 
   TimeFrame time_frame_;
   QDateTime today_;

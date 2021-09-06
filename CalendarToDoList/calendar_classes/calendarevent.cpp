@@ -15,13 +15,13 @@ CalendarEvent::CalendarEvent() {
   exdates_ = "";
   RRULE_ = "";
   color_ = QColor(Qt::red).name();
-  UID_ = "";
-  HREF_ = "";
+  uid_ = "";
+  href_ = "";
   eTag_ = "";
   all_day_ = false;
 }
 
-CalendarEvent& CalendarEvent::FromICalendar(QTextStream& icalendar) {
+CalendarEvent& CalendarEvent::fromICalendar(QTextStream& icalendar) {
   for (QString line = icalendar.readLine(); !line.contains("END:VEVENT");
        line = icalendar.readLine()) {
     QStringList key_value = line.split(":");
@@ -33,11 +33,11 @@ CalendarEvent& CalendarEvent::FromICalendar(QTextStream& icalendar) {
     if (!testEncodingString.contains("�")) value = testEncodingString;
 
     if (key.startsWith(QLatin1String("DTSTART"))) {
-      setStartDateTime(DateTimeFromString(value).toLocalTime());
+      setStartDateTime(dateTimeFromString(value).toLocalTime());
     } else if (key.startsWith(QLatin1String("DTEND"))) {
-      setEndDateTime(DateTimeFromString(value).toLocalTime());
+      setEndDateTime(dateTimeFromString(value).toLocalTime());
     } else if (key.startsWith(QLatin1String("DUE"))) {
-      QDateTime date_time = DateTimeFromString(value).toLocalTime();
+      QDateTime date_time = dateTimeFromString(value).toLocalTime();
       setStartDateTime(date_time);
       setEndDateTime(date_time);
     } else if (key == QLatin1String("RRULE")) {
@@ -49,7 +49,7 @@ CalendarEvent& CalendarEvent::FromICalendar(QTextStream& icalendar) {
     } else if (key == QLatin1String("LOCATION")) {
       setLocation(value);
     } else if (key == QLatin1String("UID")) {
-      setUID(value);
+      setUid(value);
     } else if (key == QLatin1String("CATEGORIES")) {
       setCategories(value);
     } else if (key == QLatin1String("DESCRIPTION")) {
@@ -59,11 +59,11 @@ CalendarEvent& CalendarEvent::FromICalendar(QTextStream& icalendar) {
   return *this;
 }
 
-QString CalendarEvent::ToICalendar() {
+QString CalendarEvent::toICalendar() {
   QString ical_object =
       "BEGIN:VEVENT\r\n"
       "UID:" +
-      UID_ +
+      uid_ +
       "\r\n"
       "VERSION:2.0\r\n"
       "DTSTAMP:" +
@@ -99,7 +99,7 @@ QString CalendarEvent::ToICalendar() {
   return ical_object;
 }
 
-int CalendarEvent::WeekDayFromString(const QString& weekday_string) {
+int CalendarEvent::weekDayFromString(const QString& weekday_string) {
   int iRet = 0;
 
   if (weekday_string.endsWith("MO", Qt::CaseInsensitive)) {
@@ -121,7 +121,7 @@ int CalendarEvent::WeekDayFromString(const QString& weekday_string) {
   return iRet;
 }
 
-QString CalendarEvent::StringFromWeekDay(int weekday) {
+QString CalendarEvent::stringFromWeekDay(int weekday) {
   switch (weekday) {
     case 1:
       return "MO";
@@ -141,7 +141,9 @@ QString CalendarEvent::StringFromWeekDay(int weekday) {
   return "";
 }
 
-QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
+const QString& CalendarEvent::eTag() const { return eTag_; }
+
+QList<QDateTime> CalendarEvent::recurrencesInRange(QDateTime from,
                                                    QDateTime to) {
   // Look at QList<QObject*> CalendarClient::eventsForDate(const QDate& date)
   QList<QDateTime> list;
@@ -164,7 +166,7 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
     if (freq == "WEEKLY") {
       // Parse BYDAY
       for (QString& day : rules_map["BYDAY"].split(",", Qt::SkipEmptyParts))
-        by_day += WeekDayFromString(day);
+        by_day += weekDayFromString(day);
       for (QDateTime i = start; i < to; i = i.addDays(1))
         if (by_day.contains(i.date().dayOfWeek())) tmp += i;
     }
@@ -190,7 +192,7 @@ QList<QDateTime> CalendarEvent::RecurrencesInRange(QDateTime from,
   return list;
 }
 
-QDateTime CalendarEvent::DateTimeFromString(const QString& date_time_string) {
+QDateTime CalendarEvent::dateTimeFromString(const QString& date_time_string) {
   QDateTime date_time =
       QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss'Z'");
   if (!date_time.isValid())
@@ -273,9 +275,7 @@ QHash<QString, QString> CalendarEvent::parseRRule() {
 
 bool CalendarEvent::all_day() const { return all_day_; }
 
-void CalendarEvent::setAll_day(bool newAll_day) { all_day_ = newAll_day; }
-
-const QString& CalendarEvent::eTag() const { return eTag_; }
+void CalendarEvent::setAllDay(bool newAll_day) { all_day_ = newAll_day; }
 
 void CalendarEvent::setETag(const QString& newETag) { eTag_ = newETag; }
 
@@ -295,9 +295,7 @@ void CalendarEvent::setDescription(const QString& description) {
   }
 }
 
-QDateTime CalendarEvent::getStartDateTime(void) const {
-  return start_date_time_;
-}
+QDateTime CalendarEvent::startDateTime(void) const { return start_date_time_; }
 
 void CalendarEvent::setStartDateTime(const QDateTime& startDateTime) {
   if (startDateTime != start_date_time_) {
@@ -305,7 +303,7 @@ void CalendarEvent::setStartDateTime(const QDateTime& startDateTime) {
   }
 }
 
-QDateTime CalendarEvent::getEndDateTime(void) const { return end_date_time_; }
+QDateTime CalendarEvent::endDateTime(void) const { return end_date_time_; }
 
 void CalendarEvent::setEndDateTime(const QDateTime& endDateTime) {
   if (endDateTime != end_date_time_) {
@@ -313,7 +311,7 @@ void CalendarEvent::setEndDateTime(const QDateTime& endDateTime) {
   }
 }
 
-QString CalendarEvent::getRRULE() const { return RRULE_; }
+QString CalendarEvent::RRULE() const { return RRULE_; }
 
 void CalendarEvent::setRRULE(const QString& rrule) {
   if (RRULE_ != rrule) {
@@ -321,7 +319,7 @@ void CalendarEvent::setRRULE(const QString& rrule) {
   }
 }
 
-QString CalendarEvent::getExdates() const { return exdates_; }
+QString CalendarEvent::exdates() const { return exdates_; }
 
 void CalendarEvent::setExdates(const QString& exdates) {
   if (exdates_ != exdates) {
@@ -329,7 +327,7 @@ void CalendarEvent::setExdates(const QString& exdates) {
   }
 }
 
-QString CalendarEvent::getCategories() const { return categories_; }
+QString CalendarEvent::categories() const { return categories_; }
 
 void CalendarEvent::setCategories(const QString& categories) {
   if (categories_ != categories) {
@@ -337,18 +335,18 @@ void CalendarEvent::setCategories(const QString& categories) {
   }
 }
 
-QString CalendarEvent::getUID(void) const { return UID_; }
+QString CalendarEvent::uid(void) const { return uid_; }
 
-QString CalendarEvent::getHREF(void) const { return HREF_; }
+QString CalendarEvent::href(void) const { return href_; }
 
-void CalendarEvent::setUID(const QString& uid) {
-  if (uid != UID_) {
-    UID_ = uid;
+void CalendarEvent::setUid(const QString& uid) {
+  if (uid != uid_) {
+    uid_ = uid;
   }
 }
 
-void CalendarEvent::setHREF(const QString& href) {
-  if (href != HREF_) {
-    HREF_ = href;
+void CalendarEvent::setHref(const QString& href) {
+  if (href != href_) {
+    href_ = href;
   }
 }

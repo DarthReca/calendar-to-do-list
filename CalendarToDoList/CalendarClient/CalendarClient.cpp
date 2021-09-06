@@ -10,11 +10,6 @@
 
 #include "calendar_classes/calendar.h"
 
-#define TASKLISTS_REQUEST_URL \
-  "https://tasks.googleapis.com/tasks/v1/users/@me/lists"
-#define TASKS_REQUEST_URL "https://tasks.googleapis.com/tasks/v1/lists"
-#define API_KEY "AIzaSyBvVO3Q4_lqaXN6PozWeQK2CIr6fIQ7Z5w"
-
 CalendarClient::CalendarClient(QObject* parent)
     : network_manager_(QNetworkAccessManager()) {
   QFile auth_file("auth.json");
@@ -414,22 +409,21 @@ QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
     return nullptr;
   }
 
-  if (newElement.getUID().isEmpty()) {
-    newElement.setUID(
+  if (newElement.uid().isEmpty()) {
+    newElement.setUid(
         QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" +
-        newElement.getStartDateTime().toString("yyyyMMddHHMM"));
+        newElement.startDateTime().toString("yyyyMMddHHMM"));
   }
 
-  qDebug() << "saving task " + newElement.ToICalendar();
+  qDebug() << "saving task " + newElement.toICalendar();
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + newElement.ToICalendar() + "END:VCALENDAR\r\n")
+      ("BEGIN:VCALENDAR\r\n" + newElement.toICalendar() + "END:VCALENDAR\r\n")
           .toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(
-      QUrl(endpoint_.toString() + "/" + newElement.getUID() + ".ics"));
+  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + newElement.uid() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -451,20 +445,20 @@ QNetworkReply* CalendarClient::updateElement(CalendarEvent event,
     qDebug() << "Method PUT not supported in call updateElement";
     return nullptr;
   }
-  qDebug() << "updating an existing event: " << event.ToICalendar();
+  qDebug() << "updating an existing event: " << event.toICalendar();
 
-  if (event.getUID().isEmpty()) {
-    event.setUID(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
-                 "-0000-" + event.getStartDateTime().toString("yyyyMMddHHMM"));
+  if (event.uid().isEmpty()) {
+    event.setUid(QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") +
+                 "-0000-" + event.startDateTime().toString("yyyyMMddHHMM"));
   }
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.ToICalendar() + "END:VCALENDAR\r\n")
+      ("BEGIN:VCALENDAR\r\n" + event.toICalendar() + "END:VCALENDAR\r\n")
           .toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + event.uid() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
@@ -488,7 +482,7 @@ void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + event.getUID() + ".ics"));
+  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + event.uid() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
