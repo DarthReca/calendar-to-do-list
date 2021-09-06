@@ -25,8 +25,8 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
 CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
     : CalendarEvent(parent) {
   QString line;
-  while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")) &&
-         !(line = ical_object.readLine()).contains(QByteArray("END:VTODO"))) {
+  while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")) /*&&
+         !(line = ical_object.readLine()).contains(QByteArray("END:VTODO"))*/) {
     QStringList key_value = line.split(":");
     if (key_value.size() != 2) return;
     const QString key = key_value[0];

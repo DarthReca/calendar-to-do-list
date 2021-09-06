@@ -106,9 +106,9 @@ MainWindow::~MainWindow() {
 void MainWindow::refresh_calendar_events() {
   QDate selected_date = ui->calendarWidget->selectedDate();
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
-  auto reply = client_->getDateRangeEvents(
+  auto reply = /*client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-  // client_->getAllElements();
+  */ client_->getAllElements();
   connect(
       reply, &QNetworkReply::finished,
       [this, reply, selected_date, end_date]() {

@@ -42,8 +42,8 @@ void CalendarTable::ResizeAndMove(EventWidget *widget) {
   for (int i = 0; i < day_from_start; i++) x_pos += columnWidth(i);
 
   int y_pos = 0;
-  for (int i = 0; i <= start_time.hour(); i++) y_pos += rowHeight(i);
-  y_pos += (start_time.minute() / 60.0) * rowHeight(start_time.hour());
+  for (int i = 0; i <= start_time.hour() + 1; i++) y_pos += rowHeight(i);
+  // y_pos += (start_time.minute() / 60.0) * rowHeight(start_time.hour());
 
   int width = columnWidth(day_from_start);
   int heigth = rowHeight(start_time.hour());

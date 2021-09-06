@@ -7,9 +7,8 @@ Calendar::Calendar(QObject *parent) : QObject(parent) {
 
 Calendar::Calendar(const QString &href, const QString &eTag,
                    QTextStream &ical_object, QObject *parent) {
-  QString line = ical_object.readLine();
-
-  while (!line.isNull()) {
+  for (QString line = ical_object.readLine(); !line.isNull();
+       line = ical_object.readLine()) {
     if (line.contains("BEGIN:VEVENT")) {
       CalendarEvent event = CalendarEvent(ical_object, this);
       event.setHREF(href);
@@ -27,7 +26,6 @@ Calendar::Calendar(const QString &href, const QString &eTag,
     } else if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];
     }
-    line = ical_object.readLine();
   }
 }
 
