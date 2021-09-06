@@ -488,8 +488,4 @@ void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
 
   auto reply = network_manager_.deleteResource(cal_part);
-
-  connect(reply, &QNetworkReply::finished, []() {
-
-  });
 }

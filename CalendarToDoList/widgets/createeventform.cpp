@@ -262,9 +262,9 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                     }
                 });
             }
-            emit requestView();
-            accept();
         }
+        emit requestView();
+        accept();
     });
 
     connect(ui->deleteButton, &QPushButton::clicked, [this] {
@@ -285,8 +285,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 qDebug() << "Event " + event_->summary() + " deleted\n";
             } else {
                 Task* task = qobject_cast<Task*>(event_);
-                //client_->deleteTask(list, *task);
-                //list.getTasks().removeOne(*task);
+                QString hrefToDelete = task->getHREF();
+                QString eTag = task->eTag();
+                calendar_->tasks().removeOne(*task);
+                client_->deleteETag(hrefToDelete);
+                client_->deleteElement(*task, eTag);
                 qDebug() << "Task " + (*task).summary() + " deleted\n";
             }
             emit requestView();
