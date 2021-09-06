@@ -31,7 +31,7 @@ Calendar::Calendar(const QString &href, const QString &eTag,
 
 QString Calendar::ToICalendarObject() {
   QString ical_object = "BEGIN:VCALENDAR\r\n";
-  for (CalendarEvent e : events_) ical_object.append(e.ToVEvent());
+  for (CalendarEvent e : events_) ical_object.append(e.toiCalendar());
   ical_object.append("END:VCALENDAR");
   return ical_object;
 }

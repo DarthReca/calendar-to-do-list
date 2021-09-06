@@ -21,6 +21,7 @@ class CreateEventForm : public QDialog {
   explicit CreateEventForm(CalendarEvent* event, CalendarClient& client,
                            Calendar& calendar, bool existing, bool isEvent,
                            QWidget* parent = nullptr);
+
   ~CreateEventForm();
 
   void ResetFormFields();
