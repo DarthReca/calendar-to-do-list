@@ -3,6 +3,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QTime>
+#include <QTimer>
 
 CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
   showing_events_ = QList<QPointer<EventWidget>>();
@@ -26,8 +27,13 @@ void CalendarTable::Init() {
 }
 
 void CalendarTable::resizeEvent(QResizeEvent *event) {
-  for (auto &widget : showing_events_) ResizeAndMove(widget);
   QTableWidget::resizeEvent(event);
+  QTimer *timer = new QTimer(this);
+  timer->setSingleShot(true);
+  connect(timer, &QTimer::timeout, [this]() {
+    for (auto &widget : showing_events_) ResizeAndMove(widget);
+  });
+  timer->start(20);
 }
 
 void CalendarTable::ResizeAndMove(EventWidget *widget) {
