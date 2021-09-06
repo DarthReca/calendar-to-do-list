@@ -161,21 +161,91 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         } else {
             if (isEvent_) {
                 QString hrefToUpdate = event_->getHREF();
-                qDebug() << "\n\nETag: " +
-                            client_->getETags().find(hrefToUpdate).value() + "\n\n";
-                client_->updateElement(*event_,
-                                       client_->getETags().find(hrefToUpdate).value());
                 for (CalendarEvent& ev : calendar_->events()) {
                     if (ev.getHREF() == hrefToUpdate) {
                         calendar_->events().removeOne(ev);
                     }
                 }
+                auto reply = client_->updateElement(*event_, event_->eTag());
+                //reply->rawHeaderPairs()
+                connect(reply, &QNetworkReply::finished, [this, reply]() {
+
+                    //imposto il nuovo eTag dell'evento
+                    bool flag = false;
+                    for(auto el : reply->rawHeaderPairs()){
+                        if(el.first=="ETag"){//eTag direttamente restituito dal server
+                            (*event_).setETag(el.second);
+                            calendar_->events().append(*event_);
+                            flag = true;
+                        }
+                    }
+                    if(!flag){
+                        auto reply1 = client_->lookForChanges();
+                        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+                            QSet<QString> allETags;
+                            for(auto ev : calendar_->events()){
+                                allETags.insert(ev.eTag());
+                            }
+                            QDomDocument res;
+                            res.setContent(reply1->readAll());
+                            auto href_list = res.elementsByTagName("d:href");
+                            auto eTagList = res.elementsByTagName("d:getetag");
+                            for (int i = 0; i < eTagList.size(); i++) {
+                                if (!allETags.contains(eTagList.at(i).toElement().text())) {
+                                    (*event_).setETag(eTagList.at(i).toElement().text());
+                                    break;
+                                }
+                            }
+                            calendar_->events().append(*event_);
+                            qDebug() << "Event updated\n";
+                        });
+
+                    }
+                });
             } else {
-                //list.getTasks().removeOne(t);
                 Task* task = qobject_cast<Task*>(event_);
-                //auto reply = client_->updateTask(list, *task);
-                //list.getTasks().append(*task);
-                qDebug() << "Task " + task->summary() + " saved\n";
+                QString hrefToUpdate = task->getHREF();
+                for (Task& t : calendar_->tasks()) {
+                    if (t.getHREF() == hrefToUpdate) {
+                        calendar_->events().removeOne(t);
+                    }
+                }
+                auto reply = client_->updateElement(*task, task->eTag());
+                //reply->rawHeaderPairs()
+                connect(reply, &QNetworkReply::finished, [this, reply, task]() {
+
+                    //imposto il nuovo eTag dell'evento
+                    bool flag = false;
+                    for(auto el : reply->rawHeaderPairs()){
+                        if(el.first=="ETag"){//eTag direttamente restituito dal server
+                            (*event_).setETag(el.second);
+                            calendar_->tasks().append(*task);
+                            flag = true;
+                        }
+                    }
+                    if(!flag){
+                        auto reply1 = client_->lookForChanges();
+                        connect(reply1, &QNetworkReply::finished, [reply1, this, task]() {
+                            QSet<QString> allETags;
+                            for(auto t : calendar_->tasks()){
+                                allETags.insert(t.eTag());
+                            }
+                            QDomDocument res;
+                            res.setContent(reply1->readAll());
+                            auto href_list = res.elementsByTagName("d:href");
+                            auto eTagList = res.elementsByTagName("d:getetag");
+                            for (int i = 0; i < eTagList.size(); i++) {
+                                if (!allETags.contains(eTagList.at(i).toElement().text())) {
+                                    (*task).setETag(eTagList.at(i).toElement().text());
+                                    break;
+                                }
+                            }
+                            calendar_->tasks().append(*task);
+                            qDebug() << "Task updated\n";
+                        });
+
+                    }
+                });
             }
             emit requestView();
             accept();
