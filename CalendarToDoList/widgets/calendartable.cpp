@@ -37,25 +37,25 @@ void CalendarTable::resizeEvent(QResizeEvent *event) {
 }
 
 void CalendarTable::ResizeAndMove(EventWidget *widget) {
-  CalendarEvent event = widget->GetEvent().data();
-  QTime start_time = event.getStartDateTime().time();
-  int day_from_start = today_.date().daysTo(event.getStartDateTime().date());
+  CalendarEvent *event = widget->GetEvent();
+  QTime start_time = event->getStartDateTime().time();
+  int day_from_start = today_.date().daysTo(event->getStartDateTime().date());
 
-  int days_long = event.getStartDateTime().daysTo(event.getEndDateTime());
-  int time_long = event.getEndDateTime().time().hour() - start_time.hour();
+  int days_long = event->getStartDateTime().daysTo(event->getEndDateTime());
+  int time_long = event->getEndDateTime().time().hour() - start_time.hour();
 
   int x_pos = 0;
   for (int i = 0; i < day_from_start; i++) x_pos += columnWidth(i);
 
   int y_pos = 0;
-  for (int i = 0; i <= start_time.hour() + 1; i++) y_pos += rowHeight(i);
-  // y_pos += (start_time.minute() / 60.0) * rowHeight(start_time.hour());
+  for (int i = 0; i <= start_time.hour(); i++) y_pos += rowHeight(i);
+  y_pos += (start_time.minute() / 60.0) * rowHeight(start_time.hour());
 
   int width = columnWidth(day_from_start);
   int heigth = rowHeight(start_time.hour());
 
   scrollToTop();
-  if (days_long == 0 && !event.all_day()) {
+  if (days_long == 0 && !event->all_day()) {
     widget->resize(width, heigth * time_long);
     widget->move(x_pos, y_pos);
   } else {
@@ -82,7 +82,7 @@ void CalendarTable::SetVisualMode(TimeFrame new_time_frame, QDateTime today) {
 }
 
 EventWidget &CalendarTable::CreateEventWidget(CalendarEvent &event) {
-  EventWidget *widget = new EventWidget(event, viewport());
+  QPointer<EventWidget> widget = new EventWidget(event, viewport());
   ResizeAndMove(widget);
 
   showing_events_ += widget;

@@ -4,23 +4,23 @@
 #include <QPushButton>
 #include <QWidget>
 
-#include "calendar_classes/task.h"
 #include "calendar_classes/calendarevent.h"
+#include "calendar_classes/task.h"
 #include "createeventform.h"
 
 class TaskWidget : public QPushButton {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    explicit TaskWidget(Task& task, CalendarClient& client,
-                         Calendar& calendar, QWidget* parent = nullptr);
+ public:
+  explicit TaskWidget(Task& task, CalendarClient& client, Calendar& calendar,
+                      QWidget* parent = nullptr);
 
-    QPointer<Task> task() const;
+  Task* task() const { return task_; };
 
-private:
-    QPointer<Task> task_;
-    QPointer<CalendarClient> client_;
-    QPointer<Calendar> calendar_;
+ private:
+  Task* task_;
+  QPointer<CalendarClient> client_;
+  QPointer<Calendar> calendar_;
 };
 
-#endif // TASKWIDGET_H
+#endif  // TASKWIDGET_H

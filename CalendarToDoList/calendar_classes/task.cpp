@@ -1,6 +1,6 @@
 #include "task.h"
 
-QString Task::toiCalendar() {
+QString Task::ToICalendar() {
   QString ical_object =
       "BEGIN:VTODO\r\n"
       "UID:" +
@@ -41,4 +41,4 @@ void Task::FlipCompleted() {
   completed_.second = QDateTime::currentDateTime();
 }
 
-const QPair<bool, QDateTime>& Task::completed() const { return completed_; }
+const QPair<bool, QDateTime>& Task::GetCompleted() const { return completed_; }

@@ -2,29 +2,23 @@
 #define TASK_H
 
 #include <QColor>
-#include <QJsonObject>
-#include <QObject>
 
 #include "calendarevent.h"
 
 class Task : public CalendarEvent {
-  Q_OBJECT
  public:
-  Task(QObject *parent = nullptr)
-      : CalendarEvent(parent),
-        completed_(QPair<bool, QDateTime>(false, QDateTime())) {
-    setColor(QColor(Qt::blue).name());
-  };
-  Task(QTextStream& ical_object, QObject *parent = nullptr)
-      : CalendarEvent(ical_object, parent),
+  Task()
+      : CalendarEvent(),
         completed_(QPair<bool, QDateTime>(false, QDateTime())) {
     setColor(QColor(Qt::blue).name());
   };
 
-  QString toiCalendar() override;
+  Task &FromICalendar(QTextStream &icalendar) override { return *this; };
+  QString ToICalendar() override;
+
   void FlipCompleted();
 
-  const QPair<bool, QDateTime> &completed() const;
+  const QPair<bool, QDateTime> &GetCompleted() const;
 
  private:
   QPair<bool, QDateTime> completed_;

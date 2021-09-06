@@ -109,59 +109,66 @@ void MainWindow::refresh_calendar_events() {
   auto reply = /*client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   */ client_->getAllElements();
-  connect(
-      reply, &QNetworkReply::finished,
-      [this, reply, selected_date, end_date]() {
-        calendar_->events().clear();
+  connect(reply, &QNetworkReply::finished,
+          [this, reply, selected_date, end_date]() {
+            calendar_->events().clear();
 
-        QDomDocument res;
-        res.setContent(reply->readAll());
+            QDomDocument res;
+            res.setContent(reply->readAll());
 
-        //qDebug() << res.toString();
-        //qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+            // qDebug() << res.toString();
+            // qDebug() <<
+            // reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
-        auto calendars = res.elementsByTagName("cal:calendar-data");
-        auto hrefs_list = res.elementsByTagName("d:href");
-        auto eTags = res.elementsByTagName("d:getetag");
+            auto calendars = res.elementsByTagName("cal:calendar-data");
+            auto hrefs_list = res.elementsByTagName("d:href");
+            auto eTags = res.elementsByTagName("d:getetag");
 
-        for (int i = 0; i < calendars.size(); i++) {
-          QString el = calendars.at(i).toElement().text();
-          QString href = hrefs_list.at(i).toElement().text();
-          QString eTag = eTags.at(i).toElement().text();
-          QTextStream stream(&el);
-          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+            for (int i = 0; i < calendars.size(); i++) {
+              QString el = calendars.at(i).toElement().text();
+              QString href = hrefs_list.at(i).toElement().text();
+              QString eTag = eTags.at(i).toElement().text();
+              QTextStream stream(&el);
+              QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
 
-          for (CalendarEvent &ev : tmp->events()) {
-            auto recurrences =
-                ev.RecurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
-                                      QDateTime(end_date, QTime(0, 0)));
-            for (QDateTime &rec : recurrences) {
-              QPointer<CalendarEvent> new_event = new CalendarEvent(ev);
-              auto diff = ev.getStartDateTime().time().msecsTo(
-                  ev.getEndDateTime().time());
-              new_event->setStartDateTime(rec);
-              new_event->setEndDateTime(rec.addMSecs(diff));
-              ui->calendarTable->CreateEventWidget(*new_event);
+              for (CalendarEvent &ev : tmp->events()) {
+                auto recurrences =
+                    ev.RecurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
+                                          QDateTime(end_date, QTime(0, 0)));
+                for (QDateTime &rec : recurrences) {
+                  /*
+                CalendarEvent *new_event = new CalendarEvent(ev);
+                auto diff = ev.getStartDateTime().time().msecsTo(
+                    ev.getEndDateTime().time());
+                new_event->setStartDateTime(rec);
+                new_event->setEndDateTime(rec.addMSecs(diff));
+                qDebug() << new_event->getEndDateTime();
+                EventWidget &widget =
+                    ui->calendarTable->CreateEventWidget(*new_event);
+                connect(&widget, &EventWidget::clicked, [this, &widget]() {
+                  on_request_editing_form(widget.GetEvent(), true);
+                });
+                */
+                }
+              }
+              /*
+              QString line = stream.readLine();
+              while (!line.isNull()) {
+                if (line.contains("BEGIN:VEVENT")) {
+                  calendar_->events().append(tmp->events());
+                } else {
+                  calendar_->tasks().append(tmp->tasks());
+                }
+              }*/
             }
-          }
-          /*
-          QString line = stream.readLine();
-          while (!line.isNull()) {
-            if (line.contains("BEGIN:VEVENT")) {
-              calendar_->events().append(tmp->events());
-            } else {
-              calendar_->tasks().append(tmp->tasks());
-            }
-          }*/
-        }
 
-        // salvo gli eTags per vedere i futuri cambiamenti
-        //è una mappa di <href, eTag>
-        for (int i = 0; i < eTags.size(); i++) {
-          client_->addETag(hrefs_list.at(i).toElement().text(),
-                           eTags.at(i).toElement().text());
-        }
-      });
+            // salvo gli eTags per vedere i futuri cambiamenti
+            //è una mappa di <href, eTag>
+            for (int i = 0; i < eTags.size(); i++) {
+              client_->addETag(hrefs_list.at(i).toElement().text(),
+                               eTags.at(i).toElement().text());
+            }
+          });
 }
 
 /*void MainWindow::on_seeIfChanged_clicked() {

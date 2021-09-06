@@ -10,14 +10,14 @@ Calendar::Calendar(const QString &href, const QString &eTag,
   for (QString line = ical_object.readLine(); !line.isNull();
        line = ical_object.readLine()) {
     if (line.contains("BEGIN:VEVENT")) {
-      CalendarEvent event = CalendarEvent(ical_object, this);
+      CalendarEvent event = CalendarEvent().FromICalendar(ical_object);
       event.setHREF(href);
       event.setETag(eTag);
       if (event.summary() != "") {
         events_.append(event);
       }
     } else if (line.contains("BEGIN:VTODO")) {
-      Task task = Task(ical_object, this);
+      Task task = Task().FromICalendar(ical_object);
       task.setHREF(href);
       task.setETag(eTag);
       if (task.summary() != "") {
@@ -31,7 +31,7 @@ Calendar::Calendar(const QString &href, const QString &eTag,
 
 QString Calendar::ToICalendarObject() {
   QString ical_object = "BEGIN:VCALENDAR\r\n";
-  for (CalendarEvent e : events_) ical_object.append(e.toiCalendar());
+  for (CalendarEvent e : events_) ical_object.append(e.ToICalendar());
   ical_object.append("END:VCALENDAR");
   return ical_object;
 }

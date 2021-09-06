@@ -418,10 +418,10 @@ QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
                  "-0000-" + newElement.getStartDateTime().toString("yyyyMMddHHMM"));
   }
 
-  qDebug() << "saving task "+ newElement.toiCalendar();
+  qDebug() << "saving task "+ newElement.ToICalendar();
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + newElement.toiCalendar() + "END:VCALENDAR\r\n").toUtf8();
+      ("BEGIN:VCALENDAR\r\n" + newElement.ToICalendar() + "END:VCALENDAR\r\n").toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
@@ -454,7 +454,7 @@ void CalendarClient::updateElement(CalendarEvent event, QString eTag) {
   }
 
   QByteArray request_string =
-      ("BEGIN:VCALENDAR\r\n" + event.toiCalendar() + "END:VCALENDAR\r\n").toUtf8();
+      ("BEGIN:VCALENDAR\r\n" + event.ToICalendar() + "END:VCALENDAR\r\n").toUtf8();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));

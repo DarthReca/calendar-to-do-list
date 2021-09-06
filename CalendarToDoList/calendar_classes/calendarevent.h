@@ -5,16 +5,12 @@
 #include <QObject>
 #include <QString>
 
-class CalendarEvent : public QObject {
-  Q_OBJECT
-
+class CalendarEvent {
  public:
-  CalendarEvent(QObject* parent = nullptr);
-  CalendarEvent(QTextStream& ical_object, QObject* parent);
-  CalendarEvent(const CalendarEvent& other);
+  CalendarEvent();
 
-  static CalendarEvent FromiCalendar(const QString& icalendar);
-  virtual QString toiCalendar();
+  virtual CalendarEvent& FromICalendar(QTextStream& icalendar);
+  virtual QString ToICalendar();
 
   QList<QDateTime> RecurrencesInRange(QDateTime from, QDateTime to);
 
@@ -26,16 +22,12 @@ class CalendarEvent : public QObject {
 
   //////// OPERATORS //////////
 
-  CalendarEvent& operator=(const CalendarEvent& other);
-
   bool operator<(const CalendarEvent& other) const {
     return (this->start_date_time_ < other.start_date_time_);
   };
   bool operator==(const CalendarEvent& other) const {
     return (this->UID_ == other.UID_);
   };
-
-  void copyFrom(const CalendarEvent& other);
 
   //////// GETTERS SETTERS /////////
 
@@ -45,21 +37,6 @@ class CalendarEvent : public QObject {
   bool all_day() const;
   void setAll_day(bool newAll_day);
 
- signals:
-  void colorChanged(QString& color);
-  void calendarNameChanged(const QString& calendarName);
-  void nameChanged(const QString& name);
-  void locationChanged(const QString& location);
-  void descriptionChanged(const QString& description);
-  void startDateTimeChanged(const QDateTime& startDateTime);
-  void endDateTimeChanged(const QDateTime& endDateTime);
-  void rruleChanged(const QString& rrule);
-  void exdatesChanged(const QString& exdates);
-  void categoriesChanged(const QString& categories);
-  void uidChanged(const QString& uid);
-  void hrefChanged(const QString& href);
-
- public slots:
   QString getColor(void) const;
   void setColor(const QString& color);
 

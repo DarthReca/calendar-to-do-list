@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QJsonArray>
-#include <QOAuth2AuthorizationCodeFlow>
+#include <memory>
 
 #include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
@@ -30,7 +30,7 @@ class CreateEventForm : public QDialog {
 
  private:
   Ui::CreateEventForm* ui;
-  QPointer<CalendarEvent> event_;
+  CalendarEvent* event_;
   QPointer<CalendarClient> client_;
   QPointer<Calendar> calendar_;
   bool existing_;

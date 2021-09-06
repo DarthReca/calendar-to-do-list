@@ -4,8 +4,7 @@
 #include <QDebug>
 #include <QRandomGenerator>
 
-CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
-  QRandomGenerator rng;
+CalendarEvent::CalendarEvent() {
   calendar_name_ = "unnamed";
   summary_ = "";
   location_ = "";
@@ -22,15 +21,14 @@ CalendarEvent::CalendarEvent(QObject* parent) : QObject(parent) {
   all_day_ = false;
 }
 
-CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
-    : CalendarEvent(parent) {
-  QString line;
-  while (!(line = ical_object.readLine()).contains(QByteArray("END:VEVENT")) /*&&
-         !(line = ical_object.readLine()).contains(QByteArray("END:VTODO"))*/) {
+CalendarEvent& CalendarEvent::FromICalendar(QTextStream& icalendar) {
+  for (QString line = icalendar.readLine(); !line.contains("END:VEVENT");
+       line = icalendar.readLine()) {
     QStringList key_value = line.split(":");
-    if (key_value.size() != 2) return;
-    const QString key = key_value[0];
-    QString value = key_value[1].replace("\\n", "\n");  //.toLatin1();
+    if (key_value.size() != 2) continue;
+    QString key = key_value[0];
+    QString value = key_value[1].replace("\\n", "\n");
+
     QString testEncodingString = value.toUtf8();
     if (!testEncodingString.contains("�")) value = testEncodingString;
 
@@ -58,15 +56,10 @@ CalendarEvent::CalendarEvent(QTextStream& ical_object, QObject* parent)
       setDescription(value);
     }
   }
+  return *this;
 }
 
-CalendarEvent::CalendarEvent(const CalendarEvent& other) : QObject() {
-  copyFrom(other);
-}
-
-CalendarEvent CalendarEvent::FromiCalendar(const QString& icalendar) {}
-
-QString CalendarEvent::toiCalendar() {
+QString CalendarEvent::ToICalendar() {
   QString ical_object =
       "BEGIN:VEVENT\r\n"
       "UID:" +
@@ -210,29 +203,6 @@ QDateTime CalendarEvent::DateTimeFromString(const QString& date_time_string) {
   return date_time;
 }
 
-CalendarEvent& CalendarEvent::operator=(const CalendarEvent& other) {
-  copyFrom(other);
-  return (*this);
-}
-
-void CalendarEvent::copyFrom(const CalendarEvent& other) {
-  setColor(other.color_);
-  setCalendarName(other.calendar_name_);
-  setSummary(other.summary_);
-  setLocation(other.location_);
-  setDescription(other.description_);
-  setStartDateTime(other.start_date_time_);
-  setEndDateTime(other.end_date_time_);
-  setCategories(other.categories_);
-  setExdates(other.exdates_);
-  setRRULE(other.RRULE_);
-  setUID(other.UID_);
-  setHREF(other.HREF_);
-  setParent(other.parent());
-  setAll_day(other.all_day_);
-  setETag(other.eTag_);
-}
-
 /* Public slots */
 
 QString CalendarEvent::getColor(void) const { return color_; }
@@ -240,7 +210,6 @@ QString CalendarEvent::getColor(void) const { return color_; }
 void CalendarEvent::setColor(const QString& color) {
   if (color != color_) {
     color_ = color;
-    emit colorChanged(color_);
   }
 }
 
@@ -249,7 +218,6 @@ QString CalendarEvent::calendarName() const { return calendar_name_; }
 void CalendarEvent::setCalendarName(const QString& calendarName) {
   if (calendarName != calendar_name_) {
     calendar_name_ = calendarName;
-    emit calendarNameChanged(calendar_name_);
   }
 }
 
@@ -258,7 +226,6 @@ QString CalendarEvent::summary() const { return summary_; }
 void CalendarEvent::setSummary(const QString& name) {
   if (name != summary_) {
     summary_ = name;
-    emit nameChanged(summary_);
   }
 }
 
@@ -317,7 +284,6 @@ QString CalendarEvent::location() const { return location_; }
 void CalendarEvent::setLocation(const QString& location) {
   if (location != location_) {
     location_ = location;
-    emit locationChanged(location_);
   }
 }
 
@@ -326,7 +292,6 @@ QString CalendarEvent::description() const { return description_; }
 void CalendarEvent::setDescription(const QString& description) {
   if (description != description_) {
     description_ = description;
-    emit descriptionChanged(description_);
   }
 }
 
@@ -337,7 +302,6 @@ QDateTime CalendarEvent::getStartDateTime(void) const {
 void CalendarEvent::setStartDateTime(const QDateTime& startDateTime) {
   if (startDateTime != start_date_time_) {
     start_date_time_ = startDateTime;
-    emit startDateTimeChanged(start_date_time_);
   }
 }
 
@@ -346,7 +310,6 @@ QDateTime CalendarEvent::getEndDateTime(void) const { return end_date_time_; }
 void CalendarEvent::setEndDateTime(const QDateTime& endDateTime) {
   if (endDateTime != end_date_time_) {
     end_date_time_ = endDateTime;
-    emit endDateTimeChanged(end_date_time_);
   }
 }
 
@@ -355,7 +318,6 @@ QString CalendarEvent::getRRULE() const { return RRULE_; }
 void CalendarEvent::setRRULE(const QString& rrule) {
   if (RRULE_ != rrule) {
     RRULE_ = rrule;
-    emit rruleChanged(RRULE_);
   }
 }
 
@@ -364,7 +326,6 @@ QString CalendarEvent::getExdates() const { return exdates_; }
 void CalendarEvent::setExdates(const QString& exdates) {
   if (exdates_ != exdates) {
     exdates_ = exdates;
-    emit exdatesChanged(exdates_);
   }
 }
 
@@ -373,7 +334,6 @@ QString CalendarEvent::getCategories() const { return categories_; }
 void CalendarEvent::setCategories(const QString& categories) {
   if (categories_ != categories) {
     categories_ = categories;
-    emit categoriesChanged(categories_);
   }
 }
 
@@ -384,13 +344,11 @@ QString CalendarEvent::getHREF(void) const { return HREF_; }
 void CalendarEvent::setUID(const QString& uid) {
   if (uid != UID_) {
     UID_ = uid;
-    emit uidChanged(UID_);
   }
 }
 
 void CalendarEvent::setHREF(const QString& href) {
   if (href != HREF_) {
     HREF_ = href;
-    emit hrefChanged(HREF_);
   }
 }
