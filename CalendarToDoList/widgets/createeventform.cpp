@@ -121,6 +121,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                             if (!allETags.contains(eTagList.at(i).toElement().text())) {
                                 (*event_).setETag(eTagList.at(i).toElement().text());
                                 (*event_).setHREF(href_list.at(i).toElement().text());
+                                client_->getETags().insert(href_list.at(i).toElement().text(), eTagList.at(i).toElement().text());
                                 break;
                             }
                         }
@@ -147,13 +148,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                             if (!allETags.contains(eTagList.at(i).toElement().text())) {
                                 task->setETag(eTagList.at(i).toElement().text());
                                 task->setHREF(href_list.at(i).toElement().text());
+                                client_->getETags().insert(href_list.at(i).toElement().text(), eTagList.at(i).toElement().text());
                                 break;
                             }
                         }
                         calendar_->tasks().append(*task);
-                        for(auto ev : calendar_->tasks()){
-                            qDebug()<< "Tasks: "+ev.summary() + "    " + ev.getHREF() + "   " + ev.eTag();
-                        }
                         qDebug() << "New task saved\n";
                     });
                 });
@@ -161,14 +160,20 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         } else {
             if (isEvent_) {
                 QString hrefToUpdate = event_->getHREF();
+                //elimino l'evento vecchio dalla lista
                 for (CalendarEvent& ev : calendar_->events()) {
                     if (ev.getHREF() == hrefToUpdate) {
                         calendar_->events().removeOne(ev);
                     }
                 }
+                //elimino il vecchio eTag dalla lista
+                for(auto el : client_->getETags().keys()){
+                    if(el == hrefToUpdate){
+                        client_->getETags().remove(el);
+                    }
+                }
                 auto reply = client_->updateElement(*event_, event_->eTag());
-                //reply->rawHeaderPairs()
-                connect(reply, &QNetworkReply::finished, [this, reply]() {
+                connect(reply, &QNetworkReply::finished, [this, reply, hrefToUpdate]() {
 
                     //imposto il nuovo eTag dell'evento
                     bool flag = false;
@@ -176,12 +181,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                         if(el.first=="ETag"){//eTag direttamente restituito dal server
                             (*event_).setETag(el.second);
                             calendar_->events().append(*event_);
+                            client_->getETags().insert(hrefToUpdate, el.second);
                             flag = true;
                         }
                     }
                     if(!flag){
                         auto reply1 = client_->lookForChanges();
-                        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+                        connect(reply1, &QNetworkReply::finished, [reply1, this, hrefToUpdate]() {
                             QSet<QString> allETags;
                             for(auto ev : calendar_->events()){
                                 allETags.insert(ev.eTag());
@@ -193,6 +199,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                             for (int i = 0; i < eTagList.size(); i++) {
                                 if (!allETags.contains(eTagList.at(i).toElement().text())) {
                                     (*event_).setETag(eTagList.at(i).toElement().text());
+                                    client_->getETags().insert(hrefToUpdate, eTagList.at(i).toElement().text());
                                     break;
                                 }
                             }
@@ -204,28 +211,35 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 });
             } else {
                 Task* task = qobject_cast<Task*>(event_);
+                //elimino il task vecchio dalla lista
                 QString hrefToUpdate = task->getHREF();
                 for (Task& t : calendar_->tasks()) {
                     if (t.getHREF() == hrefToUpdate) {
-                        calendar_->events().removeOne(t);
+                        calendar_->tasks().removeOne(t);
+                    }
+                }
+                //elimino il vecchio eTag dalla lista
+                for(auto el : client_->getETags().keys()){
+                    if(el == hrefToUpdate){
+                        client_->getETags().remove(el);
                     }
                 }
                 auto reply = client_->updateElement(*task, task->eTag());
-                //reply->rawHeaderPairs()
-                connect(reply, &QNetworkReply::finished, [this, reply, task]() {
+                connect(reply, &QNetworkReply::finished, [this, reply, task, hrefToUpdate]() {
 
                     //imposto il nuovo eTag dell'evento
                     bool flag = false;
                     for(auto el : reply->rawHeaderPairs()){
                         if(el.first=="ETag"){//eTag direttamente restituito dal server
                             (*event_).setETag(el.second);
+                            client_->getETags().insert(hrefToUpdate, el.second);
                             calendar_->tasks().append(*task);
                             flag = true;
                         }
                     }
                     if(!flag){
                         auto reply1 = client_->lookForChanges();
-                        connect(reply1, &QNetworkReply::finished, [reply1, this, task]() {
+                        connect(reply1, &QNetworkReply::finished, [reply1, this, task, hrefToUpdate]() {
                             QSet<QString> allETags;
                             for(auto t : calendar_->tasks()){
                                 allETags.insert(t.eTag());
@@ -237,6 +251,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                             for (int i = 0; i < eTagList.size(); i++) {
                                 if (!allETags.contains(eTagList.at(i).toElement().text())) {
                                     (*task).setETag(eTagList.at(i).toElement().text());
+                                    client_->getETags().insert(hrefToUpdate, eTagList.at(i).toElement().text());
                                     break;
                                 }
                             }
