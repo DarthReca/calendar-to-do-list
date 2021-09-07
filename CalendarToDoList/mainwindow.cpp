@@ -162,11 +162,11 @@ void MainWindow::refresh_calendar_events() {
                              eTags.at(i).toElement().text());
         }
 
-        /*qDebug() << "UID: " + calendar_->events().at(0).uid() + "     " + calendar_->events().at(0).summary();
+        qDebug() << "UID: " + calendar_->events().at(0).uid() + "     " + calendar_->events().at(0).summary();
             auto reply3 = client_->getElementByUID(calendar_->events().at(0).uid());
             connect(reply3, &QNetworkReply::finished, [reply3, this]() {
                 qDebug() << "Elemento per UID:" +reply3->readAll();
-            });*/
+            });
 
     });
 }
