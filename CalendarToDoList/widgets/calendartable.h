@@ -21,6 +21,11 @@ class CalendarTable : public QTableWidget {
   explicit CalendarTable(QWidget* parent = nullptr);
   void init();
 
+  /**
+   * @brief Create a new widget and show it
+   * @param event CalendarEvent showed by the widget
+   * @return The created widget
+   */
   EventWidget& createEventWidget(CalendarEvent& event);
   void clearShowingWidgets();
 

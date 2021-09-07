@@ -17,12 +17,10 @@ MainWindow::MainWindow(QWidget *parent)
       calendar_(new Calendar(this)),
       timer_(new QTimer(this)),
       showing_events_(QList<CalendarEvent>()),
-      showing_tasks_(QList<Task>()),
-      single_shot_timer_(new QTimer(this)) {
+      showing_tasks_(QList<Task>()) {
   ui->setupUi(this);
 
   ui->calendarTable->init();
-  single_shot_timer_->setSingleShot(true);
   qDebug() << "Starting...\n";
 
   client_ = new CalendarClient(this);
@@ -141,7 +139,7 @@ void MainWindow::refresh_calendar_events() {
                   EventWidget &widget =
                       ui->calendarTable->createEventWidget(*new_event);
                   connect(&widget, &EventWidget::clicked, [this, &widget]() {
-                    on_request_editing_form(widget.event(), true);
+                    on_request_editing_form(&widget.event(), true);
                   });
                 }
               }
@@ -188,9 +186,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date) {
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
-  if (client_->getSyncToken().isEmpty() && client_->getCTag().isEmpty()) {
-    return;
-  }
+  if (client_->getSyncToken().isEmpty() && client_->getCTag().isEmpty()) return;
 
   if (client_->getSyncToken().isEmpty()) {
     // ottengo il nuovo cTag e lo confronto con il vecchio
@@ -308,9 +304,10 @@ void MainWindow::on_request_editing_form(CalendarEvent *event, bool isEvent) {
   bool existing = event != nullptr;
   if (!existing) event = new CalendarEvent;
   CreateEventForm form(event, *client_, *calendar_, existing, isEvent, this);
-  connect(&form, &CreateEventForm::requestView,
-          [this]() { updateTableToNDays(ui->calendarTable->columnCount()); });
+  // connect(&form, &CreateEventForm::requestView,
+  //       [this]() { ui->calendarTable->createEventWidget(event); });
   form.exec();
+  if (!existing) ui->calendarTable->createEventWidget(*event);
 }
 
 const QList<Task> &MainWindow::showing_tasks() const { return showing_tasks_; }
@@ -319,51 +316,5 @@ void MainWindow::setShowing_tasks(const QList<Task> &newShowing_tasks) {
   showing_tasks_ = newShowing_tasks;
 }
 
-void MainWindow::updateTableToNDays(int n) {
-  /*
-  ui->calendarTable->setColumnCount(n);
-
-  for (int i = 0; i < n; i++) {
-    QTableWidgetItem *item =
-        new QTableWidgetItem(d.addDays(i).toString("ddd\ndd"));
-    ui->calendarTable->setHorizontalHeaderItem(i, item);
-  }
-  */
-  QDate d = ui->calendarWidget->selectedDate();
-  // EVENTS
-  QList<CalendarEvent> selected;
-  for (CalendarEvent &ev : calendar_->events()) {
-    auto recurs =
-        ev.recurrencesInRange(d.startOfDay(), d.addDays(n).endOfDay());
-    for (const QDateTime &dt : recurs) {
-      CalendarEvent new_ev = ev;
-      auto diff = ev.startDateTime().time().msecsTo(ev.endDateTime().time());
-
-      new_ev.setStartDateTime(dt);
-      new_ev.setEndDateTime(dt.addMSecs(diff));
-      EventWidget &widget = ui->calendarTable->createEventWidget(new_ev);
-      connect(&widget, &EventWidget::clicked, [this, &widget]() {
-        on_request_editing_form(widget.event(), true);
-      });
-      // selected += new_ev;
-    }
-  }
-  // TASKS
-  QList<Task> selected_tasks;
-  for (Task &t : calendar_->tasks()) {
-    if (t.endDateTime() >= d.startOfDay() &&
-        t.endDateTime() <= d.addDays(n).endOfDay()) {
-      EventWidget &widget = ui->calendarTable->createEventWidget(t);
-      connect(&widget, &EventWidget::clicked, [this, &widget]() {
-        on_request_editing_form(widget.event(), true);
-      });
-      // selected_tasks += t;
-    }
-  }
-
-  // Delete all previous widgets
-  // for (auto child : ui->calendarTable->viewport()->children())
-  //  if (qobject_cast<EventWidget *>(child) != nullptr) child->deleteLater();
-  // Show the new widgets
-  // emit show();
-}
+// KEPT FOR COMPATIBILITY
+void MainWindow::updateTableToNDays(int n) {}

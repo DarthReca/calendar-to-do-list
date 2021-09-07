@@ -37,12 +37,12 @@ void CalendarTable::resizeEvent(QResizeEvent *event) {
 }
 
 void CalendarTable::resizeAndMove(EventWidget *widget) {
-  CalendarEvent *event = widget->event();
-  QTime start_time = event->startDateTime().time();
-  QTime end_time = event->endDateTime().time();
-  int day_from_start = today_.date().daysTo(event->startDateTime().date());
+  CalendarEvent event = widget->event();
+  QTime start_time = event.startDateTime().time();
+  QTime end_time = event.endDateTime().time();
+  int day_from_start = today_.date().daysTo(event.startDateTime().date());
 
-  int days_long = event->startDateTime().daysTo(event->endDateTime());
+  int days_long = event.startDateTime().daysTo(event.endDateTime());
   int time_long = end_time.hour() - start_time.hour();
 
   int x_pos = 0;
@@ -60,7 +60,7 @@ void CalendarTable::resizeAndMove(EventWidget *widget) {
   int heigth = rowHeight(start_time.hour());
 
   scrollToTop();
-  if (days_long == 0 && !event->all_day()) {
+  if (days_long == 0 && !event.all_day()) {
     widget->resize(width, end_y_pos - start_y_pos);
     widget->move(x_pos, start_y_pos);
   } else {

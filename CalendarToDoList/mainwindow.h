@@ -59,6 +59,5 @@ class MainWindow : public QMainWindow {
   QPointer<CalendarClient> client_;
 
   QPointer<QTimer> timer_;
-  QPointer<QTimer> single_shot_timer_;
 };
 #endif  // MAINWINDOW_H
