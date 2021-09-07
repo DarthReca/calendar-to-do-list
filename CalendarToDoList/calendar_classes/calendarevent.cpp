@@ -33,11 +33,11 @@ CalendarEvent& CalendarEvent::fromICalendar(QTextStream& icalendar) {
     if (!testEncodingString.contains("�")) value = testEncodingString;
 
     if (key.startsWith(QLatin1String("DTSTART"))) {
-      setStartDateTime(dateTimeFromString(value).toLocalTime());
+      setStartDateTime(dateTimeFromString(value));
     } else if (key.startsWith(QLatin1String("DTEND"))) {
-      setEndDateTime(dateTimeFromString(value).toLocalTime());
+      setEndDateTime(dateTimeFromString(value));
     } else if (key.startsWith(QLatin1String("DUE"))) {
-      QDateTime date_time = dateTimeFromString(value).toLocalTime();
+      QDateTime date_time = dateTimeFromString(value);
       setStartDateTime(date_time);
       setEndDateTime(date_time);
     } else if (key == QLatin1String("RRULE")) {
@@ -193,15 +193,26 @@ QList<QDateTime> CalendarEvent::recurrencesInRange(QDateTime from,
 }
 
 QDateTime CalendarEvent::dateTimeFromString(const QString& date_time_string) {
+  // UTC
   QDateTime date_time =
       QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss'Z'");
-  if (!date_time.isValid())
-    date_time = QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss");
-  if (!date_time.isValid())
-    date_time = QDateTime::fromString(date_time_string, "yyyyMMddhhmmss");
-  if (!date_time.isValid())
-    date_time = QDateTime::fromString(date_time_string, "yyyyMMdd");
-  if (!date_time.isValid()) qDebug() << "could not parse" << date_time_string;
+  date_time.setTimeSpec(Qt::UTC);
+  qDebug() << date_time_string << " -> " << date_time;
+  if (date_time.isValid()) return date_time.toLocalTime();
+
+  // LocalTime
+  date_time = QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss");
+  date_time.setTimeSpec(Qt::LocalTime);
+  if (date_time.isValid()) return date_time;
+
+  date_time = QDateTime::fromString(date_time_string, "yyyyMMddhhmmss");
+  if (date_time.isValid()) return date_time;
+
+  // No Hour
+  date_time = QDateTime::fromString(date_time_string, "yyyyMMdd");
+  if (date_time.isValid()) return date_time;
+
+  qWarning() << date_time_string << " is not parsable";
   return date_time;
 }
 
