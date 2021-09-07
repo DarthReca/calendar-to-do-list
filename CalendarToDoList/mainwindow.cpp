@@ -115,8 +115,6 @@ void MainWindow::refresh_calendar_events() {
         QDomDocument res;
         res.setContent(reply->readAll());
 
-        qDebug() << res.toString();
-
         auto calendars = res.elementsByTagName("cal:calendar-data");
         auto hrefs_list = res.elementsByTagName("d:href");
         auto eTags = res.elementsByTagName("d:getetag");
@@ -163,13 +161,6 @@ void MainWindow::refresh_calendar_events() {
           client_->addETag(hrefs_list.at(i).toElement().text(),
                            eTags.at(i).toElement().text());
         }
-
-        /*qDebug() << "UID: " + calendar_->events().at(0).uid() + "     " +
-                        calendar_->events().at(0).summary();*/
-        auto reply3 = client_->getElementByUID(calendar_->events().at(0).uid());
-        connect(reply3, &QNetworkReply::finished, [reply3, this]() {
-          // qDebug() << "Elemento per UID:" + reply3->readAll();
-        });
       });
 }
 
