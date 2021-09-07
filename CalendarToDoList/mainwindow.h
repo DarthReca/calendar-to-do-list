@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QCache>
 #include <QMainWindow>
 #include <QTimer>
 

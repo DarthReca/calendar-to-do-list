@@ -197,7 +197,6 @@ QDateTime CalendarEvent::dateTimeFromString(const QString& date_time_string) {
   QDateTime date_time =
       QDateTime::fromString(date_time_string, "yyyyMMdd'T'hhmmss'Z'");
   date_time.setTimeSpec(Qt::UTC);
-  qDebug() << date_time_string << " -> " << date_time;
   if (date_time.isValid()) return date_time.toLocalTime();
 
   // LocalTime

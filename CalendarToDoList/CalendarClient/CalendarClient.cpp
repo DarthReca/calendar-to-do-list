@@ -343,7 +343,7 @@ QNetworkReply* CalendarClient::getChangedElements() {
 QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
                                                   QDateTime end) {
   if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call getDateRangeEvents";
+    qWarning() << "Method REPORT not supported in call getDateRangeEvents";
     return nullptr;
   }
 
@@ -367,16 +367,14 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
   tagProp.appendChild(xml.createElement("c:calendar-data"));
   root.appendChild(tagProp);
   QDomElement tagFilter = xml.createElement("c:filter");
+  // Filter without specefic class
   QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-  tagCompFilter.setAttribute("name", "VCALENDAR");
   tagFilter.appendChild(tagCompFilter);
-  QDomElement tag_comp_filter_2 = xml.createElement("c:comp-filter");
-  tag_comp_filter_2.setAttribute("name", "VEVENT");
-  tagCompFilter.appendChild(tag_comp_filter_2);
+  // Time range filter
   QDomElement tagTime = xml.createElement("c:time-range");
   tagTime.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
   tagTime.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  tag_comp_filter_2.appendChild(tagTime);
+  tagFilter.appendChild(tagTime);
   root.appendChild(tagFilter);
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
