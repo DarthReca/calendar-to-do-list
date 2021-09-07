@@ -225,47 +225,49 @@ QNetworkReply* CalendarClient::getAllElements() {
                                             xml.toByteArray());
 }
 
-QNetworkReply *CalendarClient::getElementByUID(QString UID)
-{
-    if (!supportedMethods_.contains("REPORT")) {
-      qDebug() << "Method REPORT not supported in call getElementByUID";
-      return nullptr;
-    }
+QNetworkReply* CalendarClient::getElementByUID(QString UID) {
+  if (!supportedMethods_.contains("REPORT")) {
+    qDebug() << "Method REPORT not supported in call getElementByUID";
+    return nullptr;
+  }
 
-    QNetworkRequest cal_part;
-    cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-    cal_part.setUrl(QUrl(endpoint_));
-    cal_part.setRawHeader("Host", "cal.example.com");
-    cal_part.setRawHeader("Depth", "1");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                       "application/xml; charset=utf-8");
-    cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                       "CalendarClient_CalDAV");
+  QNetworkRequest cal_part;
+  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+  cal_part.setUrl(QUrl(endpoint_));
+  cal_part.setRawHeader("Depth", "1");
+  cal_part.setRawHeader("Prefer", "return-minimal");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/xml; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                     "CalendarClient_CalDAV");
 
-    QDomDocument xml;
-    QDomElement root = xml.createElement("c:calendar-query");
-    root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
-    xml.appendChild(root);
-    QDomElement tagProp = xml.createElement("d:prop");
-    tagProp.setAttribute("xmlns:d", "DAV:");
-    tagProp.appendChild(xml.createElement("d:getetag"));
-    tagProp.appendChild(xml.createElement("c:calendar-data"));
-    root.appendChild(tagProp);
-    QDomElement tagFilter = xml.createElement("c:filter");
-    QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-    tagCompFilter.setAttribute("name", "VCALENDAR");
-    tagFilter.appendChild(tagCompFilter);
-    QDomElement tagPropFilter = xml.createElement("c:prop-filter");
-    tagPropFilter.setAttribute("name", "UID");
-    tagCompFilter.appendChild(tagPropFilter);
-    QDomElement tagTextMatch = xml.createElement("c:text-match");
-    tagPropFilter.setAttribute("collation", "i;octet");
-    tagTextMatch.appendChild(xml.createTextNode(UID));
-    tagPropFilter.appendChild(tagTextMatch);
-    root.appendChild(tagFilter);
+  QDomDocument xml;
+  QDomElement root = xml.createElement("c:calendar-query");
+  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+  xml.appendChild(root);
+  QDomElement tagProp = xml.createElement("d:prop");
+  tagProp.setAttribute("xmlns:d", "DAV:");
+  tagProp.appendChild(xml.createElement("d:getetag"));
+  tagProp.appendChild(xml.createElement("c:calendar-data"));
+  root.appendChild(tagProp);
+  QDomElement tagFilter = xml.createElement("c:filter");
+  QDomElement tagCompFilter = xml.createElement("c:comp-filter");
+  tagCompFilter.setAttribute("name", "VCALENDAR");
+  tagFilter.appendChild(tagCompFilter);
+  QDomElement tag_comp_filter2 = xml.createElement("c:comp-filter");
+  tag_comp_filter2.setAttribute("name", "VEVENT");
+  tagCompFilter.appendChild(tag_comp_filter2);
+  QDomElement tagPropFilter = xml.createElement("c:prop-filter");
+  tagPropFilter.setAttribute("name", "UID");
+  tag_comp_filter2.appendChild(tagPropFilter);
+  QDomElement tagTextMatch = xml.createElement("c:text-match");
+  tagPropFilter.setAttribute("collation", "i;octet");
+  tagTextMatch.appendChild(xml.createTextNode(UID));
+  tagPropFilter.appendChild(tagTextMatch);
+  root.appendChild(tagFilter);
 
-    return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
-                                              xml.toByteArray());
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
+                                            xml.toByteArray());
 }
 
 QNetworkReply* CalendarClient::lookForChanges() {
