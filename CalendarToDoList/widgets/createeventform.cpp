@@ -246,12 +246,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 calendar_->events().removeOne(*event_);
                 client_->deleteETag(hrefToDelete);
                 client_->deleteElement(*event_, eTag);
-                qDebug() << "Event " + event_->summary() + " deleted\n";
             } else {
                 Task* task = dynamic_cast<Task*>(event_);
-                // client_->deleteTask(list, *task);
-                // list.getTasks().removeOne(*task);
-                qDebug() << "Task " + (*task).summary() + " deleted\n";
+                QString hrefToDelete = task->href();
+                QString eTag = task->eTag();
+                calendar_->tasks().removeOne(*task);
+                client_->deleteETag(hrefToDelete);
+                client_->deleteElement(*task, eTag);
             }
             emit requestView();
         }

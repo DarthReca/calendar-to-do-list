@@ -111,7 +111,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  void deleteElement(CalendarEvent& event, QString eTag);
+  QNetworkReply* deleteElement(CalendarEvent& event, QString eTag);
 
  private:
   QString cTag_;

@@ -508,15 +508,15 @@ QNetworkReply* CalendarClient::updateElement(CalendarEvent event,
                                             request_string);
 }
 
-void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
+QNetworkReply* CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
   if (!supportedMethods_.contains("DELETE")) {
     qDebug() << "Method DELETE not supported in call deleteElement";
-    return;
+    return nullptr;
   }
   if (eTag.isEmpty()) {
-    return;
+    qDebug() << "No eTag";
+    return nullptr;
   }
-
   qDebug() << "deleting event with eTag" << eTag;
 
   QNetworkRequest cal_part;
@@ -526,5 +526,5 @@ void CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
                      "CalendarClient_CalDAV");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::IfMatchHeader, eTag);
 
-  auto reply = network_manager_.deleteResource(cal_part);
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("DELETE"));
 }
