@@ -13,7 +13,7 @@ class Task : public CalendarEvent {
     setColor(QColor(Qt::blue).name());
   };
 
-  Task &fromICalendar(QTextStream &icalendar) override { return *this; };
+  Task &fromICalendar(QTextStream &icalendar) override;
   QString toICalendar() override;
 
   void flipCompleted();
