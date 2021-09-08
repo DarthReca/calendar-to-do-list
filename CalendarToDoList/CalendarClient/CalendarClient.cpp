@@ -176,8 +176,8 @@ QNetworkReply* CalendarClient::findOutSupportedProperties() {
   cal_part.setRawHeader("Host", "www.example.com");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader,
-                     "xxxx");
+  // cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader,
+  //                   "xxxx");
 
   QDomDocument xml;
   QDomElement root = xml.createElement("propfind");

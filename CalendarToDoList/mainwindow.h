@@ -59,5 +59,6 @@ class MainWindow : public QMainWindow {
   QPointer<CalendarClient> client_;
 
   QPointer<QTimer> timer_;
+  bool sync_token_supported_;
 };
 #endif  // MAINWINDOW_H

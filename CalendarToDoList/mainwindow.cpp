@@ -16,20 +16,13 @@ MainWindow::MainWindow(QWidget *parent)
       ui(new Ui::MainWindow),
       calendar_(new Calendar(this)),
       timer_(new QTimer(this)),
-      showing_events_(QList<CalendarEvent>()),
-      showing_tasks_(QList<Task>()) {
+      client_(new CalendarClient(this)) {
+  // Setup
   ui->setupUi(this);
-
   ui->calendarTable->init();
   qDebug() << "Starting...\n";
 
-  client_ = new CalendarClient(this);
-
   // Internal signals
-  // connect(this, &MainWindow::show, this,
-  //        &MainWindow::on_showing_events_changed);
-  // connect(this, &MainWindow::show, this,
-  // &MainWindow::on_showing_tasks_changed);
   connect(timer_, &QTimer::timeout, this,
           &MainWindow::on_actionSincronizza_triggered);
   // UI
@@ -47,27 +40,23 @@ MainWindow::MainWindow(QWidget *parent)
           [this]() { timer_->start(600000); });
   connect(ui->createEvent, &QPushButton::clicked,
           [this]() { on_request_editing_form(CalendarEvent()); });
-
-  client_ = new CalendarClient(this);
-
-  // Chiedo quali sono i metodi supportati dal server
-  auto reply = client_->findOutCalendarSupport();
-  connect(reply, &QNetworkReply::finished, [reply, this]() {
-    auto list = reply->rawHeaderPairs();
-    for (auto &el : list) {
-      if (el.first.toLower() == "allow") {
-        for (auto &method : el.second.split(',')) {
-          client_->getSupportedMethods().insert(QString(method.trimmed()));
-        }
-        break;
-      }
+  // Get allowed methods
+  auto methods_reply = client_->findOutCalendarSupport();
+  connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
+    if (!methods_reply->hasRawHeader("Allow")) {
+      qWarning("Cannot parse allowed methods");
     }
+    for (QByteArray &method : methods_reply->rawHeader("Allow").split(','))
+      client_->getSupportedMethods().insert(method.trimmed());
 
-    // ottengo il cTag
-    auto reply1 = client_->findOutSupportedProperties();
-    connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+    auto props_reply = client_->findOutSupportedProperties();
+    connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
       QDomDocument res;
-      res.setContent(reply1->readAll());
+      res.setContent(props_reply->readAll());
+      sync_token_supported_ =
+          res.elementsByTagName("s:sync-token").length() != 0;
+      /*
+      QDomNodeList responses = res.elementsByTagName("response");
       auto lista1 = res.elementsByTagName("cs:getctag");
       if (lista1.at(0).toElement().text().isEmpty()) {
         auto reply1 = client_->obtainCTag();
@@ -80,12 +69,16 @@ MainWindow::MainWindow(QWidget *parent)
       } else {
         client_->setCTag(lista1.at(0).toElement().text());
       }
+      */
+      if (!sync_token_supported_) {
+        qWarning() << "Using cTag is deprecated";
+      }
 
       // ottengo il sync-token
-      auto reply2 = client_->requestSyncToken();
-      connect(reply2, &QNetworkReply::finished, [this, reply2]() mutable {
+      auto token_reply = client_->requestSyncToken();
+      connect(token_reply, &QNetworkReply::finished, [this, token_reply]() {
         QDomDocument res;
-        res.setContent(reply2->readAll());
+        res.setContent(token_reply->readAll());
         auto lista = res.elementsByTagName("d:sync-token");
         client_->setSyncToken(lista.at(0).toElement().text());
 
@@ -107,58 +100,39 @@ void MainWindow::refresh_calendar_events() {
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
+
   ui->calendarTable->clearShowingWidgets();
-  connect(reply, &QNetworkReply::finished,
-          [this, reply, selected_date, end_date]() {
-            // calendar_->events().clear();
+  connect(
+      reply, &QNetworkReply::finished,
+      [this, reply, selected_date, end_date]() {
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        QDomNodeList responses = res.elementsByTagName("d:response");
 
-            QDomDocument res;
-            res.setContent(reply->readAll());
+        for (int i = 0; i < responses.length(); i++) {
+          QDomElement current = responses.at(i).toElement();
+          QString calendar_data = current.elementsByTagName("cal:calendar-data")
+                                      .at(0)
+                                      .toElement()
+                                      .text();
+          QString href =
+              current.elementsByTagName("d:href").at(0).toElement().text();
+          QString eTag =
+              current.elementsByTagName("d:getetag").at(0).toElement().text();
 
-            // qDebug() << res.toString();
+          QTextStream stream(&calendar_data);
+          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
 
-            auto calendars = res.elementsByTagName("cal:calendar-data");
-            auto hrefs_list = res.elementsByTagName("d:href");
-            auto eTags = res.elementsByTagName("d:getetag");
-
-            for (int i = 0; i < calendars.size(); i++) {
-              QString icalendar = calendars.at(i).toElement().text();
-              QString href = hrefs_list.at(i).toElement().text();
-              QString eTag = eTags.at(i).toElement().text();
-              QTextStream stream(&icalendar);
-              QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
-
-              for (CalendarEvent &ev : tmp->events()) {
-                EventWidget *widget = ui->calendarTable->createEventWidget(ev);
-                if (widget != nullptr)
-                  connect(widget, &EventWidget::clicked, [this, widget]() {
-                    on_request_editing_form(widget->event(), true);
-                  });
-              }
-            }
-
-            // salvo gli eTags per vedere i futuri cambiamenti
-            //è una mappa di <href, eTag>
-            /*
-            for (int i = 0; i < eTags.size(); i++) {
-              client_->addETag(hrefs_list.at(i).toElement().text(),
-                               eTags.at(i).toElement().text());
-            }
-            */
-          });
+          for (CalendarEvent &ev : tmp->events()) {
+            EventWidget *widget = ui->calendarTable->createEventWidget(ev);
+            if (widget != nullptr)
+              connect(widget, &EventWidget::clicked, [this, widget]() {
+                on_request_editing_form(widget->event(), true);
+              });
+          }
+        }
+      });
 }
-
-/*void MainWindow::on_seeIfChanged_clicked() {
-  auto reply = client_->obtainCTag();
-  connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
-    QDomDocument q;
-    q.setContent(reply->readAll());
-    QDomElement thisCTag = q.elementsByTagName("cs:getctag").at(0).toElement();
-    if (client_->getCTag() == thisCTag.text()) {
-      client_->lookForChanges();
-    }
-  });
-}*/
 
 // KEPT FOR COMPATIBILITY
 void MainWindow::on_showing_events_changed() {}
