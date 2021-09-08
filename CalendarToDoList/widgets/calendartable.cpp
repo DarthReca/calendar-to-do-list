@@ -86,17 +86,24 @@ void CalendarTable::setVisualMode(TimeFrame new_time_frame, QDateTime today) {
         i, new QTableWidgetItem(today.addDays(i).toString("ddd\ndd")));
 }
 
+QPair<QDate, QDate> CalendarTable::getDateRange() {
+  QPair<QDate, QDate> range;
+  range.first = today_.date();
+  range.second = today_.addDays(columnCount()).date();
+  return range;
+}
+
 EventWidget &CalendarTable::createEventWidget(CalendarEvent &event) {
+  // ACTUAL ASSUMPTION NO RECURRENCY
   QPointer<EventWidget> widget;
-  /*
   if (showing_events_.contains(event.uid())) {
     widget = showing_events_[event.uid()];
     widget->setEvent(std::move(event));
-  } else {*/
-  widget = new EventWidget(std::move(event), viewport());
-  resizeAndMove(widget);
-  showing_events_[event.uid()] = widget;
-  //}
+  } else {
+    widget = new EventWidget(std::move(event), viewport());
+    resizeAndMove(widget);
+    showing_events_[event.uid()] = widget;
+  }
 
   return *widget;
 }

@@ -426,7 +426,6 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setRawHeader("Host", "dav.example.org");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -435,6 +434,7 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   QDomDocument xml;
   QDomElement root = xml.createElement("d:sync-collection");
   root.setAttribute("xmlns:d", "DAV:");
+  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
   xml.appendChild(root);
   QDomElement tagToken = xml.createElement("d:sync-token");
   tagToken.appendChild(xml.createTextNode(syncToken_));
@@ -444,6 +444,8 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   root.appendChild(tagLevel);
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
+  QDomElement calendar_data = xml.createElement("c:calendar-data");
+  tagProp.appendChild(calendar_data);
   root.appendChild(tagProp);
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),

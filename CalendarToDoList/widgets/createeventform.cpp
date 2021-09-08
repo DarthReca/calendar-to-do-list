@@ -1,6 +1,7 @@
 #include "createeventform.h"
 
 #include "CalendarClient/CalendarClient.h"
+#include "calendartable.h"
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
@@ -20,11 +21,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   if (existing_) ui->typeSelection->hide();
 
   // TYPE
-  if (isEvent) {
+  if (isEvent)
     ui->typeSelection->setCurrentText("Evento");
-  } else {
+  else
     ui->typeSelection->setCurrentText("Attività");
-  }
+
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
             if (text == "Evento") {
@@ -101,7 +102,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         QDateTime max = ui->endDateTime->dateTime();
         if (ui->startDateTime->dateTime() > max) {
           max.setTime(ui->startDateTime->time());
-          (*event_).setStartDateTime(max);
+          event_->setStartDateTime(max);
           qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
                           event_->startDateTime().toString();
         }
@@ -114,31 +115,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             res.setContent(reply1->readAll());
             auto href_list = res.elementsByTagName("d:href");
             auto eTagList = res.elementsByTagName("d:getetag");
-            (*event_).setETag(eTagList.at(0).toElement().text());
-            (*event_).setHref(href_list.at(0).toElement().text());
+            event_->setETag(eTagList.at(0).toElement().text());
+            event_->setHref(href_list.at(0).toElement().text());
             client_->eTags().insert(href_list.at(0).toElement().text(),
                                     eTagList.at(0).toElement().text());
-            calendar_->events().append(*event_);
             qDebug() << "New event saved\n";
-          });
-        });
-      } else {
-        Task* task = dynamic_cast<Task*>(event_);
-        auto reply = client_->saveElement(*task);
-        connect(reply, &QNetworkReply::finished, [this, task]() {
-          // imposto il nuovo eTag del task
-          auto reply1 = client_->getElementByUID(task->uid());
-          connect(reply1, &QNetworkReply::finished, [reply1, this, task]() {
-            QDomDocument res;
-            res.setContent(reply1->readAll());
-            auto href_list = res.elementsByTagName("d:href");
-            auto eTagList = res.elementsByTagName("d:getetag");
-            task->setETag(eTagList.at(0).toElement().text());
-            task->setHref(href_list.at(0).toElement().text());
-            client_->eTags().insert(href_list.at(0).toElement().text(),
-                                    eTagList.at(0).toElement().text());
-            calendar_->tasks().append(*task);
-            qDebug() << "New task saved\n";
+            emit requestView();
+            accept();
           });
         });
       }
@@ -233,8 +216,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                 });
       }
     }
-    emit requestView();
-    accept();
   });
 
   connect(ui->deleteButton, &QPushButton::clicked, [this] {

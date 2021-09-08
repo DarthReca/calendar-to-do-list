@@ -39,6 +39,8 @@ class CalendarTable : public QTableWidget {
   void setVisualMode(TimeFrame new_time_frame, QDateTime today);
   const TimeFrame& visualMode() { return time_frame_; };
 
+  QPair<QDate, QDate> getDateRange();
+
  signals:
  protected:
   void resizeEvent(QResizeEvent* event);

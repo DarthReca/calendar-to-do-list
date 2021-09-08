@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
         client_->setSyncToken(lista.at(0).toElement().text());
 
         refresh_calendar_events();
+        timer_->start(30000);
       });
     });
   });
@@ -114,7 +115,7 @@ void MainWindow::refresh_calendar_events() {
             QDomDocument res;
             res.setContent(reply->readAll());
 
-            qDebug() << res.toString();
+            // qDebug() << res.toString();
 
             auto calendars = res.elementsByTagName("cal:calendar-data");
             auto hrefs_list = res.elementsByTagName("d:href");
@@ -128,17 +129,6 @@ void MainWindow::refresh_calendar_events() {
               QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
 
               for (CalendarEvent &ev : tmp->events()) {
-                /*auto recurrences =
-                    ev.recurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
-                                          QDateTime(end_date, QTime(0, 0)));
-                for (QDateTime &rec : recurrences) {
-                  CalendarEvent *new_event = new CalendarEvent(ev);
-                  auto diff =
-                      ev.startDateTime().time().msecsTo(ev.endDateTime().time());
-                  new_event->setStartDateTime(rec);
-                  new_event->setEndDateTime(rec.addMSecs(diff));
-                  // calendar_->events().append(*new_event);
-                  */
                 EventWidget &widget = ui->calendarTable->createEventWidget(ev);
                 connect(&widget, &EventWidget::clicked, [this, &widget]() {
                   on_request_editing_form(widget.event(), true);
@@ -148,10 +138,12 @@ void MainWindow::refresh_calendar_events() {
 
             // salvo gli eTags per vedere i futuri cambiamenti
             //è una mappa di <href, eTag>
+            /*
             for (int i = 0; i < eTags.size(); i++) {
               client_->addETag(hrefs_list.at(i).toElement().text(),
                                eTags.at(i).toElement().text());
             }
+            */
           });
 }
 
@@ -214,6 +206,32 @@ void MainWindow::on_actionSincronizza_triggered() {
   } else {
     auto reply2 = client_->receiveChangesBySyncToken();
     connect(reply2, &QNetworkReply::finished, [this, reply2]() {
+      QDomDocument xml;
+      xml.setContent(reply2->readAll());
+      QString sync_token =
+          xml.elementsByTagName("d:sync-token").at(0).toElement().text();
+      QString icalendar =
+          xml.elementsByTagName("cal:calendar-data").at(0).toElement().text();
+      QString etag =
+          xml.elementsByTagName("d:getetag").at(0).toElement().text();
+      QString href = xml.elementsByTagName("d:href").at(0).toElement().text();
+      QString status =
+          xml.elementsByTagName("d:status").at(0).toElement().text();
+
+      qDebug() << xml.toString();
+
+      client_->setSyncToken(sync_token);
+      QTextStream stream(&icalendar);
+      Calendar cal = Calendar(href, etag, stream, this);
+
+      if (status.contains("OK"))
+        for (CalendarEvent &event : cal.events())
+          ui->calendarTable->createEventWidget(event);
+      if (status.contains("NOT FOUND"))
+        for (CalendarEvent &event : cal.events())
+          qWarning() << "Implement remotion by href";
+      // TODO: remove the other part
+      return;
       QHash<QString, QString> mapTmp;
       compareElements(*reply2, mapTmp);
       if (!mapTmp.isEmpty()) {
