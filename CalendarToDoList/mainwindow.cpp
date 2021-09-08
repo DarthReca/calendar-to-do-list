@@ -129,10 +129,11 @@ void MainWindow::refresh_calendar_events() {
               QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
 
               for (CalendarEvent &ev : tmp->events()) {
-                EventWidget &widget = ui->calendarTable->createEventWidget(ev);
-                connect(&widget, &EventWidget::clicked, [this, &widget]() {
-                  on_request_editing_form(widget.event(), true);
-                });
+                EventWidget *widget = ui->calendarTable->createEventWidget(ev);
+                if (widget != nullptr)
+                  connect(widget, &EventWidget::clicked, [this, widget]() {
+                    on_request_editing_form(widget->event(), true);
+                  });
               }
             }
 
@@ -174,8 +175,7 @@ void MainWindow::setShowing_events(QList<CalendarEvent> newShowing_events) {
 }
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date) {
-  ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(),
-                                   QDateTime(date, QTime::currentTime()));
+  ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(), date);
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
@@ -208,34 +208,38 @@ void MainWindow::on_actionSincronizza_triggered() {
     connect(reply2, &QNetworkReply::finished, [this, reply2]() {
       QDomDocument xml;
       xml.setContent(reply2->readAll());
+      qDebug() << xml.toString();
+      QDomNodeList responses = xml.elementsByTagName("d:response");
       QString sync_token =
           xml.elementsByTagName("d:sync-token").at(0).toElement().text();
-      QString icalendar =
-          xml.elementsByTagName("cal:calendar-data").at(0).toElement().text();
-      QString etag =
-          xml.elementsByTagName("d:getetag").at(0).toElement().text();
-      QString href = xml.elementsByTagName("d:href").at(0).toElement().text();
-      QString status =
-          xml.elementsByTagName("d:status").at(0).toElement().text();
 
-      qDebug() << xml.toString();
+      for (int i = 0; i < responses.length(); i++) {
+        QDomElement current = responses.at(i).toElement();
 
-      client_->setSyncToken(sync_token);
-      QTextStream stream(&icalendar);
-      Calendar cal = Calendar(href, etag, stream, this);
+        QString icalendar = current.elementsByTagName("cal:calendar-data")
+                                .at(0)
+                                .toElement()
+                                .text();
+        QString etag =
+            current.elementsByTagName("d:getetag").at(0).toElement().text();
+        QString href =
+            current.elementsByTagName("d:href").at(0).toElement().text();
+        QString status =
+            current.elementsByTagName("d:status").at(0).toElement().text();
 
-      if (status.contains("OK"))
-        for (CalendarEvent &event : cal.events())
-          ui->calendarTable->createEventWidget(event);
-      if (status.contains("NOT FOUND"))
-        for (CalendarEvent &event : cal.events())
-          qWarning() << "Implement remotion by href";
-      // TODO: remove the other part
-      return;
-      QHash<QString, QString> mapTmp;
-      compareElements(*reply2, mapTmp);
-      if (!mapTmp.isEmpty()) {
-        fetchChangedElements(mapTmp);
+        client_->setSyncToken(sync_token);
+        QTextStream stream(&icalendar);
+        Calendar cal = Calendar(href, etag, stream, this);
+
+        if (status.contains("200"))
+          for (CalendarEvent &event : cal.events()) {
+            EventWidget *widget = ui->calendarTable->createEventWidget(event);
+            if (widget != nullptr)
+              connect(widget, &EventWidget::clicked, [this, widget]() {
+                on_request_editing_form(widget->event(), true);
+              });
+          }
+        if (status.contains("404")) ui->calendarTable->removeByHref(href);
       }
     });
   }
@@ -322,8 +326,6 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
 void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
   CreateEventForm form(&event, *client_, *calendar_, existing, isEvent, this);
-  // connect(&form, &CreateEventForm::requestView,
-  //       [this]() { ui->calendarTable->createEventWidget(event); });
   form.exec();
   ui->calendarTable->createEventWidget(event);
 }

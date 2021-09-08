@@ -422,6 +422,8 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
     qDebug() << "Method REPORT not supported in call receiveChangesBySyncToken";
     return nullptr;
   }
+  QDateTime start = QDateTime::currentDateTime();
+  QDateTime end = start.addDays(3);
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
@@ -445,6 +447,11 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
   QDomElement calendar_data = xml.createElement("c:calendar-data");
+  // Expansion of recurrencies
+  QDomElement expand = xml.createElement("c:expand");
+  expand.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  expand.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  calendar_data.appendChild(expand);
   tagProp.appendChild(calendar_data);
   root.appendChild(tagProp);
 

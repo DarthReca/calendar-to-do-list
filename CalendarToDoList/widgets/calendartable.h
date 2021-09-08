@@ -26,17 +26,22 @@ class CalendarTable : public QTableWidget {
    * @param event CalendarEvent showed by the widget
    * @return The created widget
    */
-  EventWidget& createEventWidget(CalendarEvent& event);
+  EventWidget* createEventWidget(CalendarEvent& event);
   /**
    * @brief Remove all widgets
    */
   void clearShowingWidgets();
+  /**
+   * @brief Remove the widget corresponding to given href
+   * @param href HRef of the deleted event
+   */
+  void removeByHref(const QString& href);
 
   QHash<QString, QPointer<EventWidget>>& getShowingEvents() {
     return showing_events_;
   }
 
-  void setVisualMode(TimeFrame new_time_frame, QDateTime today);
+  void setVisualMode(TimeFrame new_time_frame, QDate today);
   const TimeFrame& visualMode() { return time_frame_; };
 
   QPair<QDate, QDate> getDateRange();
@@ -49,7 +54,7 @@ class CalendarTable : public QTableWidget {
   void resizeAndMove(EventWidget* widget);
 
   TimeFrame time_frame_;
-  QDateTime today_;
+  QDate today_;
 
   QHash<QString, QPointer<EventWidget>> showing_events_;
 };

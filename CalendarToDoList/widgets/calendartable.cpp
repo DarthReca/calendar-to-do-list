@@ -23,7 +23,7 @@ void CalendarTable::init() {
                              t.addSecs(60 * 60).toString("hh:mm")));
   setVerticalHeaderItem(23, new QTableWidgetItem("23:00 - 00:00"));
 
-  setVisualMode(TimeFrame::kWeekly, QDateTime::currentDateTime());
+  setVisualMode(TimeFrame::kWeekly, QDate::currentDate());
 }
 
 void CalendarTable::resizeEvent(QResizeEvent *event) {
@@ -40,7 +40,7 @@ void CalendarTable::resizeAndMove(EventWidget *widget) {
   CalendarEvent event = widget->event();
   QTime start_time = event.startDateTime().time();
   QTime end_time = event.endDateTime().time();
-  int day_from_start = today_.date().daysTo(event.startDateTime().date());
+  int day_from_start = today_.daysTo(event.startDateTime().date());
 
   int days_long = event.startDateTime().daysTo(event.endDateTime());
 
@@ -70,7 +70,7 @@ void CalendarTable::resizeAndMove(EventWidget *widget) {
   widget->show();
 }
 
-void CalendarTable::setVisualMode(TimeFrame new_time_frame, QDateTime today) {
+void CalendarTable::setVisualMode(TimeFrame new_time_frame, QDate today) {
   time_frame_ = new_time_frame;
   today_ = today;
   switch (time_frame_) {
@@ -88,27 +88,43 @@ void CalendarTable::setVisualMode(TimeFrame new_time_frame, QDateTime today) {
 
 QPair<QDate, QDate> CalendarTable::getDateRange() {
   QPair<QDate, QDate> range;
-  range.first = today_.date();
-  range.second = today_.addDays(columnCount()).date();
+  range.first = today_;
+  range.second = today_.addDays(columnCount());
   return range;
 }
 
-EventWidget &CalendarTable::createEventWidget(CalendarEvent &event) {
-  // ACTUAL ASSUMPTION NO RECURRENCY
+EventWidget *CalendarTable::createEventWidget(CalendarEvent &event) {
+  // TODO: ACTUAL ASSUMPTION NO RECURRENCY
+  auto range = getDateRange();
+  if (event.startDateTime().date() < range.first ||
+      event.endDateTime().date() > range.second)
+    return nullptr;
   QPointer<EventWidget> widget;
   if (showing_events_.contains(event.uid())) {
     widget = showing_events_[event.uid()];
     widget->setEvent(std::move(event));
   } else {
     widget = new EventWidget(std::move(event), viewport());
-    resizeAndMove(widget);
     showing_events_[event.uid()] = widget;
   }
 
-  return *widget;
+  resizeAndMove(widget);
+  return widget;
 }
 
 void CalendarTable::clearShowingWidgets() {
   for (auto &widget : showing_events_) widget->deleteLater();
   showing_events_.clear();
+}
+
+void CalendarTable::removeByHref(const QString &href) {
+  qDebug() << "removing " << href;
+  for (auto key_value = showing_events_.keyValueBegin();
+       key_value != showing_events_.keyValueEnd(); key_value++) {
+    if (key_value->second->event().href() == href) {
+      key_value->second->deleteLater();
+      showing_events_.remove(key_value->first);
+      break;
+    }
+  }
 }
