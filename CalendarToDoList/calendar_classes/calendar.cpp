@@ -21,7 +21,8 @@ Calendar::Calendar(const QString &href, const QString &eTag,
       task.setHref(href);
       task.setETag(eTag);
       if (task.summary() != "") {
-        tasks_.append(task);
+        // tasks_.append(task);
+        events_ += task;
       }
     } else if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];

@@ -157,7 +157,6 @@ QNetworkReply* CalendarClient::findOutCalendarSupport() {
   cal_part.setUrl(QUrl(endpoint_));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Host", "cal.example.com");
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("OPTIONS"));
 }
@@ -362,10 +361,17 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
   root.setAttribute("xmlns:d", "DAV:");
   root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
   xml.appendChild(root);
+  // PROP
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
-  tagProp.appendChild(xml.createElement("c:calendar-data"));
+  QDomElement cal_data = xml.createElement("c:calendar-data");
+  QDomElement expand = xml.createElement("c:expand");
+  expand.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  expand.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  cal_data.appendChild(expand);
+  tagProp.appendChild(cal_data);
   root.appendChild(tagProp);
+  // FILTER
   QDomElement tagFilter = xml.createElement("c:filter");
   // Filter without specefic class
   QDomElement tagCompFilter = xml.createElement("c:comp-filter");
@@ -508,7 +514,8 @@ QNetworkReply* CalendarClient::updateElement(CalendarEvent event,
                                             request_string);
 }
 
-QNetworkReply* CalendarClient::deleteElement(CalendarEvent& event, QString eTag) {
+QNetworkReply* CalendarClient::deleteElement(CalendarEvent& event,
+                                             QString eTag) {
   if (!supportedMethods_.contains("DELETE")) {
     qDebug() << "Method DELETE not supported in call deleteElement";
     return nullptr;

@@ -6,7 +6,7 @@
 #include <QTimer>
 
 CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
-  showing_events_ = QList<QPointer<EventWidget>>();
+  showing_events_ = QHash<QString, QPointer<EventWidget>>();
 }
 
 void CalendarTable::init() {
@@ -43,7 +43,6 @@ void CalendarTable::resizeAndMove(EventWidget *widget) {
   int day_from_start = today_.date().daysTo(event.startDateTime().date());
 
   int days_long = event.startDateTime().daysTo(event.endDateTime());
-  int time_long = end_time.hour() - start_time.hour();
 
   int x_pos = 0;
   for (int i = 0; i < day_from_start; i++) x_pos += columnWidth(i);
@@ -57,11 +56,12 @@ void CalendarTable::resizeAndMove(EventWidget *widget) {
   end_y_pos += (end_time.minute() / 60.0) * rowHeight(end_time.hour());
 
   int width = columnWidth(day_from_start);
-  int heigth = rowHeight(start_time.hour());
+  int height = end_y_pos - start_y_pos;
+  if (height == 0) height = rowHeight(start_time.hour()) / 2;
 
   scrollToTop();
   if (days_long == 0 && !event.all_day()) {
-    widget->resize(width, end_y_pos - start_y_pos);
+    widget->resize(width, height);
     widget->move(x_pos, start_y_pos);
   } else {
     widget->move(x_pos, 0);
@@ -87,10 +87,16 @@ void CalendarTable::setVisualMode(TimeFrame new_time_frame, QDateTime today) {
 }
 
 EventWidget &CalendarTable::createEventWidget(CalendarEvent &event) {
-  QPointer<EventWidget> widget = new EventWidget(event, viewport());
+  QPointer<EventWidget> widget;
+  /*
+  if (showing_events_.contains(event.uid())) {
+    widget = showing_events_[event.uid()];
+    widget->setEvent(std::move(event));
+  } else {*/
+  widget = new EventWidget(std::move(event), viewport());
   resizeAndMove(widget);
-
-  showing_events_ += widget;
+  showing_events_[event.uid()] = widget;
+  //}
 
   return *widget;
 }

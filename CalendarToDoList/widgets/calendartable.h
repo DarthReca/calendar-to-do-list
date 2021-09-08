@@ -27,7 +27,14 @@ class CalendarTable : public QTableWidget {
    * @return The created widget
    */
   EventWidget& createEventWidget(CalendarEvent& event);
+  /**
+   * @brief Remove all widgets
+   */
   void clearShowingWidgets();
+
+  QHash<QString, QPointer<EventWidget>>& getShowingEvents() {
+    return showing_events_;
+  }
 
   void setVisualMode(TimeFrame new_time_frame, QDateTime today);
   const TimeFrame& visualMode() { return time_frame_; };
@@ -42,7 +49,7 @@ class CalendarTable : public QTableWidget {
   TimeFrame time_frame_;
   QDateTime today_;
 
-  QList<QPointer<EventWidget>> showing_events_;
+  QHash<QString, QPointer<EventWidget>> showing_events_;
 };
 
 #endif  // CALENDARTABLE_H

@@ -46,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->actionOgni_10_minuti, &QAction::triggered,
           [this]() { timer_->start(600000); });
   connect(ui->createEvent, &QPushButton::clicked,
-          [this]() { on_request_editing_form(); });
+          [this]() { on_request_editing_form(CalendarEvent()); });
 
   client_ = new CalendarClient(this);
 
@@ -107,61 +107,52 @@ void MainWindow::refresh_calendar_events() {
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   ui->calendarTable->clearShowingWidgets();
-  connect(
-      reply, &QNetworkReply::finished,
-      [this, reply, selected_date, end_date]() {
-        calendar_->events().clear();
+  connect(reply, &QNetworkReply::finished,
+          [this, reply, selected_date, end_date]() {
+            // calendar_->events().clear();
 
-        QDomDocument res;
-        res.setContent(reply->readAll());
+            QDomDocument res;
+            res.setContent(reply->readAll());
 
-        auto calendars = res.elementsByTagName("cal:calendar-data");
-        auto hrefs_list = res.elementsByTagName("d:href");
-        auto eTags = res.elementsByTagName("d:getetag");
+            qDebug() << res.toString();
 
-        for (int i = 0; i < calendars.size(); i++) {
-          QString icalendar = calendars.at(i).toElement().text();
-          QString href = hrefs_list.at(i).toElement().text();
-          QString eTag = eTags.at(i).toElement().text();
-          QTextStream stream(&icalendar);
-          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+            auto calendars = res.elementsByTagName("cal:calendar-data");
+            auto hrefs_list = res.elementsByTagName("d:href");
+            auto eTags = res.elementsByTagName("d:getetag");
 
-          for (CalendarEvent &ev : tmp->events()) {
-            auto recurrences =
-                ev.recurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
-                                      QDateTime(end_date, QTime(0, 0)));
-            for (QDateTime &rec : recurrences) {
-              CalendarEvent *new_event = new CalendarEvent(ev);
-              auto diff =
-                  ev.startDateTime().time().msecsTo(ev.endDateTime().time());
-              new_event->setStartDateTime(rec);
-              new_event->setEndDateTime(rec.addMSecs(diff));
-              calendar_->events().append(*new_event);
-              EventWidget &widget =
-                  ui->calendarTable->createEventWidget(*new_event);
-              connect(&widget, &EventWidget::clicked, [this, &widget]() {
-                on_request_editing_form(&widget.event(), true);
-              });
+            for (int i = 0; i < calendars.size(); i++) {
+              QString icalendar = calendars.at(i).toElement().text();
+              QString href = hrefs_list.at(i).toElement().text();
+              QString eTag = eTags.at(i).toElement().text();
+              QTextStream stream(&icalendar);
+              QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+
+              for (CalendarEvent &ev : tmp->events()) {
+                /*auto recurrences =
+                    ev.recurrencesInRange(QDateTime(selected_date, QTime(0, 0)),
+                                          QDateTime(end_date, QTime(0, 0)));
+                for (QDateTime &rec : recurrences) {
+                  CalendarEvent *new_event = new CalendarEvent(ev);
+                  auto diff =
+                      ev.startDateTime().time().msecsTo(ev.endDateTime().time());
+                  new_event->setStartDateTime(rec);
+                  new_event->setEndDateTime(rec.addMSecs(diff));
+                  // calendar_->events().append(*new_event);
+                  */
+                EventWidget &widget = ui->calendarTable->createEventWidget(ev);
+                connect(&widget, &EventWidget::clicked, [this, &widget]() {
+                  on_request_editing_form(widget.event(), true);
+                });
+              }
             }
-          }
-          for (Task &t : tmp->tasks()) {
-            Task *new_task = new Task(t);
-            calendar_->tasks().append(*new_task);
-            EventWidget &widget =
-                ui->calendarTable->createEventWidget(*new_task);
-            connect(&widget, &EventWidget::clicked, [this, &widget]() {
-              on_request_editing_form(&widget.event(), true);
-            });
-          }
-        }
 
-        // salvo gli eTags per vedere i futuri cambiamenti
-        //è una mappa di <href, eTag>
-        for (int i = 0; i < eTags.size(); i++) {
-          client_->addETag(hrefs_list.at(i).toElement().text(),
-                           eTags.at(i).toElement().text());
-        }
-      });
+            // salvo gli eTags per vedere i futuri cambiamenti
+            //è una mappa di <href, eTag>
+            for (int i = 0; i < eTags.size(); i++) {
+              client_->addETag(hrefs_list.at(i).toElement().text(),
+                               eTags.at(i).toElement().text());
+            }
+          });
 }
 
 /*void MainWindow::on_seeIfChanged_clicked() {
@@ -310,21 +301,19 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
   });
 }
 
-void MainWindow::on_request_editing_form(CalendarEvent *event, bool isEvent) {
-  bool existing = event != nullptr;
-  if (!existing) event = new CalendarEvent;
-  CreateEventForm form(event, *client_, *calendar_, existing, isEvent, this);
+void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
+  bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
+  CreateEventForm form(&event, *client_, *calendar_, existing, isEvent, this);
   // connect(&form, &CreateEventForm::requestView,
   //       [this]() { ui->calendarTable->createEventWidget(event); });
   form.exec();
-  if (!existing) ui->calendarTable->createEventWidget(*event);
+  ui->calendarTable->createEventWidget(event);
 }
 
 const QList<Task> &MainWindow::showing_tasks() const { return showing_tasks_; }
 
-void MainWindow::setShowing_tasks(const QList<Task> &newShowing_tasks) {
-  showing_tasks_ = newShowing_tasks;
-}
+// KEPT FOR COMPATIBILITY
+void MainWindow::setShowing_tasks(const QList<Task> &newShowing_tasks) {}
 
 // KEPT FOR COMPATIBILITY
 void MainWindow::updateTableToNDays(int n) {}
