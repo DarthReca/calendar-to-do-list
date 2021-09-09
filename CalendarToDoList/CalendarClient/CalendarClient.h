@@ -83,6 +83,10 @@ class CalendarClient : public QObject {
    */
   QNetworkReply* getDateRangeEvents(QDateTime start, QDateTime end);
   /**
+   * @brief Gets all events in a specific time range.
+   */
+  QNetworkReply* getDateRangeTasks(QDateTime start, QDateTime end);
+  /**
    * @brief Requests the sync token from the server.
    */
   QNetworkReply* requestSyncToken();
@@ -107,7 +111,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Updates a event in the calDAV server.
    */
-  QNetworkReply* updateElement(CalendarEvent event, QString eTag);
+  QNetworkReply* updateElement(CalendarEvent& updatedElement, QString eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */

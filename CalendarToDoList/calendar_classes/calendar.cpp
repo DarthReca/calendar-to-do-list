@@ -13,17 +13,16 @@ Calendar::Calendar(const QString &href, const QString &eTag,
       CalendarEvent event = CalendarEvent().fromICalendar(ical_object);
       event.setHref(href);
       event.setETag(eTag);
-      if (event.summary() != "") {
+      //if (event.summary() != "") {
         events_.append(event);
-      }
+      //}
     } else if (line.contains("BEGIN:VTODO")) {
       Task task = Task().fromICalendar(ical_object);
       task.setHref(href);
       task.setETag(eTag);
-      if (task.summary() != "") {
-        // tasks_.append(task);
-        events_ += task;
-      }
+      //if (task.summary() != "") {
+        tasks_.append(task);
+      //}
     } else if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];
     }
