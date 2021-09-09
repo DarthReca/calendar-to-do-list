@@ -224,7 +224,7 @@ QNetworkReply* CalendarClient::getAllElements() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getElementByUID(QString UID) {
+QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
   if (!supportedMethods_.contains("REPORT")) {
     qDebug() << "Method REPORT not supported in call getElementByUID";
     return nullptr;
@@ -240,6 +240,14 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID) {
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
 
+  QString elementToFilter;
+  if(isEvent){
+      elementToFilter = "VEVENT";
+  }
+  else{
+      elementToFilter = "VTODO";
+  }
+
   QDomDocument xml;
   QDomElement root = xml.createElement("c:calendar-query");
   root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
@@ -254,7 +262,7 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID) {
   tagCompFilter.setAttribute("name", "VCALENDAR");
   tagFilter.appendChild(tagCompFilter);
   QDomElement tag_comp_filter2 = xml.createElement("c:comp-filter");
-  tag_comp_filter2.setAttribute("name", "VEVENT");
+  tag_comp_filter2.setAttribute("name", elementToFilter);
   tagCompFilter.appendChild(tag_comp_filter2);
   QDomElement tagPropFilter = xml.createElement("c:prop-filter");
   tagPropFilter.setAttribute("name", "UID");
