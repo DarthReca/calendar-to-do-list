@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QDomDocument>
 #include <QLabel>
-#include <iostream>
+#include <QMessageBox>
 
 #include "./ui_mainwindow.h"
 #include "CalendarClient/CalendarClient.h"
@@ -14,9 +14,10 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
-      calendar_(new Calendar(this)),
+      calendar_(ICalendar()),
       timer_(new QTimer(this)),
-      client_(new CalendarClient(this)) {
+      client_(new CalendarClient(this)),
+      sync_token_supported_(false) {
   // Setup
   ui->setupUi(this);
   ui->calendarTable->init();
@@ -28,8 +29,12 @@ MainWindow::MainWindow(QWidget *parent)
   // UI
   connect(ui->testButton, &QPushButton::clicked, this,
           &MainWindow::refresh_calendar_events);
-  connect(ui->calendarWidget, &QCalendarWidget::selectionChanged, this,
-          &MainWindow::refresh_calendar_events);
+
+  connect(ui->calendarWidget, &QCalendarWidget::clicked, [this](QDate date) {
+    refresh_calendar_events();
+    ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(), date);
+  });
+
   connect(ui->actionOgni_10_secondi, &QAction::triggered,
           [this]() { timer_->start(10000); });
   connect(ui->actionOgni_30_secondi, &QAction::triggered,
@@ -40,11 +45,15 @@ MainWindow::MainWindow(QWidget *parent)
           [this]() { timer_->start(600000); });
   connect(ui->createEvent, &QPushButton::clicked,
           [this]() { on_request_editing_form(CalendarEvent()); });
+
   // Get allowed methods
   auto methods_reply = client_->findOutCalendarSupport();
   connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
     if (!methods_reply->hasRawHeader("Allow")) {
       qWarning("Cannot parse allowed methods");
+      QMessageBox::critical(this, "Initialization error",
+                            "The server do not send the allowed methods.");
+      exit(-1);
     }
     for (QByteArray &method : methods_reply->rawHeader("Allow").split(','))
       client_->getSupportedMethods().insert(method.trimmed());
@@ -53,55 +62,39 @@ MainWindow::MainWindow(QWidget *parent)
     connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
       QDomDocument res;
       res.setContent(props_reply->readAll());
-      sync_token_supported_ =
-          res.elementsByTagName("s:sync-token").length() != 0;
-      /*
-      QDomNodeList responses = res.elementsByTagName("response");
-      auto lista1 = res.elementsByTagName("cs:getctag");
-      if (lista1.at(0).toElement().text().isEmpty()) {
-        auto reply1 = client_->obtainCTag();
-        connect(reply1, &QNetworkReply::finished, [this, reply1]() {
-          QDomDocument res;
-          res.setContent(reply1->readAll());
-          auto lista = res.elementsByTagName("cs:getctag");
-          client_->setCTag(lista.at(0).toElement().text());
-        });
-      } else {
-        client_->setCTag(lista1.at(0).toElement().text());
-      }
-      */
-      if (!sync_token_supported_) {
-        qWarning() << "Using cTag is deprecated";
+      QDomNodeList propstat = res.elementsByTagName("d:propstat");
+
+      for (int i = 0; i < propstat.length(); i++) {
+        QDomElement current = propstat.at(i).toElement();
+        QString status =
+            current.elementsByTagName("d:status").at(0).toElement().text();
+        QDomNodeList sync_token = current.elementsByTagName("d:sync-token");
+        QDomNodeList ctag = current.elementsByTagName("cs:getctag");
+        if (status.contains("200") && sync_token.length() != 0) {
+          sync_token_supported_ = true;
+          client_->setSyncToken(sync_token.at(0).toElement().text());
+        }
+        if (status.contains("200") && ctag.length() != 0)
+          client_->setCTag(ctag.at(0).toElement().text());
       }
 
-      // ottengo il sync-token
-      auto token_reply = client_->requestSyncToken();
-      connect(token_reply, &QNetworkReply::finished, [this, token_reply]() {
-        QDomDocument res;
-        res.setContent(token_reply->readAll());
-        auto lista = res.elementsByTagName("d:sync-token");
-        client_->setSyncToken(lista.at(0).toElement().text());
+      if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
 
-        refresh_calendar_events();
-        timer_->start(30000);
-      });
+      refresh_calendar_events();
+      timer_->start(20000);
     });
   });
 }
 
-MainWindow::~MainWindow() {
-  showing_events_.clear();
-  showing_tasks_.clear();
-  delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::refresh_calendar_events() {
   QDate selected_date = ui->calendarWidget->selectedDate();
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
+  ui->calendarTable->clearShowingWidgets();
+
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-
-  ui->calendarTable->clearShowingWidgets();
   connect(
       reply, &QNetworkReply::finished,
       [this, reply, selected_date, end_date]() {
@@ -121,9 +114,9 @@ void MainWindow::refresh_calendar_events() {
               current.elementsByTagName("d:getetag").at(0).toElement().text();
 
           QTextStream stream(&calendar_data);
-          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+          ICalendar tmp = ICalendar(href, eTag, stream);
 
-          for (CalendarEvent &ev : tmp->events()) {
+          for (CalendarEvent &ev : tmp.events()) {
             EventWidget *widget = ui->calendarTable->createEventWidget(ev);
             if (widget != nullptr)
               connect(widget, &EventWidget::clicked, [this, widget]() {
@@ -134,28 +127,10 @@ void MainWindow::refresh_calendar_events() {
       });
 }
 
-// KEPT FOR COMPATIBILITY
-void MainWindow::on_showing_events_changed() {}
-
-// KEPT FOR COMPATIBILITY
-void MainWindow::on_showing_tasks_changed() {}
-
-QList<CalendarEvent> MainWindow::showing_events() const {
-  return showing_events_;
-}
-
-void MainWindow::setShowing_events(QList<CalendarEvent> newShowing_events) {
-  showing_events_ = newShowing_events;
-}
-
-void MainWindow::on_calendarWidget_clicked(const QDate &date) {
-  ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(), date);
-}
-
 void MainWindow::on_actionSincronizza_triggered() {
-  if (client_->getSyncToken().isEmpty() && client_->getCTag().isEmpty()) return;
+  if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
 
-  if (client_->getSyncToken().isEmpty()) {
+  if (sync_token_supported_) {
     // ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
@@ -170,6 +145,8 @@ void MainWindow::on_actionSincronizza_triggered() {
         auto reply1 = client_->lookForChanges();  // ottengo gli eTag per vedere
         // quali sono cambiati
         connect(reply1, &QNetworkReply::finished, [this, reply1]() {
+          qDebug() << reply1->readAll();
+          return;
           QHash<QString, QString> mapTmp;
           compareElements(*reply1, mapTmp);
           fetchChangedElements(mapTmp);
@@ -203,7 +180,7 @@ void MainWindow::on_actionSincronizza_triggered() {
 
         client_->setSyncToken(sync_token);
         QTextStream stream(&icalendar);
-        Calendar cal = Calendar(href, etag, stream, this);
+        ICalendar cal = ICalendar(href, etag, stream);
 
         if (status.contains("200"))
           for (CalendarEvent &event : cal.events()) {
@@ -241,7 +218,7 @@ void MainWindow::compareElements(QNetworkReply &reply,
   // e aggiorno la lista di eTag nel client
   QSet<QString> processed;
   // Deleted and updated events
-  for (CalendarEvent &ev : calendar_->events()) {
+  for (CalendarEvent &ev : calendar_.events()) {
     QString href = ev.href();
     if (mapTmp.contains(href)) {
       if (mapTmp[href].isEmpty()) {
@@ -255,7 +232,7 @@ void MainWindow::compareElements(QNetworkReply &reply,
     } else {
       qDebug() << "Item with href " + href + "has been deleted\n\n";
     }
-    calendar_->events().removeOne(ev);
+    calendar_.events().removeOne(ev);
     processed += href;
   }
   // Added events
@@ -280,34 +257,26 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
       // salvo l'evento nella lista di eventi del calendario
       QString el = events.at(i).toElement().text();
       QTextStream stream(&el);
-      QPointer<Calendar> tmp =
-          new Calendar(href_list.at(i).toElement().text(), "", stream);
-      for (CalendarEvent &ev : tmp->events()) {
+      ICalendar tmp = ICalendar(href_list.at(i).toElement().text(), "", stream);
+      for (CalendarEvent &ev : tmp.events()) {
         QString hrefToSearch = ev.href();
         QString eTagToPut = mapTmp.find(hrefToSearch).value();
         ev.setETag(eTagToPut);
       }
+      /*
       if (calendar_.isNull())
         calendar_ = tmp;
       else
         calendar_->events().append(tmp->events());
+        */
     }
     client_->clearChangedItems();
-    updateTableToNDays(ui->calendarTable->columnCount());
   });
 }
 
 void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
-  CreateEventForm form(&event, *client_, *calendar_, existing, isEvent, this);
+  CreateEventForm form(&event, *client_, calendar_, existing, isEvent, this);
   int code = form.exec();
   if (code == QDialog::Accepted) ui->calendarTable->createEventWidget(event);
 }
-
-const QList<Task> &MainWindow::showing_tasks() const { return showing_tasks_; }
-
-// KEPT FOR COMPATIBILITY
-void MainWindow::setShowing_tasks(const QList<Task> &newShowing_tasks) {}
-
-// KEPT FOR COMPATIBILITY
-void MainWindow::updateTableToNDays(int n) {}

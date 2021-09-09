@@ -5,7 +5,7 @@
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
-                                 Calendar& calendar, bool existing,
+                                 ICalendar& calendar, bool existing,
                                  bool isEvent, QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
@@ -173,11 +173,13 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         Task* task = dynamic_cast<Task*>(event_);
         // elimino il task vecchio dalla lista
         QString hrefToUpdate = task->href();
+        /*
         for (Task& t : calendar_->tasks()) {
           if (t.href() == hrefToUpdate) {
             calendar_->tasks().removeOne(t);
           }
         }
+        */
         // elimino il vecchio eTag dalla lista
         for (auto el : client_->eTags().keys()) {
           if (el == hrefToUpdate) {
@@ -194,7 +196,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                         "ETag") {  // eTag direttamente restituito dal server
                       (*event_).setETag(el.second);
                       client_->eTags().insert(hrefToUpdate, el.second);
-                      calendar_->tasks().append(*task);
+                      // calendar_->tasks().append(*task);
                       flag = true;
                     }
                   }
@@ -210,7 +212,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                           (*task).setETag(eTagList.at(0).toElement().text());
                           client_->eTags().insert(
                               hrefToUpdate, eTagList.at(0).toElement().text());
-                          calendar_->tasks().append(*task);
+                          // calendar_->tasks().append(*task);
                         });
                   }
                 });
@@ -237,7 +239,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
         Task* task = dynamic_cast<Task*>(event_);
         QString hrefToDelete = task->href();
         QString eTag = task->eTag();
-        calendar_->tasks().removeOne(*task);
+        // calendar_->tasks().removeOne(*task);
         client_->deleteETag(hrefToDelete);
         client_->deleteElement(*task, eTag);
       }

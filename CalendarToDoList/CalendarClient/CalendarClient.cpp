@@ -50,10 +50,9 @@ QNetworkReply* CalendarClient::obtainCTag() {
   QDomDocument xml;
   QDomElement root = xml.createElement("d:propfind");
   root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:cs", endpoint_.toString());
+  root.setAttribute("xmlns:cs", "http://calendarserver.org/ns/");
   xml.appendChild(root);
   QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:displayname"));
   tagProp.appendChild(xml.createElement("cs:getctag"));
   root.appendChild(tagProp);
 
@@ -173,16 +172,19 @@ QNetworkReply* CalendarClient::findOutSupportedProperties() {
   cal_part.setUrl(QUrl(endpoint_));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Host", "www.example.com");
+  cal_part.setRawHeader("Depth", "0");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
-  // cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader,
-  //                   "xxxx");
 
   QDomDocument xml;
-  QDomElement root = xml.createElement("propfind");
-  root.setAttribute("xmlns", "DAV:");
-  root.appendChild(xml.createElement("propname"));
+  QDomElement root = xml.createElement("d:propfind");
+  root.setAttribute("xmlns:d", "DAV:");
+  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+  root.setAttribute("xmlns:cs", "http://calendarserver.org/ns/");
+  QDomElement prop = xml.createElement("d:prop");
+  prop.appendChild(xml.createElement("cs:getctag"));
+  prop.appendChild(xml.createElement("d:sync-token"));
+  root.appendChild(prop);
   xml.appendChild(root);
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"),
@@ -292,12 +294,25 @@ QNetworkReply* CalendarClient::lookForChanges() {
   xml.appendChild(root);
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
+  QDomElement calendar_data = xml.createElement("c:calendar-data");
+  QDomElement calendar_comp = xml.createElement("c:comp");
+  calendar_comp.setAttribute("name", "VCALENDAR");
+  QDomElement event_comp = xml.createElement("c:comp");
+  event_comp.setAttribute("name", "VEVENT");
+  QDomElement prop = xml.createElement("c:prop");
+  prop.setAttribute("name", "UID");
+  event_comp.appendChild(prop);
+  calendar_comp.appendChild(event_comp);
+  calendar_data.appendChild(calendar_comp);
+  tagProp.appendChild(calendar_data);
   root.appendChild(tagProp);
   QDomElement tagFilter = xml.createElement("c:filter");
   QDomElement tagCompFilter = xml.createElement("c:comp-filter");
   tagCompFilter.setAttribute("name", "VCALENDAR");
   tagFilter.appendChild(tagCompFilter);
   root.appendChild(tagFilter);
+
+  qDebug() << xml.toString();
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
                                             xml.toByteArray());

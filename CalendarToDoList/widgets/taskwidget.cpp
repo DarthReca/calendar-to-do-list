@@ -1,6 +1,6 @@
 #include "taskwidget.h"
 
-TaskWidget::TaskWidget(Task &task, CalendarClient &client, Calendar &calendar,
+TaskWidget::TaskWidget(Task &task, CalendarClient &client, ICalendar &calendar,
                        QWidget *parent)
     : QPushButton(parent) {
   task_ = &task;

@@ -19,7 +19,7 @@ class CreateEventForm : public QDialog {
 
  public:
   explicit CreateEventForm(CalendarEvent* event, CalendarClient& client,
-                           Calendar& calendar, bool existing, bool isEvent,
+                           ICalendar& calendar, bool existing, bool isEvent,
                            QWidget* parent = nullptr);
 
   ~CreateEventForm();
@@ -32,7 +32,7 @@ class CreateEventForm : public QDialog {
   Ui::CreateEventForm* ui;
   CalendarEvent* event_;
   QPointer<CalendarClient> client_;
-  QPointer<Calendar> calendar_;
+  ICalendar* calendar_;
   bool existing_;
   bool isEvent_;
 };
