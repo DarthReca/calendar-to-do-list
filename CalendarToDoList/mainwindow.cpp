@@ -94,7 +94,7 @@ void MainWindow::refresh_calendar_events() {
 
   ui->calendarTable->clearShowingWidgets();
 
-  //prendo tutti gli eventi dalla data selezionata a una settimana dopo
+  // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   connect(
@@ -124,13 +124,12 @@ void MainWindow::refresh_calendar_events() {
               connect(widget, &EventWidget::clicked, [this, widget]() {
                 on_request_editing_form(widget->event(), true);
               });
-            calendar_->events().append(ev);
+            // calendar_->events().append(ev);
           }
         }
       });
 
-
-  //prendo tutti i task dalla data selezionata a una settimana dopo
+  // prendo tutti i task dalla data selezionata a una settimana dopo
   auto reply2 = client_->getDateRangeTasks(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   connect(
@@ -152,15 +151,14 @@ void MainWindow::refresh_calendar_events() {
               current.elementsByTagName("d:getetag").at(0).toElement().text();
 
           QTextStream stream(&calendar_data);
-          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+          ICalendar tmp = ICalendar(href, eTag, stream);
 
-          for (Task &t : tmp->tasks()) {
-              EventWidget *widget = ui->calendarTable->createEventWidget(t);
+          for (CalendarEvent &ev : tmp.events()) {
+            EventWidget *widget = ui->calendarTable->createEventWidget(ev);
             if (widget != nullptr)
               connect(widget, &EventWidget::clicked, [this, widget]() {
                 on_request_editing_form(widget->event(), true);
               });
-           calendar_->tasks().append(t);
           }
         }
       });
