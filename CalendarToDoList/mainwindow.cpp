@@ -91,8 +91,10 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::refresh_calendar_events() {
   QDate selected_date = ui->calendarWidget->selectedDate();
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
+
   ui->calendarTable->clearShowingWidgets();
 
+  //prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   connect(
@@ -122,6 +124,43 @@ void MainWindow::refresh_calendar_events() {
               connect(widget, &EventWidget::clicked, [this, widget]() {
                 on_request_editing_form(widget->event(), true);
               });
+            calendar_->events().append(ev);
+          }
+        }
+      });
+
+
+  //prendo tutti i task dalla data selezionata a una settimana dopo
+  auto reply2 = client_->getDateRangeTasks(
+      QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
+  connect(
+      reply2, &QNetworkReply::finished,
+      [this, reply2, selected_date, end_date]() {
+        QDomDocument res;
+        res.setContent(reply2->readAll());
+        QDomNodeList responses = res.elementsByTagName("d:response");
+
+        for (int i = 0; i < responses.length(); i++) {
+          QDomElement current = responses.at(i).toElement();
+          QString calendar_data = current.elementsByTagName("cal:calendar-data")
+                                      .at(0)
+                                      .toElement()
+                                      .text();
+          QString href =
+              current.elementsByTagName("d:href").at(0).toElement().text();
+          QString eTag =
+              current.elementsByTagName("d:getetag").at(0).toElement().text();
+
+          QTextStream stream(&calendar_data);
+          QPointer<Calendar> tmp = new Calendar(href, eTag, stream);
+
+          for (Task &t : tmp->tasks()) {
+              EventWidget *widget = ui->calendarTable->createEventWidget(t);
+            if (widget != nullptr)
+              connect(widget, &EventWidget::clicked, [this, widget]() {
+                on_request_editing_form(widget->event(), true);
+              });
+           calendar_->tasks().append(t);
           }
         }
       });
