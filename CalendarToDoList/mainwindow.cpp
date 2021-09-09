@@ -300,8 +300,8 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
 void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
   CreateEventForm form(&event, *client_, *calendar_, existing, isEvent, this);
-  form.exec();
-  ui->calendarTable->createEventWidget(event);
+  int code = form.exec();
+  if (code == QDialog::Accepted) ui->calendarTable->createEventWidget(event);
 }
 
 const QList<Task> &MainWindow::showing_tasks() const { return showing_tasks_; }
