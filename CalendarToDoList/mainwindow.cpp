@@ -49,10 +49,10 @@ MainWindow::MainWindow(QWidget *parent)
   // Get allowed methods
   auto methods_reply = client_->findOutCalendarSupport();
   connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
-    if (!methods_reply->hasRawHeader("Allow")) {
+    if (!methods_reply->hasRawHeader("Allow") || !methods_reply->hasRawHeader("allow")) {
       qWarning("Cannot parse allowed methods");
       QMessageBox::critical(this, "Initialization error",
-                            "The server do not send the allowed methods.");
+                            "The server did not send the allowed methods.");
       exit(-1);
     }
     for (QByteArray &method : methods_reply->rawHeader("Allow").split(','))
