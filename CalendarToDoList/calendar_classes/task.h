@@ -16,6 +16,9 @@ class Task : public CalendarEvent {
   Task &fromICalendar(QTextStream &icalendar) override;
   QString toICalendar() override;
 
+  void setStartDateTime(const QDateTime &startDateTime) override;
+  void setEndDateTime(const QDateTime &endDateTime) override;
+
   void flipCompleted();
 
   const QPair<bool, QDateTime> &completed() const;

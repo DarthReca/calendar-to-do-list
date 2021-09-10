@@ -89,6 +89,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
+    /* COMPARING CREATE SOME ERROR
     QDateTime max = ui->endDateTime->dateTime();
     if (ui->startDateTime->dateTime() > max) {
       max.setTime(ui->startDateTime->time());
@@ -96,6 +97,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
       qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
                       event_->startDateTime().toString();
     }
+    */
     // NEW EVENT
     if (!existing_) {
       auto reply = client_->saveElement(*event_);

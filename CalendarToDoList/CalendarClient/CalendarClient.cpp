@@ -537,7 +537,7 @@ QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
       ("BEGIN:VCALENDAR\r\n" + newElement.toICalendar() + "END:VCALENDAR\r\n")
           .toUtf8();
 
-  qDebug() << request_string;
+  qDebug() << newElement.startDateTime();
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));

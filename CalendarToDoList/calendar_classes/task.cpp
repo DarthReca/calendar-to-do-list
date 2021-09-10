@@ -74,6 +74,16 @@ QString Task::toICalendar() {
   return ical_object;
 }
 
+void Task::setStartDateTime(const QDateTime &startDateTime) {
+  end_date_time_ = startDateTime;
+  start_date_time_ = startDateTime;
+}
+
+void Task::setEndDateTime(const QDateTime &endDateTime) {
+  end_date_time_ = endDateTime;
+  start_date_time_ = endDateTime;
+}
+
 void Task::flipCompleted() {
   completed_.first = !completed_.first;
   completed_.second = QDateTime::currentDateTime();

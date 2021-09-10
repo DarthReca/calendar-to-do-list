@@ -53,10 +53,10 @@ class CalendarEvent {
   void setDescription(const QString& description);
 
   QDateTime startDateTime() const;
-  void setStartDateTime(const QDateTime& startDateTime);
+  virtual void setStartDateTime(const QDateTime& startDateTime);
 
   QDateTime endDateTime() const;
-  void setEndDateTime(const QDateTime& endDateTime);
+  virtual void setEndDateTime(const QDateTime& endDateTime);
 
   QString RRULE() const;
   void setRRULE(const QString& rRule);
