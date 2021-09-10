@@ -124,7 +124,7 @@ void MainWindow::refresh_calendar_events() {
               connect(widget, &EventWidget::clicked, [this, widget]() {
                 on_request_editing_form(widget->event(), true);
               });
-            // calendar_->events().append(ev);
+             calendar_.events().append(ev);
           }
         }
       });

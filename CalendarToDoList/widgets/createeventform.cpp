@@ -98,6 +98,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
     if (!existing_) {
+
       // nuovo evento
       if (isEvent_) {
         QDateTime max = ui->endDateTime->dateTime();
@@ -126,8 +127,41 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           });
         });
       }
-    } else {
+
+      //nuovo task
+      else{
+          Task* task = dynamic_cast<Task*>(event_);
+        auto reply = client_->saveElement(*task);
+        connect(reply, &QNetworkReply::finished, [this, task]() {
+          // imposto il nuovo eTag del task
+          auto reply1 = client_->getElementByUID(task->uid(), false);
+          connect(reply1, &QNetworkReply::finished, [reply1, task, this]() {
+            QDomDocument res;
+            res.setContent(reply1->readAll());
+            auto href_list = res.elementsByTagName("d:href");
+            auto eTagList = res.elementsByTagName("d:getetag");
+            task->setETag(eTagList.at(0).toElement().text());
+            task->setHref(href_list.at(0).toElement().text());
+            client_->eTags().insert(href_list.at(0).toElement().text(),
+                                    eTagList.at(0).toElement().text());
+            qDebug() << "New task saved\n";
+            emit requestView();
+            accept();
+          });
+        });
+      }
+
+    }
+
+    else {
+
+      //update di un evento
       if (isEvent_) {
+
+          for (CalendarEvent& ev : calendar_->events()) {
+            qDebug() << "Ev prima: " + ev.summary();
+          }
+
         QString hrefToUpdate = event_->href();
         // elimino l'evento vecchio dalla lista
         for (CalendarEvent& ev : calendar_->events()) {
@@ -135,6 +169,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             calendar_->events().removeOne(ev);
           }
         }
+
+        for (CalendarEvent& ev : calendar_->events()) {
+          qDebug() << "Ev dopo: " + ev.summary();
+        }
+
         // elimino il vecchio eTag dalla lista
         for (auto el : client_->eTags().keys()) {
           if (el == hrefToUpdate) {
@@ -155,11 +194,11 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             }
           }
           if (!flag) {
-            auto reply1 = nullptr;  // client_->getElementByUID(event_->uid());
+            auto reply1 = client_->getElementByUID(event_->uid(), true);
             connect(reply1, &QNetworkReply::finished,
                     [reply1, this, hrefToUpdate]() {
                       QDomDocument res;
-                      // res.setContent(reply1->readAll());
+                      res.setContent(reply1->readAll());
                       auto href_list = res.elementsByTagName("d:href");
                       auto eTagList = res.elementsByTagName("d:getetag");
                       (*event_).setETag(eTagList.at(0).toElement().text());
@@ -170,8 +209,10 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           }
           qDebug() << "Event updated\n";
         });
-        // nuovo task
-      } else {
+      }
+
+      //update di un task
+      else {
         Task* task = dynamic_cast<Task*>(event_);
         // elimino il task vecchio dalla lista
         QString hrefToUpdate = task->href();
