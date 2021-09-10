@@ -44,12 +44,13 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->actionOgni_10_minuti, &QAction::triggered,
           [this]() { timer_->start(600000); });
   connect(ui->createEvent, &QPushButton::clicked,
-          [this]() { on_request_editing_form(CalendarEvent()); });
+          [this]() { showEventForm(CalendarEvent()); });
 
   // Get allowed methods
   auto methods_reply = client_->findOutCalendarSupport();
   connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
-    if (!methods_reply->hasRawHeader("Allow") || !methods_reply->hasRawHeader("allow")) {
+    if (!methods_reply->hasRawHeader("Allow") ||
+        !methods_reply->hasRawHeader("allow")) {
       qWarning("Cannot parse allowed methods");
       QMessageBox::critical(this, "Initialization error",
                             "The server did not send the allowed methods.");
@@ -123,9 +124,7 @@ void MainWindow::refresh_calendar_events() {
                 ui->calendarTable->createEventWidget(ev);
             if (widget != nullptr)
               connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
-                      [this, widget]() {
-                        on_request_editing_form(widget->item(), true);
-                      });
+                      [this, widget]() { showEventForm(widget->item()); });
             // calendar_.events().append(ev);
           }
         }
@@ -160,9 +159,7 @@ void MainWindow::refresh_calendar_events() {
                 ui->calendarTable->createTaskWidget(t);
             if (widget != nullptr)
               connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
-                      [this, widget]() {
-                        on_request_editing_form(widget->item(), true);
-                      });
+                      [this, widget]() { showTaskForm(widget->item()); });
           }
         }
       });
@@ -224,16 +221,22 @@ void MainWindow::on_actionSincronizza_triggered() {
         QTextStream stream(&icalendar);
         ICalendar cal = ICalendar(href, etag, stream);
 
-        if (status.contains("200"))
+        if (status.contains("200")) {
           for (CalendarEvent &event : cal.events()) {
             CalendarTableItem<CalendarEvent> *widget =
                 ui->calendarTable->createEventWidget(event);
             if (widget != nullptr)
               connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
-                      [this, widget]() {
-                        on_request_editing_form(widget->item(), true);
-                      });
+                      [this, widget]() { showEventForm(widget->item()); });
           }
+          for (Task &task : cal.tasks()) {
+            CalendarTableItem<Task> *widget =
+                ui->calendarTable->createTaskWidget(task);
+            if (widget != nullptr)
+              connect(widget, &CalendarTableItem<Task>::clicked,
+                      [this, widget]() { showTaskForm(widget->item()); });
+          }
+        }
         if (status.contains("404")) ui->calendarTable->removeByHref(href);
       }
     });
@@ -318,14 +321,28 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
   });
 }
 
-void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
+void MainWindow::showEventForm(CalendarEvent event) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
-  if (dynamic_cast<Task *>(&event)) qDebug() << "Taks";
   CreateEventForm form(&event, *client_, calendar_, existing, this);
   int code = form.exec();
-  CalendarEvent modified_event = form.getEvent();
+  CalendarEvent modified_event = *form.getEvent();
   if (code == QDialog::Accepted)
     ui->calendarTable->createEventWidget(modified_event);
   else if (code == 2)
-    ui->calendarTable->removeByHref(modified_event.href());
+    ui->calendarTable->removeEventByUid(modified_event.uid());
+}
+
+void MainWindow::showTaskForm(Task task) {
+  bool existing = ui->calendarTable->getShowingTask().contains(task.uid());
+
+  CreateEventForm form(&task, *client_, calendar_, existing, this);
+  int code = form.exec();
+  CalendarEvent *modified_event = form.getEvent();
+  Task *modified_task = dynamic_cast<Task *>(modified_event);
+  if (modified_task == nullptr) return;
+
+  if (code == QDialog::Accepted)
+    ui->calendarTable->createTaskWidget(*modified_task);
+  else if (code == 2)
+    ui->calendarTable->removeTaskByUid(modified_task->uid());
 }

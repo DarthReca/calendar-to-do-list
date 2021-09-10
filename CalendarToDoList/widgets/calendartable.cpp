@@ -139,12 +139,33 @@ void CalendarTable::clearShowingWidgets() {
 }
 
 void CalendarTable::removeByHref(const QString &href) {
+  bool continue_search = true;
   for (auto key_value = showing_events_.keyValueBegin();
        key_value != showing_events_.keyValueEnd(); key_value++) {
     if (key_value->second->item().href() == href) {
       key_value->second->deleteLater();
       showing_events_.remove(key_value->first);
+      continue_search = false;
       break;
     }
   }
+  if (!continue_search) return;
+  for (auto key_value = showing_task_.keyValueBegin();
+       key_value != showing_task_.keyValueEnd(); key_value++) {
+    if (key_value->second->item().href() == href) {
+      key_value->second->deleteLater();
+      showing_task_.remove(key_value->first);
+      break;
+    }
+  }
+}
+
+void CalendarTable::removeTaskByUid(const QString &uid) {
+  showing_task_[uid]->deleteLater();
+  showing_task_.remove(uid);
+}
+
+void CalendarTable::removeEventByUid(const QString &uid) {
+  showing_events_[uid]->deleteLater();
+  showing_events_.remove(uid);
 }

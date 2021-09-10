@@ -35,7 +35,8 @@ class MainWindow : public QMainWindow {
   void fetchChangedElements(QHash<QString, QString> &mapTmp);
 
  private:
-  void on_request_editing_form(CalendarEvent event, bool isEvent = true);
+  void showEventForm(CalendarEvent event);
+  void showTaskForm(Task task);
 
   Ui::MainWindow *ui;
 

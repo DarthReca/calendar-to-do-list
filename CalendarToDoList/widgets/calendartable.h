@@ -35,8 +35,11 @@ class CalendarTable : public QTableWidget {
    */
   void removeByHref(const QString& href);
 
+  void removeTaskByUid(const QString& uid);
+  void removeEventByUid(const QString& uid);
+
   auto& getShowingEvents() { return showing_events_; }
-  auto& getShowingTaks() { return showing_task_; }
+  auto& getShowingTask() { return showing_task_; }
 
   void setVisualMode(TimeFrame new_time_frame, QDate today);
   const TimeFrame& visualMode() { return time_frame_; };
