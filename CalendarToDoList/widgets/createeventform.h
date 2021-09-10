@@ -18,7 +18,9 @@ class CreateEventForm : public QDialog {
   Q_OBJECT
 
  public:
-  explicit CreateEventForm(CalendarEvent* event, CalendarClient& client,
+
+  template <typename T>
+  explicit CreateEventForm(T* event, CalendarClient& client,
                            ICalendar& calendar, bool existing,
                            QWidget* parent = nullptr);
 

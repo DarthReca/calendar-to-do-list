@@ -5,7 +5,8 @@
 
 #include <QMessageBox>
 
-CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
+template <typename T>
+CreateEventForm::CreateEventForm(T* event, CalendarClient& client,
                                  ICalendar& calendar, bool existing,
                                  QWidget* parent)
     : QDialog(parent),
@@ -81,7 +82,7 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
 
     connect(ui->saveButton, &QPushButton::clicked, [this] {
 
-        if(isEvent_){
+        if(std::is_same<T, CalendarEvent>::event_){
             if (ui->startDateTime->date() > ui->endDateTime->date()) {
                 QMessageBox::critical(this, "Error in date selection", "The start date must be before the end date!");
                 return;
