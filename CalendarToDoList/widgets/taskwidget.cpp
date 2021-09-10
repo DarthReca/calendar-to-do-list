@@ -1,19 +1,17 @@
 #include "taskwidget.h"
 
-TaskWidget::TaskWidget(Task &task, CalendarClient &client, ICalendar &calendar,
-                       QWidget *parent)
-    : QPushButton(parent) {
-  task_ = &task;
-  client_ = &client;
-  calendar_ = &calendar;
+TaskWidget::TaskWidget(Task &&task, QWidget *parent) : QPushButton(parent) {
+  setTask(std::move(task));
+}
 
-  QString start_time = task.startDateTime().toString("hh:mm");
-  QString end_time = task.endDateTime().toString("hh:mm");
-  QString text =
-      task.all_day()
-          ? task.summary()
-          : QString("%1\n%2 - %3").arg(task.summary(), start_time, end_time);
+void TaskWidget::setTask(Task &&new_task) {
+  task_ = new_task;
+  QString start_time = task_.startDateTime().toString("hh:mm");
+  QString end_time = task_.endDateTime().toString("hh:mm");
+  QString text = QString("%1\t%2").arg(task_.summary(), start_time);
+  if (task_.all_day()) text = task_.summary();
+
   setText(text);
   setStyleSheet(
-      QString("background-color: %2; color: white").arg(task.getColor()));
+      QString("background-color: %1; color: white").arg(task_.getColor()));
 }

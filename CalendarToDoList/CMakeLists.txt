@@ -42,7 +42,6 @@ set(PROJECT_SOURCES
         CalendarClient/calendarclient.cpp
         CalendarClient/calendarclient.h
         widgets/eventwidget.h widgets/eventwidget.cpp
-        widgets/taskwidget.h widgets/taskwidget.cpp
         widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
         widgets/calendartable.h widgets/calendartable.cpp
         icons/icons.qrc

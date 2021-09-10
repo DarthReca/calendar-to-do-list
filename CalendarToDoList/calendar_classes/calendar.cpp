@@ -16,7 +16,7 @@ ICalendar::ICalendar(const QString &href, const QString &eTag,
       Task task = Task().fromICalendar(ical_object);
       task.setHref(href);
       task.setETag(eTag);
-      if (task.summary() != "") events_ += task;
+      if (task.summary() != "") tasks_ += task;
     } else if (line.contains("CALNAME:")) {
       display_name_ = line.split(":")[1];
     }
@@ -26,6 +26,7 @@ ICalendar::ICalendar(const QString &href, const QString &eTag,
 QString ICalendar::toICalendarObject() {
   QString ical_object = "BEGIN:VCALENDAR\r\n";
   for (CalendarEvent e : events_) ical_object.append(e.toICalendar());
+  for (Task t : tasks_) ical_object += t.toICalendar();
   ical_object.append("END:VCALENDAR");
   return ical_object;
 }

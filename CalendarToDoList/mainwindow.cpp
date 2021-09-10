@@ -119,12 +119,14 @@ void MainWindow::refresh_calendar_events() {
           ICalendar tmp = ICalendar(href, eTag, stream);
 
           for (CalendarEvent &ev : tmp.events()) {
-            EventWidget *widget = ui->calendarTable->createEventWidget(ev);
+            CalendarTableItem<CalendarEvent> *widget =
+                ui->calendarTable->createEventWidget(ev);
             if (widget != nullptr)
-              connect(widget, &EventWidget::clicked, [this, widget]() {
-                on_request_editing_form(widget->event(), true);
-              });
-             calendar_.events().append(ev);
+              connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
+                      [this, widget]() {
+                        on_request_editing_form(widget->item(), true);
+                      });
+            // calendar_.events().append(ev);
           }
         }
       });
@@ -153,12 +155,14 @@ void MainWindow::refresh_calendar_events() {
           QTextStream stream(&calendar_data);
           ICalendar tmp = ICalendar(href, eTag, stream);
 
-          for (CalendarEvent &ev : tmp.events()) {
-            EventWidget *widget = ui->calendarTable->createEventWidget(ev);
+          for (Task &t : tmp.tasks()) {
+            CalendarTableItem<Task> *widget =
+                ui->calendarTable->createTaskWidget(t);
             if (widget != nullptr)
-              connect(widget, &EventWidget::clicked, [this, widget]() {
-                on_request_editing_form(widget->event(), true);
-              });
+              connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
+                      [this, widget]() {
+                        on_request_editing_form(widget->item(), true);
+                      });
           }
         }
       });
@@ -222,11 +226,13 @@ void MainWindow::on_actionSincronizza_triggered() {
 
         if (status.contains("200"))
           for (CalendarEvent &event : cal.events()) {
-            EventWidget *widget = ui->calendarTable->createEventWidget(event);
+            CalendarTableItem<CalendarEvent> *widget =
+                ui->calendarTable->createEventWidget(event);
             if (widget != nullptr)
-              connect(widget, &EventWidget::clicked, [this, widget]() {
-                on_request_editing_form(widget->event(), true);
-              });
+              connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
+                      [this, widget]() {
+                        on_request_editing_form(widget->item(), true);
+                      });
           }
         if (status.contains("404")) ui->calendarTable->removeByHref(href);
       }
@@ -314,12 +320,12 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
 
 void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
-  CalendarEvent *copy_event = &event;
-  CreateEventForm form(copy_event, *client_, calendar_, existing, isEvent,
-                       this);
+  if (dynamic_cast<Task *>(&event)) qDebug() << "Taks";
+  CreateEventForm form(&event, *client_, calendar_, existing, this);
   int code = form.exec();
+  CalendarEvent modified_event = form.getEvent();
   if (code == QDialog::Accepted)
-    ui->calendarTable->createEventWidget(*copy_event);
+    ui->calendarTable->createEventWidget(modified_event);
   else if (code == 2)
-    ui->calendarTable->removeByHref(copy_event->href());
+    ui->calendarTable->removeByHref(modified_event.href());
 }

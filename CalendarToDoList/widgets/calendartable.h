@@ -5,18 +5,15 @@
 #include <QList>
 #include <QObject>
 #include <QPointer>
-#include <QScrollArea>
 #include <QTableWidget>
-#include <QVBoxLayout>
-#include <QWidget>
 
 #include "calendar_classes/calendarevent.h"
 #include "eventwidget.h"
+#include "taskwidget.h"
 
 enum class TimeFrame { kDaily, kWeekly };
 
 class CalendarTable : public QTableWidget {
-  Q_OBJECT
  public:
   explicit CalendarTable(QWidget* parent = nullptr);
   void init();
@@ -26,7 +23,8 @@ class CalendarTable : public QTableWidget {
    * @param event CalendarEvent showed by the widget
    * @return The created widget
    */
-  EventWidget* createEventWidget(CalendarEvent& event);
+  CalendarTableItem<CalendarEvent>* createEventWidget(CalendarEvent& event);
+  CalendarTableItem<Task>* createTaskWidget(Task& task);
   /**
    * @brief Remove all widgets
    */
@@ -37,9 +35,8 @@ class CalendarTable : public QTableWidget {
    */
   void removeByHref(const QString& href);
 
-  QHash<QString, QPointer<EventWidget>>& getShowingEvents() {
-    return showing_events_;
-  }
+  auto& getShowingEvents() { return showing_events_; }
+  auto& getShowingTaks() { return showing_task_; }
 
   void setVisualMode(TimeFrame new_time_frame, QDate today);
   const TimeFrame& visualMode() { return time_frame_; };
@@ -51,12 +48,14 @@ class CalendarTable : public QTableWidget {
   void resizeEvent(QResizeEvent* event);
 
  private:
-  void resizeAndMove(EventWidget* widget);
+  template <class T>
+  void resizeAndMove(CalendarTableItem<T>* widget);
 
   TimeFrame time_frame_;
   QDate today_;
 
-  QHash<QString, QPointer<EventWidget>> showing_events_;
+  QHash<QString, QPointer<CalendarTableItem<CalendarEvent>>> showing_events_;
+  QHash<QString, QPointer<CalendarTableItem<Task>>> showing_task_;
 };
 
 #endif  // CALENDARTABLE_H

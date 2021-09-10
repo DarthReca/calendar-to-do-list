@@ -6,35 +6,25 @@
 
 CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
                                  ICalendar& calendar, bool existing,
-                                 bool isEvent, QWidget* parent)
+                                 QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
       event_(event),
       client_(&client),
       calendar_(&calendar),
-      existing_(existing),
-      isEvent_(isEvent) {
+      existing_(existing) {
   ui->setupUi(this);
 
-  resetFormFields();
-
   if (existing_) ui->typeSelection->hide();
-
-  // TYPE
-  if (isEvent)
-    ui->typeSelection->setCurrentText("Evento");
-  else
-    ui->typeSelection->setCurrentText("Attività");
+  resetFormFields();
 
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
-            if (text == "Evento") {
+            if (text == "Evento")
               event_ = new CalendarEvent();
-              isEvent_ = true;
-            } else {
+            else
               event_ = new Task();
-              isEvent_ = false;
-            }
+
             resetFormFields();
           });
 
@@ -167,11 +157,14 @@ void CreateEventForm::resetFormFields() {
     QString text = task->completed().first ? "Segna come non completata"
                                            : "Segna come completata";
     ui->completionButton->setText(text);
+    ui->typeSelection->setCurrentText("Attività");
+    qDebug() << "Task";
   } else {
     ui->completionButton->hide();
     // Show
     ui->RRule->show();
     ui->locationEdit->show();
     ui->endDateTime->show();
+    ui->typeSelection->setCurrentText("Evento");
   }
 }

@@ -12,15 +12,13 @@ class TaskWidget : public QPushButton {
   Q_OBJECT
 
  public:
-  explicit TaskWidget(Task& task, CalendarClient& client, ICalendar& calendar,
-                      QWidget* parent = nullptr);
+  explicit TaskWidget(Task&& task, QWidget* parent = nullptr);
 
-  Task* task() const { return task_; };
+  void setTask(Task&& new_task);
+  Task& task() { return task_; };
 
  private:
-  Task* task_;
-  QPointer<CalendarClient> client_;
-  ICalendar* calendar_;
+  Task task_;
 };
 
 #endif  // TASKWIDGET_H
