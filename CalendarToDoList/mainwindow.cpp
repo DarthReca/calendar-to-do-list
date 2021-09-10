@@ -223,15 +223,13 @@ void MainWindow::on_actionSincronizza_triggered() {
 
         if (status.contains("200")) {
           for (CalendarEvent &event : cal.events()) {
-            CalendarTableItem<CalendarEvent> *widget =
-                ui->calendarTable->createEventWidget(event);
+            auto widget = ui->calendarTable->createEventWidget(event);
             if (widget != nullptr)
               connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
                       [this, widget]() { showEventForm(widget->item()); });
           }
           for (Task &task : cal.tasks()) {
-            CalendarTableItem<Task> *widget =
-                ui->calendarTable->createTaskWidget(task);
+            auto widget = ui->calendarTable->createTaskWidget(task);
             if (widget != nullptr)
               connect(widget, &CalendarTableItem<Task>::clicked,
                       [this, widget]() { showTaskForm(widget->item()); });
@@ -326,10 +324,14 @@ void MainWindow::showEventForm(CalendarEvent event) {
   CreateEventForm form(&event, *client_, calendar_, existing, this);
   int code = form.exec();
   CalendarEvent modified_event = *form.getEvent();
-  if (code == QDialog::Accepted)
-    ui->calendarTable->createEventWidget(modified_event);
-  else if (code == 2)
+  if (code == QDialog::Accepted) {
+    auto widget = ui->calendarTable->createEventWidget(modified_event);
+    if (widget != nullptr)
+      connect(widget, &CalendarTableItem<CalendarEvent>::clicked,
+              [this, widget]() { showEventForm(widget->item()); });
+  } else if (code == 2) {
     ui->calendarTable->removeEventByUid(modified_event.uid());
+  }
 }
 
 void MainWindow::showTaskForm(Task task) {
@@ -341,8 +343,12 @@ void MainWindow::showTaskForm(Task task) {
   Task *modified_task = dynamic_cast<Task *>(modified_event);
   if (modified_task == nullptr) return;
 
-  if (code == QDialog::Accepted)
-    ui->calendarTable->createTaskWidget(*modified_task);
-  else if (code == 2)
+  if (code == QDialog::Accepted) {
+    auto widget = ui->calendarTable->createTaskWidget(*modified_task);
+    if (widget != nullptr)
+      connect(widget, &CalendarTableItem<Task>::clicked,
+              [this, widget]() { showTaskForm(widget->item()); });
+  } else if (code == 2) {
     ui->calendarTable->removeTaskByUid(modified_task->uid());
+  }
 }
