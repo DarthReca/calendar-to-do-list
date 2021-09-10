@@ -29,14 +29,10 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
           [this](const QString& text) {
             if (text == "Evento") {
-              if (!existing_) {
-                event_ = new CalendarEvent;
-              }
+              event_ = new CalendarEvent();
               isEvent_ = true;
             } else {
-              if (!existing_) {
-                event_ = new Task;
-              }
+              event_ = new Task();
               isEvent_ = false;
             }
             resetFormFields();
@@ -76,206 +72,76 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
   connect(ui->RRule, &QComboBox::currentTextChanged,
           [this](const QString& text) {
             QDate start_date = event_->startDateTime().date();
-            if (text == "Non si ripete") {
-              event_->setRRULE("");
-            }
-            if (text == "Ogni giorno") {
-              event_->setRRULE("FREQ=DAILY");
-            }
-            if (text == "Ogni settimana") {
+            if (text == "Non si ripete") event_->setRRULE("");
+
+            if (text == "Ogni giorno") event_->setRRULE("FREQ=DAILY");
+
+            if (text == "Ogni settimana")
               event_->setRRULE(QString("FREQ=WEEKLY; BYDAY=%1")
                                    .arg(CalendarEvent::stringFromWeekDay(
                                        start_date.dayOfWeek())));
-            }
-            if (text == "Ogni mese") {
+
+            if (text == "Ogni mese")
               event_->setRRULE(
                   QString("FREQ=MONTHLY; BYMONTHDAY=%1").arg(start_date.day()));
-            }
-            if (text == "Ogni anno") {
-              event_->setRRULE("FREQ=YEARLY");
-            }
+
+            if (text == "Ogni anno") event_->setRRULE("FREQ=YEARLY");
           });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
+    QDateTime max = ui->endDateTime->dateTime();
+    if (ui->startDateTime->dateTime() > max) {
+      max.setTime(ui->startDateTime->time());
+      event_->setStartDateTime(max);
+      qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
+                      event_->startDateTime().toString();
+    }
+    // NEW EVENT
     if (!existing_) {
-      // nuovo evento
-      if (isEvent_) {
-        QDateTime max = ui->endDateTime->dateTime();
-        if (ui->startDateTime->dateTime() > max) {
-          max.setTime(ui->startDateTime->time());
-          event_->setStartDateTime(max);
-          qDebug() << "Date: " + event_->startDateTime().toString() + "     " +
-                          event_->startDateTime().toString();
-        }
-        auto reply = client_->saveElement(*event_);
-        connect(reply, &QNetworkReply::finished, [this]() {
-          // imposto il nuovo eTag dell'evento
-          auto reply1 = client_->getElementByUID(event_->uid(), true);
+      auto reply = client_->saveElement(*event_);
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        // imposto il nuovo eTag dell'evento
+        auto reply1 = client_->getElementByUID(event_->uid());
+        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+          QDomDocument res;
+          res.setContent(reply1->readAll());
+          auto eTagList = res.elementsByTagName("d:getetag");
+          event_->setETag(eTagList.at(0).toElement().text());
+          qDebug() << "New event saved\n";
+          emit requestView();
+          accept();
+        });
+      });
+    }
+    // UPDATE EVENT
+    else {
+      auto reply = client_->updateElement(*event_, event_->eTag());
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->hasRawHeader("ETag")) {
+          event_->setETag(reply->rawHeader("ETag"));
+          accept();
+        } else {
+          auto reply1 = client_->getElementByUID(event_->uid());
           connect(reply1, &QNetworkReply::finished, [reply1, this]() {
             QDomDocument res;
             res.setContent(reply1->readAll());
-            auto href_list = res.elementsByTagName("d:href");
             auto eTagList = res.elementsByTagName("d:getetag");
             event_->setETag(eTagList.at(0).toElement().text());
-            event_->setHref(href_list.at(0).toElement().text());
-            client_->eTags().insert(href_list.at(0).toElement().text(),
-                                    eTagList.at(0).toElement().text());
-            qDebug() << "New event saved\n";
-            emit requestView();
             accept();
           });
-        });
-      }
-    } else {
-      if (isEvent_) {
-        QString hrefToUpdate = event_->href();
-        // elimino l'evento vecchio dalla lista
-        for (CalendarEvent& ev : calendar_->events()) {
-          if (ev.href() == hrefToUpdate) {
-            calendar_->events().removeOne(ev);
-          }
         }
-        // elimino il vecchio eTag dalla lista
-        for (auto el : client_->eTags().keys()) {
-          if (el == hrefToUpdate) {
-            client_->eTags().remove(el);
-          }
-        }
-        auto reply = client_->updateElement(*event_, event_->eTag());
-        connect(reply, &QNetworkReply::finished, [this, reply, hrefToUpdate]() {
-          // imposto il nuovo eTag dell'evento
-          bool flag = false;
-          for (auto el : reply->rawHeaderPairs()) {
-            if (el.first ==
-                "ETag") {  // eTag direttamente restituito dal server
-              (*event_).setETag(el.second);
-              calendar_->events().append(*event_);
-              client_->eTags().insert(hrefToUpdate, el.second);
-              flag = true;
-            }
-          }
-          if (!flag) {
-            auto reply1 = nullptr;  // client_->getElementByUID(event_->uid());
-            connect(reply1, &QNetworkReply::finished,
-                    [reply1, this, hrefToUpdate]() {
-                      QDomDocument res;
-                      // res.setContent(reply1->readAll());
-                      auto href_list = res.elementsByTagName("d:href");
-                      auto eTagList = res.elementsByTagName("d:getetag");
-                      (*event_).setETag(eTagList.at(0).toElement().text());
-                      client_->eTags().insert(
-                          hrefToUpdate, eTagList.at(0).toElement().text());
-                      calendar_->events().append(*event_);
-                    });
-          }
-          qDebug() << "Event updated\n";
-        });
-        // nuovo task
-      } else {
-        Task* task = dynamic_cast<Task*>(event_);
-        // elimino il task vecchio dalla lista
-        QString hrefToUpdate = task->href();
-        /*
-        for (Task& t : calendar_->tasks()) {
-          if (t.href() == hrefToUpdate) {
-            calendar_->tasks().removeOne(t);
-          }
-        }
-        */
-        // elimino il vecchio eTag dalla lista
-        for (auto el : client_->eTags().keys()) {
-          if (el == hrefToUpdate) {
-            client_->eTags().remove(el);
-          }
-        }
-        auto reply = client_->updateElement(*task, task->eTag());
-        connect(reply, &QNetworkReply::finished,
-                [this, reply, task, hrefToUpdate]() {
-                  // imposto il nuovo eTag dell'evento
-                  bool flag = false;
-                  for (auto el : reply->rawHeaderPairs()) {
-                    if (el.first ==
-                        "ETag") {  // eTag direttamente restituito dal server
-                      (*event_).setETag(el.second);
-                      client_->eTags().insert(hrefToUpdate, el.second);
-                      // calendar_->tasks().append(*task);
-                      flag = true;
-                    }
-                  }
-                  if (!flag) {
-                    auto reply1 =
-                        nullptr;  // client_->getElementByUID(task->uid());
-                    connect(
-                        reply1, &QNetworkReply::finished,
-                        [reply1, this, task, hrefToUpdate]() {
-                          QDomDocument res;
-                          // res.setContent(reply1->readAll());
-                          auto href_list = res.elementsByTagName("d:href");
-                          auto eTagList = res.elementsByTagName("d:getetag");
-                          (*task).setETag(eTagList.at(0).toElement().text());
-                          client_->eTags().insert(
-                              hrefToUpdate, eTagList.at(0).toElement().text());
-                          // calendar_->tasks().append(*task);
-                        });
-                  }
-                });
-      }
+        qDebug() << "Event updated\n";
+      });
     }
   });
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      if (isEvent_) {
-        qDebug() << "Event not created\n";
-      } else {
-        qDebug() << "Task not created\n";
-      }
-      event_ = nullptr;
+      qDebug() << "Event not deleted\n";
+      reject();
     } else {
-      if (isEvent_) {
-        QString hrefToDelete = event_->href();
-        QString eTag = event_->eTag();
-        calendar_->events().removeOne(*event_);
-        client_->deleteETag(hrefToDelete);
-        client_->deleteElement(*event_, eTag);
-      } else {
-        Task* task = dynamic_cast<Task*>(event_);
-        QString hrefToDelete = task->href();
-        QString eTag = task->eTag();
-        // calendar_->tasks().removeOne(*task);
-        client_->deleteETag(hrefToDelete);
-        client_->deleteElement(*task, eTag);
-      }
-      emit requestView();
+      auto reply = client_->deleteElement(*event_, event_->eTag());
+      connect(reply, &QNetworkReply::finished, [this, reply]() { done(2); });
     }
-    accept();
-  });
-
-  connect(ui->deleteButton, &QPushButton::clicked, [this] {
-    if (!existing_) {
-      if (isEvent_) {
-        qDebug() << "Event not created\n";
-      } else {
-        qDebug() << "Task not created\n";
-      }
-      event_ = nullptr;
-    } else {
-      if (isEvent_) {
-        QString hrefToDelete = event_->href();
-        QString eTag = event_->eTag();
-        calendar_->events().removeOne(*event_);
-        client_->deleteETag(hrefToDelete);
-        client_->deleteElement(*event_, eTag);
-      } else {
-        Task* task = dynamic_cast<Task*>(event_);
-        QString hrefToDelete = task->href();
-        QString eTag = task->eTag();
-        // calendar_->tasks().removeOne(*task);
-        client_->deleteETag(hrefToDelete);
-        client_->deleteElement(*task, eTag);
-      }
-      emit requestView();
-    }
-    accept();
   });
 }
 

@@ -167,7 +167,7 @@ void MainWindow::refresh_calendar_events() {
 void MainWindow::on_actionSincronizza_triggered() {
   if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
 
-  if (sync_token_supported_) {
+  if (!sync_token_supported_) {
     // ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
@@ -179,6 +179,7 @@ void MainWindow::on_actionSincronizza_triggered() {
         qDebug() << "Calendar already up to date";
       } else {  // se non sono uguali, qualcosa è cambiato
         client_->setCTag(newCTag);
+        // TODO: ottimizzare e rendere funzionante
         auto reply1 = client_->lookForChanges();  // ottengo gli eTag per vedere
         // quali sono cambiati
         connect(reply1, &QNetworkReply::finished, [this, reply1]() {
@@ -313,7 +314,12 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
 
 void MainWindow::on_request_editing_form(CalendarEvent event, bool isEvent) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
-  CreateEventForm form(&event, *client_, calendar_, existing, isEvent, this);
+  CalendarEvent *copy_event = &event;
+  CreateEventForm form(copy_event, *client_, calendar_, existing, isEvent,
+                       this);
   int code = form.exec();
-  if (code == QDialog::Accepted) ui->calendarTable->createEventWidget(event);
+  if (code == QDialog::Accepted)
+    ui->calendarTable->createEventWidget(*copy_event);
+  else if (code == 2)
+    ui->calendarTable->removeByHref(copy_event->href());
 }
