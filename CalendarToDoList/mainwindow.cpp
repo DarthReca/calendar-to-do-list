@@ -36,18 +36,34 @@ MainWindow::MainWindow(QWidget *parent)
         ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(), date);
     });
 
-    connect(ui->actionOgni_10_secondi, &QAction::triggered,
-            [this]() { timer_->start(10000); });
-    connect(ui->actionOgni_30_secondi, &QAction::triggered,
-            [this]() { timer_->start(30000); });
-    connect(ui->actionOgni_minuto, &QAction::triggered,
-            [this]() { timer_->start(60000); });
-    connect(ui->actionOgni_10_minuti, &QAction::triggered,
-            [this]() { timer_->start(600000); });
+    connect(ui->actionOgni_10_secondi, &QAction::triggered,[this]() {
+        if(!readyToGo_)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        else
+            timer_->start(10000);
+    });
+    connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() {
+        if(!readyToGo_)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        else
+            timer_->start(30000);
+    });
+    connect(ui->actionOgni_minuto, &QAction::triggered, [this]() {
+        if(!readyToGo_)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non ha ancora risposto, riprova più tardi");
+        else
+            timer_->start(60000);
+    });
+    connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() {
+        if(!readyToGo_)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        else
+            timer_->start(600000);
+    });
 
     connect(ui->createEvent, &QPushButton::clicked,[this]() {
         if(!readyToGo_){
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non ha ancora risposto, riprova più tardi");
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
         }
         else{
             showEventForm(CalendarEvent());
@@ -185,6 +201,10 @@ void MainWindow::refresh_calendar_events() {
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
+    if(!readyToGo_){
+        QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        return;
+    }
     if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
 
     if (!sync_token_supported_) {
