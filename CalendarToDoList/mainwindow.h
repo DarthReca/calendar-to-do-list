@@ -34,7 +34,7 @@ class MainWindow : public QMainWindow {
   void compareElements(QNetworkReply &reply, QHash<QString, QString> &mapTmp);
   void fetchChangedElements(QHash<QString, QString> &mapTmp);
 
- private:
+private:
   void showEventForm(CalendarEvent event);
   void showTaskForm(Task task);
 
@@ -46,5 +46,6 @@ class MainWindow : public QMainWindow {
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;
+  bool readyToGo_;
 };
 #endif  // MAINWINDOW_H

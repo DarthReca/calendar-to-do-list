@@ -113,10 +113,6 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           event_->setHref(hrefList.at(0).toElement().text());
           qDebug() << "Href: " + event_->href();
           qDebug() << "New event saved\n";
-
-          /*qDebug() << event_->uid() + "   " + event_->eTag() + "   "
-+ event_->href() + "   " + event_->endDateTime().toString();*/
-
           emit requestView();
           accept();
         });
