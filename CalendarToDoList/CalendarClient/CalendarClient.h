@@ -77,7 +77,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Gets an event with a specific UID from the calDAV server.
    */
-  QNetworkReply* getElementByUID(QString UID);
+  QNetworkReply* getElementByUID(QString UID, bool isEvent);
   /**
    * @brief Gets all events in a specific time range.
    */

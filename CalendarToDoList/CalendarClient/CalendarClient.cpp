@@ -227,7 +227,7 @@ QNetworkReply* CalendarClient::getAllElements() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getElementByUID(QString UID) {
+QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
   if (!supportedMethods_.contains("REPORT")) {
     qDebug() << "Method REPORT not supported in call getElementByUID";
     return nullptr;
@@ -237,9 +237,10 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID) {
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));
   cal_part.setRawHeader("Depth", "1");
-  cal_part.setRawHeader("Prefer", "return-minimal");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentLengthHeader,
+                     "xxxx");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
 
@@ -253,14 +254,15 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID) {
   tagProp.appendChild(xml.createElement("c:calendar-data"));
   root.appendChild(tagProp);
   QDomElement tagFilter = xml.createElement("c:filter");
-  QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-  tagCompFilter.setAttribute("name", "VCALENDAR");
-  tagFilter.appendChild(tagCompFilter);
-  QDomElement tag_comp_filter2 = xml.createElement("c:comp-filter");
-  tagCompFilter.appendChild(tag_comp_filter2);
+  QDomElement tagCompFilter1 = xml.createElement("c:comp-filter");
+  tagCompFilter1.setAttribute("name", "VCALENDAR");
+  tagFilter.appendChild(tagCompFilter1);
+  QDomElement tagCompFilter2 = xml.createElement("c:comp-filter");
+  tagCompFilter2.setAttribute("name", isEvent ? "VEVENT" : "VTODO");
+  tagCompFilter1.appendChild(tagCompFilter2);
   QDomElement tagPropFilter = xml.createElement("c:prop-filter");
   tagPropFilter.setAttribute("name", "UID");
-  tag_comp_filter2.appendChild(tagPropFilter);
+  tagCompFilter2.appendChild(tagPropFilter);
   QDomElement tagTextMatch = xml.createElement("c:text-match");
   tagPropFilter.setAttribute("collation", "i;octet");
   tagTextMatch.appendChild(xml.createTextNode(UID));
