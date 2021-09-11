@@ -46,6 +46,7 @@ private:
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;
-  bool readyToGo_;
+  bool readyEvent;
+  bool readyTask;
 };
 #endif  // MAINWINDOW_H

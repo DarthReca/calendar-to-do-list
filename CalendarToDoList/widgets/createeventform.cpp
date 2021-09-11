@@ -108,10 +108,8 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
           res.setContent(reply1->readAll());
           auto eTagList = res.elementsByTagName("d:getetag");
           event_->setETag(eTagList.at(0).toElement().text());
-          qDebug() << "Etag: " + event_->eTag();
           auto hrefList = res.elementsByTagName("d:href");
           event_->setHref(hrefList.at(0).toElement().text());
-          qDebug() << "Href: " + event_->href();
           qDebug() << "New event saved\n";
           emit requestView();
           accept();
@@ -134,10 +132,8 @@ CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
             res.setContent(reply1->readAll());
             auto eTagList = res.elementsByTagName("d:getetag");
             event_->setETag(eTagList.at(0).toElement().text());
-            qDebug() << "Etag: " + event_->eTag();
             auto hrefList = res.elementsByTagName("d:href");
             event_->setHref(hrefList.at(0).toElement().text());
-            qDebug() << "Href: " + event_->href();
             qDebug() << "Event updated\n";
             emit requestView();
             accept();

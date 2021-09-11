@@ -18,7 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
       timer_(new QTimer(this)),
       client_(new CalendarClient(this)),
       sync_token_supported_(false),
-      readyToGo_(false) {
+      readyEvent(false),
+      readyTask(false) {
     // Setup
     ui->setupUi(this);
     ui->calendarTable->init();
@@ -37,33 +38,33 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(ui->actionOgni_10_secondi, &QAction::triggered,[this]() {
-        if(!readyToGo_)
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        if(!readyEvent || !readyTask)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova fra qualche istante");
         else
             timer_->start(10000);
     });
     connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() {
-        if(!readyToGo_)
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        if(!readyEvent || !readyTask)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova fra qualche istante");
         else
             timer_->start(30000);
     });
     connect(ui->actionOgni_minuto, &QAction::triggered, [this]() {
-        if(!readyToGo_)
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non ha ancora risposto, riprova più tardi");
+        if(!readyEvent || !readyTask)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non ha ancora risposto, riprova fra qualche istante");
         else
             timer_->start(60000);
     });
     connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() {
-        if(!readyToGo_)
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        if(!readyEvent || !readyTask)
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova fra qualche istante");
         else
             timer_->start(600000);
     });
 
     connect(ui->createEvent, &QPushButton::clicked,[this]() {
-        if(!readyToGo_){
-            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+        if(!readyEvent || !readyTask){
+            QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova fra qualche istante");
         }
         else{
             showEventForm(CalendarEvent());
@@ -117,8 +118,6 @@ MainWindow::MainWindow(QWidget *parent)
             refresh_calendar_events();
             timer_->start(20000);
         });
-
-        readyToGo_=true;
     });
 }
 
@@ -163,6 +162,7 @@ void MainWindow::refresh_calendar_events() {
                 // calendar_.events().append(ev);
             }
         }
+        readyEvent=true;
     });
 
     // prendo tutti i task dalla data selezionata a una settimana dopo
@@ -197,12 +197,13 @@ void MainWindow::refresh_calendar_events() {
                             [this, widget]() { showTaskForm(widget->item()); });
             }
         }
+        readyTask=true;
     });
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
-    if(!readyToGo_){
-        QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova più tardi");
+    if(!readyEvent || !readyTask){
+        QMessageBox::warning(this, "Attendi ancora un pò", "Il server non è ancora pronto, riprova fra qualche istante");
         return;
     }
     if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
