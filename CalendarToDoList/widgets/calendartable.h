@@ -6,9 +6,11 @@
 #include <QObject>
 #include <QPointer>
 #include <QTableWidget>
+#include <functional>
 
 #include "calendar_classes/calendarevent.h"
 #include "eventwidget.h"
+#include "mainwindow.h"
 #include "taskwidget.h"
 
 enum class TimeFrame { kDaily, kWeekly };
@@ -23,8 +25,10 @@ class CalendarTable : public QTableWidget {
    * @param event CalendarEvent showed by the widget
    * @return The created widget
    */
-  CalendarTableItem<CalendarEvent>* createEventWidget(CalendarEvent& event);
-  CalendarTableItem<Task>* createTaskWidget(Task& task);
+  CalendarTableItem<CalendarEvent>* createEventWidget(CalendarEvent& event,
+                                                      MainWindow* main_window);
+  CalendarTableItem<Task>* createTaskWidget(Task& task,
+                                            MainWindow* main_window);
   /**
    * @brief Remove all widgets
    */

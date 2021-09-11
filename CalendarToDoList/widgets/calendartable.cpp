@@ -96,7 +96,7 @@ QPair<QDate, QDate> CalendarTable::getDateRange() {
 }
 
 CalendarTableItem<CalendarEvent> *CalendarTable::createEventWidget(
-    CalendarEvent &event) {
+    CalendarEvent &event, MainWindow *main_window) {
   // TODO: ACTUAL ASSUMPTION NO RECURRENCY
   auto range = getDateRange();
   if (event.startDateTime().date() < range.first ||
@@ -108,6 +108,9 @@ CalendarTableItem<CalendarEvent> *CalendarTable::createEventWidget(
     widget->setItem(std::move(event));
   } else {
     widget = new CalendarTableItem<CalendarEvent>(std::move(event), viewport());
+    connect(widget, &QPushButton::clicked, [widget, main_window]() {
+      main_window->showEventForm(widget->item());
+    });
     showing_events_[event.uid()] = widget;
   }
 
@@ -115,7 +118,8 @@ CalendarTableItem<CalendarEvent> *CalendarTable::createEventWidget(
   return widget;
 }
 
-CalendarTableItem<Task> *CalendarTable::createTaskWidget(Task &task) {
+CalendarTableItem<Task> *CalendarTable::createTaskWidget(
+    Task &task, MainWindow *main_window) {
   auto range = getDateRange();
   if (task.startDateTime().date() < range.first ||
       task.endDateTime().date() > range.second)
@@ -126,6 +130,9 @@ CalendarTableItem<Task> *CalendarTable::createTaskWidget(Task &task) {
     widget->setItem(std::move(task));
   } else {
     widget = new CalendarTableItem<Task>(std::move(task), viewport());
+    connect(widget, &CalendarTableItem<Task>::clicked, [main_window, widget]() {
+      main_window->showTaskForm(widget->item());
+    });
     showing_task_[task.uid()] = widget;
   }
 

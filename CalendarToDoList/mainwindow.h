@@ -24,6 +24,9 @@ class MainWindow : public QMainWindow {
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
+  void showEventForm(CalendarEvent event);
+  void showTaskForm(Task task);
+
  signals:
   void show();
   void initialized();
@@ -34,10 +37,7 @@ class MainWindow : public QMainWindow {
   void compareElements(QNetworkReply &reply, QHash<QString, QString> &mapTmp);
   void fetchChangedElements(QHash<QString, QString> &mapTmp);
 
-private:
-  void showEventForm(CalendarEvent event);
-  void showTaskForm(Task task);
-
+ private:
   Ui::MainWindow *ui;
 
   QPointer<CalendarEvent> editing_event_;
