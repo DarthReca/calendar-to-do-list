@@ -6,8 +6,8 @@
 #include <QTimer>
 
 CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
-  showing_events_ =
-      QHash<QString, QPointer<CalendarTableItem<CalendarEvent>>>();
+  showing_events_ = QHash<QString, QList<EventWidgetPointer>>();
+  showing_task_ = QHash<QString, QList<TaskWidgetPointer>>();
 }
 
 void CalendarTable::init() {
@@ -29,10 +29,13 @@ void CalendarTable::init() {
 
 void CalendarTable::resizeEvent(QResizeEvent *event) {
   QTableWidget::resizeEvent(event);
-  QTimer *timer = new QTimer(this);
+  QPointer<QTimer> timer = new QTimer(this);
   timer->setSingleShot(true);
   connect(timer, &QTimer::timeout, [this]() {
-    for (auto &widget : showing_events_) resizeAndMove<CalendarEvent>(widget);
+    for (auto &widget_list : showing_events_)
+      for (auto &widget : widget_list) resizeAndMove<CalendarEvent>(widget);
+    for (auto &widget_list : showing_task_)
+      for (auto &widget : widget_list) resizeAndMove<Task>(widget);
   });
   timer->start(20);
 }
@@ -95,62 +98,58 @@ QPair<QDate, QDate> CalendarTable::getDateRange() {
   return range;
 }
 
-CalendarTableItem<CalendarEvent> *CalendarTable::createEventWidget(
-    CalendarEvent &event, MainWindow *main_window) {
-  // TODO: ACTUAL ASSUMPTION NO RECURRENCY
+void CalendarTable::createEventWidget(CalendarEvent &event,
+                                      MainWindow *main_window) {
   auto range = getDateRange();
   if (event.startDateTime().date() < range.first ||
       event.endDateTime().date() > range.second)
-    return nullptr;
-  QPointer<CalendarTableItem<CalendarEvent>> widget;
-  if (showing_events_.contains(event.uid())) {
-    widget = showing_events_[event.uid()];
-    widget->setItem(std::move(event));
-  } else {
-    widget = new CalendarTableItem<CalendarEvent>(std::move(event), viewport());
-    connect(widget, &QPushButton::clicked, [widget, main_window]() {
-      main_window->showEventForm(widget->item());
-    });
-    showing_events_[event.uid()] = widget;
-  }
+    return;
+
+  if (showing_events_.contains(event.uid()) &&
+      showing_events_[event.uid()][0]->item().eTag() != event.eTag())
+    clearWidgetList(showing_events_[event.uid()]);
+
+  auto widget =
+      new CalendarTableItem<CalendarEvent>(std::move(event), viewport());
+  connect(widget, &QPushButton::clicked, [widget, main_window]() {
+    main_window->showEventForm(widget->item());
+  });
+  showing_events_[event.uid()] += widget;
 
   resizeAndMove<CalendarEvent>(widget);
-  return widget;
 }
 
-CalendarTableItem<Task> *CalendarTable::createTaskWidget(
-    Task &task, MainWindow *main_window) {
+void CalendarTable::createTaskWidget(Task &task, MainWindow *main_window) {
   auto range = getDateRange();
   if (task.startDateTime().date() < range.first ||
       task.endDateTime().date() > range.second)
-    return nullptr;
-  QPointer<CalendarTableItem<Task>> widget;
-  if (showing_task_.contains(task.uid())) {
-    widget = showing_task_[task.uid()];
-    widget->setItem(std::move(task));
-  } else {
-    widget = new CalendarTableItem<Task>(std::move(task), viewport());
-    connect(widget, &CalendarTableItem<Task>::clicked, [main_window, widget]() {
-      main_window->showTaskForm(widget->item());
-    });
-    showing_task_[task.uid()] = widget;
-  }
+    return;
+  if (showing_task_.contains(task.uid()) &&
+      showing_task_[task.uid()][0]->item().eTag() != task.eTag())
+    clearWidgetList(showing_task_[task.uid()]);
+
+  auto widget = new CalendarTableItem<Task>(std::move(task), viewport());
+  connect(widget, &CalendarTableItem<Task>::clicked, [main_window, widget]() {
+    main_window->showTaskForm(widget->item());
+  });
+  showing_task_[task.uid()] += widget;
 
   resizeAndMove<Task>(widget);
-  return widget;
 }
 
 void CalendarTable::clearShowingWidgets() {
-  for (auto &widget : showing_events_) widget->deleteLater();
+  for (auto &widget_list : showing_events_) clearWidgetList(widget_list);
   showing_events_.clear();
+  for (auto &widget_list : showing_task_) clearWidgetList(widget_list);
+  showing_task_.clear();
 }
 
 void CalendarTable::removeByHref(const QString &href) {
   bool continue_search = true;
   for (auto key_value = showing_events_.keyValueBegin();
        key_value != showing_events_.keyValueEnd(); key_value++) {
-    if (key_value->second->item().href() == href) {
-      key_value->second->deleteLater();
+    if (key_value->second[0]->item().href() == href) {
+      clearWidgetList(key_value->second);
       showing_events_.remove(key_value->first);
       continue_search = false;
       break;
@@ -159,8 +158,8 @@ void CalendarTable::removeByHref(const QString &href) {
   if (!continue_search) return;
   for (auto key_value = showing_task_.keyValueBegin();
        key_value != showing_task_.keyValueEnd(); key_value++) {
-    if (key_value->second->item().href() == href) {
-      key_value->second->deleteLater();
+    if (key_value->second[0]->item().href() == href) {
+      clearWidgetList(key_value->second);
       showing_task_.remove(key_value->first);
       break;
     }
@@ -168,11 +167,18 @@ void CalendarTable::removeByHref(const QString &href) {
 }
 
 void CalendarTable::removeTaskByUid(const QString &uid) {
-  showing_task_[uid]->deleteLater();
+  clearWidgetList(showing_task_[uid]);
   showing_task_.remove(uid);
 }
 
 void CalendarTable::removeEventByUid(const QString &uid) {
-  showing_events_[uid]->deleteLater();
+  clearWidgetList(showing_events_[uid]);
   showing_events_.remove(uid);
+}
+
+template <class T>
+void CalendarTable::clearWidgetList(
+    QList<QPointer<CalendarTableItem<T>>> &list) {
+  for (auto &widget : list) widget->deleteLater();
+  list.clear();
 }

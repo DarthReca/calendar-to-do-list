@@ -512,11 +512,6 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
   QDomElement calendar_data = xml.createElement("c:calendar-data");
-  // Expansion of recurrencies
-  QDomElement expand = xml.createElement("c:expand");
-  expand.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  expand.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  calendar_data.appendChild(expand);
   tagProp.appendChild(calendar_data);
   root.appendChild(tagProp);
 

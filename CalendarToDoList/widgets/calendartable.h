@@ -11,7 +11,9 @@
 #include "calendar_classes/calendarevent.h"
 #include "eventwidget.h"
 #include "mainwindow.h"
-#include "taskwidget.h"
+
+using EventWidgetPointer = QPointer<CalendarTableItem<CalendarEvent>>;
+using TaskWidgetPointer = QPointer<CalendarTableItem<Task>>;
 
 enum class TimeFrame { kDaily, kWeekly };
 
@@ -23,22 +25,17 @@ class CalendarTable : public QTableWidget {
   /**
    * @brief Create a new widget and show it
    * @param event CalendarEvent showed by the widget
-   * @return The created widget
+   * @param main_window It musts contain a function to connect
+   * @return the created widget
    */
-  CalendarTableItem<CalendarEvent>* createEventWidget(CalendarEvent& event,
-                                                      MainWindow* main_window);
-  CalendarTableItem<Task>* createTaskWidget(Task& task,
-                                            MainWindow* main_window);
+  void createEventWidget(CalendarEvent& event, MainWindow* main_window);
+  void createTaskWidget(Task& task, MainWindow* main_window);
   /**
    * @brief Remove all widgets
    */
   void clearShowingWidgets();
-  /**
-   * @brief Remove the widget corresponding to given href
-   * @param href HRef of the deleted event
-   */
-  void removeByHref(const QString& href);
 
+  void removeByHref(const QString& href);
   void removeTaskByUid(const QString& uid);
   void removeEventByUid(const QString& uid);
 
@@ -50,19 +47,20 @@ class CalendarTable : public QTableWidget {
 
   QPair<QDate, QDate> getDateRange();
 
- signals:
  protected:
   void resizeEvent(QResizeEvent* event);
 
  private:
   template <class T>
   void resizeAndMove(CalendarTableItem<T>* widget);
+  template <class T>
+  void clearWidgetList(QList<QPointer<CalendarTableItem<T>>>& list);
 
   TimeFrame time_frame_;
   QDate today_;
 
-  QHash<QString, QPointer<CalendarTableItem<CalendarEvent>>> showing_events_;
-  QHash<QString, QPointer<CalendarTableItem<Task>>> showing_task_;
+  QHash<QString, QList<EventWidgetPointer>> showing_events_;
+  QHash<QString, QList<TaskWidgetPointer>> showing_task_;
 };
 
 #endif  // CALENDARTABLE_H

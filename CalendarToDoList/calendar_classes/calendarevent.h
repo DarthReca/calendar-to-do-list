@@ -9,6 +9,14 @@ class CalendarEvent {
  public:
   CalendarEvent();
 
+  /**
+   * @brief copyWithRecurrence
+   * @param to_copy It is used to make a copy of all parameters
+   * @param old_to_copy It is used to keep time difference
+   * @return CalendarEvent with coerent start time and end time
+   */
+  CalendarEvent& copyWithRecurrence(CalendarEvent to_copy,
+                                    const CalendarEvent& old_to_copy);
   virtual CalendarEvent& fromICalendar(QTextStream& icalendar);
   virtual QString toICalendar();
 
@@ -25,8 +33,9 @@ class CalendarEvent {
   bool operator<(const CalendarEvent& other) const {
     return (this->start_date_time_ < other.start_date_time_);
   };
+
   bool operator==(const CalendarEvent& other) const {
-    return (this->uid_ == other.uid_);
+    return (uid_ == other.uid_ && eTag_ == other.eTag_);
   };
 
   //////// GETTERS SETTERS /////////

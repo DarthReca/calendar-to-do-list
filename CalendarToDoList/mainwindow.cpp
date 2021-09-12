@@ -10,7 +10,6 @@
 #include "CalendarClient/CalendarClient.h"
 #include "widgets/calendartable.h"
 #include "widgets/eventwidget.h"
-#include "widgets/taskwidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -147,6 +146,7 @@ void MainWindow::refresh_calendar_events() {
       [this, reply, selected_date, end_date]() {
         QDomDocument res;
         res.setContent(reply->readAll());
+
         QDomNodeList responses = res.elementsByTagName("d:response");
 
         for (int i = 0; i < responses.length(); i++) {
@@ -163,10 +163,8 @@ void MainWindow::refresh_calendar_events() {
           QTextStream stream(&calendar_data);
           ICalendar tmp = ICalendar(href, eTag, stream);
 
-          for (CalendarEvent &ev : tmp.events()) {
-            CalendarTableItem<CalendarEvent> *widget =
-                ui->calendarTable->createEventWidget(ev, this);
-          }
+          for (CalendarEvent &ev : tmp.events())
+            ui->calendarTable->createEventWidget(ev, this);
         }
         readyEvent = true;
       });
@@ -195,10 +193,8 @@ void MainWindow::refresh_calendar_events() {
           QTextStream stream(&calendar_data);
           ICalendar tmp = ICalendar(href, eTag, stream);
 
-          for (Task &t : tmp.tasks()) {
-            CalendarTableItem<Task> *widget =
-                ui->calendarTable->createTaskWidget(t, this);
-          }
+          for (Task &t : tmp.tasks())
+            ui->calendarTable->createTaskWidget(t, this);
         }
         readyTask = true;
       });
@@ -212,6 +208,7 @@ void MainWindow::on_actionSincronizza_triggered() {
     return;
   }
   if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
+  qDebug() << "Syncing...";
 
   if (!sync_token_supported_) {
     // ottengo il nuovo cTag e lo confronto con il vecchio
@@ -243,6 +240,7 @@ void MainWindow::on_actionSincronizza_triggered() {
     connect(reply2, &QNetworkReply::finished, [this, reply2]() {
       QDomDocument xml;
       xml.setContent(reply2->readAll());
+      qDebug() << xml.toString();
       QDomNodeList responses = xml.elementsByTagName("d:response");
       QString sync_token =
           xml.elementsByTagName("d:sync-token").at(0).toElement().text();

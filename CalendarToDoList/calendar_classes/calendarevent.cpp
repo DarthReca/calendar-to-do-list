@@ -21,6 +21,21 @@ CalendarEvent::CalendarEvent() {
   all_day_ = false;
 }
 
+CalendarEvent& CalendarEvent::copyWithRecurrence(
+    CalendarEvent to_copy, const CalendarEvent& old_to_copy) {
+  // COPY OTHER PARAMS
+
+  setSummary(to_copy.summary_);
+
+  int start_diff =
+      to_copy.start_date_time_.msecsTo(old_to_copy.start_date_time_);
+  int end_diff = to_copy.end_date_time_.msecsTo(old_to_copy.end_date_time_);
+  setEndDateTime(end_date_time_.addMSecs(end_diff));
+  setStartDateTime(start_date_time_.addMSecs(start_diff));
+
+  return *this;
+}
+
 CalendarEvent& CalendarEvent::fromICalendar(QTextStream& icalendar) {
   for (QString line = icalendar.readLine(); !line.contains("END:VEVENT");
        line = icalendar.readLine()) {
@@ -56,6 +71,7 @@ CalendarEvent& CalendarEvent::fromICalendar(QTextStream& icalendar) {
       setDescription(value);
     }
   }
+  qDebug() << summary_ << ": " << uid_;
   return *this;
 }
 
