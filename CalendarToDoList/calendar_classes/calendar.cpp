@@ -1,6 +1,6 @@
 #include "calendar.h"
 
-ICalendar::ICalendar() { events_ = QVector<CalendarEvent>(); }
+ICalendar::ICalendar() { events_ = QList<CalendarEvent>(); }
 
 ICalendar::ICalendar(const QString &href, const QString &eTag,
                      QTextStream &ical_object)
@@ -29,6 +29,16 @@ QString ICalendar::toICalendarObject() {
   for (Task t : tasks_) ical_object += t.toICalendar();
   ical_object.append("END:VCALENDAR");
   return ical_object;
+}
+
+ICalendar &ICalendar::fromXmlResponse(QDomElement &xml) {
+  QString icalendar =
+      xml.elementsByTagName("cal:calendar-data").at(0).toElement().text();
+  QString etag = xml.elementsByTagName("d:getetag").at(0).toElement().text();
+  QString href = xml.elementsByTagName("d:href").at(0).toElement().text();
+  QTextStream stream(&icalendar);
+  *this = ICalendar(href, etag, stream);
+  return *this;
 }
 
 ICalendar::~ICalendar() { events_.clear(); }

@@ -1,6 +1,7 @@
 #ifndef CALENDAR_H
 #define CALENDAR_H
 
+#include <QDomElement>
 #include <QObject>
 
 #include "calendarevent.h"
@@ -13,6 +14,7 @@ class ICalendar {
   ~ICalendar();
 
   QString toICalendarObject();
+  ICalendar &fromXmlResponse(QDomElement &xml);
 
   QList<CalendarEvent> &events();
   void setEvents(const QVector<CalendarEvent> &newEvents);

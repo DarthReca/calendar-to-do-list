@@ -242,28 +242,18 @@ void MainWindow::on_actionSincronizza_triggered() {
       xml.setContent(reply2->readAll());
       qDebug() << xml.toString();
       QDomNodeList responses = xml.elementsByTagName("d:response");
+
       QString sync_token =
           xml.elementsByTagName("d:sync-token").at(0).toElement().text();
+      client_->setSyncToken(sync_token);
 
       for (int i = 0; i < responses.length(); i++) {
         QDomElement current = responses.at(i).toElement();
-
-        QString icalendar = current.elementsByTagName("cal:calendar-data")
-                                .at(0)
-                                .toElement()
-                                .text();
-        QString etag =
-            current.elementsByTagName("d:getetag").at(0).toElement().text();
-        QString href =
-            current.elementsByTagName("d:href").at(0).toElement().text();
         QString status =
             current.elementsByTagName("d:status").at(0).toElement().text();
 
-        client_->setSyncToken(sync_token);
-        QTextStream stream(&icalendar);
-        ICalendar cal = ICalendar(href, etag, stream);
-
         if (status.contains("200")) {
+          ICalendar cal = ICalendar().fromXmlResponse(current);
           for (CalendarEvent &event : cal.events()) {
             if (event.RRULE().isEmpty()) {
               ui->calendarTable->createEventWidget(event, this);
@@ -277,7 +267,11 @@ void MainWindow::on_actionSincronizza_triggered() {
           for (Task &task : cal.tasks())
             ui->calendarTable->createTaskWidget(task, this);
         }
-        if (status.contains("404")) ui->calendarTable->removeByHref(href);
+        if (status.contains("404")) {
+          QString href =
+              xml.elementsByTagName("d:href").at(0).toElement().text();
+          ui->calendarTable->removeByHref(href);
+        };
       }
     });
   }
