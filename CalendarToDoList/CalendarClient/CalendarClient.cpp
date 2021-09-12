@@ -600,3 +600,54 @@ QNetworkReply* CalendarClient::deleteElement(CalendarEvent& event,
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("DELETE"));
 }
+
+QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
+    const QString& href, QPair<QDateTime, QDateTime> range) {
+  if (!supportedMethods_.contains("REPORT")) {
+    qWarning() << "Method REPORT not supported in call getDateRangeEvents";
+    return nullptr;
+  }
+
+  QNetworkRequest cal_part;
+  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
+  cal_part.setUrl(QUrl(host_.toString() + href));
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
+                     "application/xml; charset=utf-8");
+  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                     "CalendarClient_CalDAV");
+  cal_part.setRawHeader("Prefer", "return-minimal");
+  cal_part.setRawHeader("Depth", "1");
+
+  QDomDocument xml;
+  QDomElement root = xml.createElement("c:calendar-query");
+  root.setAttribute("xmlns:d", "DAV:");
+  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
+  xml.appendChild(root);
+  // PROP
+  QDomElement tagProp = xml.createElement("d:prop");
+  QDomElement cal_data = xml.createElement("c:calendar-data");
+  QDomElement expand = xml.createElement("c:expand");
+  expand.setAttribute("start",
+                      range.first.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  expand.setAttribute("end",
+                      range.second.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  cal_data.appendChild(expand);
+  tagProp.appendChild(cal_data);
+  root.appendChild(tagProp);
+  // FILTER
+  QDomElement tagFilter = xml.createElement("c:filter");
+  // Filter without specefic class
+  QDomElement tagCompFilter = xml.createElement("c:comp-filter");
+  tagFilter.appendChild(tagCompFilter);
+  // Time range filter
+  QDomElement tagTime = xml.createElement("c:time-range");
+  tagTime.setAttribute("start",
+                       range.first.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  tagTime.setAttribute("end",
+                       range.second.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  tagFilter.appendChild(tagTime);
+  root.appendChild(tagFilter);
+
+  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
+                                            xml.toByteArray());
+}

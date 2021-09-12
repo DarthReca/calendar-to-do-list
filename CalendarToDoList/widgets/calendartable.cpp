@@ -98,6 +98,14 @@ QPair<QDate, QDate> CalendarTable::getDateRange() {
   return range;
 }
 
+QPair<QDateTime, QDateTime> CalendarTable::getDateTimeRange() {
+  QPair<QDateTime, QDateTime> range;
+  auto date_range = getDateRange();
+  range.first = QDateTime(date_range.first, QTime(0, 0));
+  range.second = QDateTime(date_range.second, QTime(23, 59));
+  return range;
+}
+
 void CalendarTable::createEventWidget(CalendarEvent &event,
                                       MainWindow *main_window) {
   auto range = getDateRange();

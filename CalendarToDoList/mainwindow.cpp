@@ -264,8 +264,15 @@ void MainWindow::on_actionSincronizza_triggered() {
         ICalendar cal = ICalendar(href, etag, stream);
 
         if (status.contains("200")) {
-          for (CalendarEvent &event : cal.events())
-            ui->calendarTable->createEventWidget(event, this);
+          for (CalendarEvent &event : cal.events()) {
+            if (event.RRULE().isEmpty()) {
+              ui->calendarTable->createEventWidget(event, this);
+            } else {
+              // TODO: expansion for recurrent
+              client_->getExpandedRecurrentEvent(
+                  event.href(), ui->calendarTable->getDateTimeRange());
+            }
+          }
 
           for (Task &task : cal.tasks())
             ui->calendarTable->createTaskWidget(task, this);

@@ -46,6 +46,7 @@ class CalendarTable : public QTableWidget {
   const TimeFrame& visualMode() { return time_frame_; };
 
   QPair<QDate, QDate> getDateRange();
+  QPair<QDateTime, QDateTime> getDateTimeRange();
 
  protected:
   void resizeEvent(QResizeEvent* event);
