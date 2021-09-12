@@ -141,63 +141,41 @@ void MainWindow::refresh_calendar_events() {
   // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-  connect(
-      reply, &QNetworkReply::finished,
-      [this, reply, selected_date, end_date]() {
-        QDomDocument res;
-        res.setContent(reply->readAll());
+  connect(reply, &QNetworkReply::finished,
+          [this, reply, selected_date, end_date]() {
+            QDomDocument res;
+            res.setContent(reply->readAll());
 
-        QDomNodeList responses = res.elementsByTagName("d:response");
+            QDomNodeList responses = res.elementsByTagName("d:response");
 
-        for (int i = 0; i < responses.length(); i++) {
-          QDomElement current = responses.at(i).toElement();
-          QString calendar_data = current.elementsByTagName("cal:calendar-data")
-                                      .at(0)
-                                      .toElement()
-                                      .text();
-          QString href =
-              current.elementsByTagName("d:href").at(0).toElement().text();
-          QString eTag =
-              current.elementsByTagName("d:getetag").at(0).toElement().text();
+            for (int i = 0; i < responses.length(); i++) {
+              QDomElement current = responses.at(i).toElement();
+              ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-          QTextStream stream(&calendar_data);
-          ICalendar tmp = ICalendar(href, eTag, stream);
-
-          for (CalendarEvent &ev : tmp.events())
-            ui->calendarTable->createEventWidget(ev, this);
-        }
-        readyEvent = true;
-      });
+              for (CalendarEvent &ev : tmp.events())
+                ui->calendarTable->createEventWidget(ev, this);
+            }
+            readyEvent = true;
+          });
 
   // prendo tutti i task dalla data selezionata a una settimana dopo
   auto reply2 = client_->getDateRangeTasks(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-  connect(
-      reply2, &QNetworkReply::finished,
-      [this, reply2, selected_date, end_date]() {
-        QDomDocument res;
-        res.setContent(reply2->readAll());
-        QDomNodeList responses = res.elementsByTagName("d:response");
+  connect(reply2, &QNetworkReply::finished,
+          [this, reply2, selected_date, end_date]() {
+            QDomDocument res;
+            res.setContent(reply2->readAll());
+            QDomNodeList responses = res.elementsByTagName("d:response");
 
-        for (int i = 0; i < responses.length(); i++) {
-          QDomElement current = responses.at(i).toElement();
-          QString calendar_data = current.elementsByTagName("cal:calendar-data")
-                                      .at(0)
-                                      .toElement()
-                                      .text();
-          QString href =
-              current.elementsByTagName("d:href").at(0).toElement().text();
-          QString eTag =
-              current.elementsByTagName("d:getetag").at(0).toElement().text();
+            for (int i = 0; i < responses.length(); i++) {
+              QDomElement current = responses.at(i).toElement();
+              ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-          QTextStream stream(&calendar_data);
-          ICalendar tmp = ICalendar(href, eTag, stream);
-
-          for (Task &t : tmp.tasks())
-            ui->calendarTable->createTaskWidget(t, this);
-        }
-        readyTask = true;
-      });
+              for (Task &t : tmp.tasks())
+                ui->calendarTable->createTaskWidget(t, this);
+            }
+            readyTask = true;
+          });
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
@@ -258,9 +236,22 @@ void MainWindow::on_actionSincronizza_triggered() {
             if (event.RRULE().isEmpty()) {
               ui->calendarTable->createEventWidget(event, this);
             } else {
-              // TODO: expansion for recurrent
-              client_->getExpandedRecurrentEvent(
+              auto rec_reply = client_->getExpandedRecurrentEvent(
                   event.href(), ui->calendarTable->getDateTimeRange());
+              connect(rec_reply, &QNetworkReply::finished, [rec_reply, this]() {
+                QDomDocument res;
+                res.setContent(rec_reply->readAll());
+
+                QDomNodeList responses = res.elementsByTagName("d:response");
+
+                for (int i = 0; i < responses.length(); i++) {
+                  QDomElement current = responses.at(i).toElement();
+                  ICalendar tmp = ICalendar().fromXmlResponse(current);
+
+                  for (CalendarEvent &ev : tmp.events())
+                    ui->calendarTable->createEventWidget(ev, this);
+                }
+              });
             }
           }
 
