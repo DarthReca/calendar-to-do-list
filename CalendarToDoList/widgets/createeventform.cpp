@@ -6,244 +6,264 @@
 #include "calendartable.h"
 #include "ui_createeventform.h"
 
-CreateEventForm::CreateEventForm(CalendarEvent* event, CalendarClient& client,
-                                 ICalendar& calendar, bool existing,
-                                 QWidget* parent)
+CreateEventForm::CreateEventForm(ICalendarComponent* event,
+                                 CalendarClient& client, ICalendar& calendar,
+                                 bool existing, QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
-      event_(event),
+      component_(event),
       client_(&client),
       calendar_(&calendar),
       existing_(existing) {
-    ui->setupUi(this);
+  ui->setupUi(this);
 
-    if (existing_) ui->typeSelection->hide();
-    resetFormFields();
+  if (existing_) ui->typeSelection->hide();
+  resetFormFields();
 
-    connect(ui->typeSelection, &QComboBox::currentTextChanged,
-            [this](const QString& text) {
-        if (text == "Evento")
-            event_ = new CalendarEvent();
-        else
-            event_ = new Task();
+  connect(ui->typeSelection, &QComboBox::currentTextChanged,
+          [this](const QString& text) {
+            if (text == "Evento")
+              component_->setType("VEVENT");
+            else
+              component_->setType("VTODO");
 
-        resetFormFields();
-    });
+            resetFormFields();
+          });
 
-    // SUMMARY
-    connect(ui->titleEdit, &QLineEdit::textChanged,
-            [this](const QString& text) { event_->setSummary(text); });
-    // LOCATION
-    connect(ui->locationEdit, &QLineEdit::textChanged,
-            [this](const QString& text) { event_->setLocation(text); });
-    // DESCRIPTION
-    connect(ui->descriptionEdit, &QTextEdit::textChanged,
-            [this]() { event_->setDescription(ui->descriptionEdit->toHtml()); });
-    // ALLDAY
-    connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
-        event_->setAllDay(state == Qt::CheckState::Checked);
-    });
-    // COMPLETION
-    connect(ui->completionButton, &QPushButton::clicked, [this]() {
-        Task* task = dynamic_cast<Task*>(event_);
-        task->flipCompleted();
-        QString text = task->completed().first ? "Segna come non completata"
-                                           : "Segna come completata";
-        ui->completionButton->setText(text);
-    });
-    // SDATETIME
-    connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
-            [this](const QDateTime& datetime) {
-        event_->setStartDateTime(datetime);
-    });
-    // EDATETIME
-    connect(
-                ui->endDateTime, &QDateTimeEdit::dateTimeChanged,
-                [this](const QDateTime& datetime) { event_->setEndDateTime(datetime); });
-    // RRULE
-    connect(ui->RRule, &QComboBox::currentTextChanged,
-            [this](const QString& text) {
-        QDate start_date = event_->startDateTime().date();
-        if (text == "Non si ripete") event_->setRRULE("");
+  // SUMMARY
+  connect(ui->titleEdit, &QLineEdit::textChanged, [this](const QString& text) {
+    component_->setProperty("SUMMARY", text);
+  });
+  // LOCATION
+  connect(ui->locationEdit, &QLineEdit::textChanged,
+          [this](const QString& text) {
+            component_->setProperty("LOCATION", text);
+          });
+  // DESCRIPTION
+  connect(ui->descriptionEdit, &QTextEdit::textChanged, [this]() {
+    component_->setProperty("DESCRIPTION", ui->descriptionEdit->toHtml());
+  });
+  // ALLDAY
+  connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
+    component_->setAllDay(state == Qt::CheckState::Checked);
+  });
+  // COMPLETION
+  connect(ui->completionButton, &QPushButton::clicked, [this]() {
+    auto completed = component_->getProperty("COMPLETED");
+    if (completed.has_value()) {
+      component_->removeProperty("COMPLETED");
+      ui->completionButton->setText("Segna come completata");
+    } else {
+      component_->setProperty(
+          "COMPLETED",
+          QDateTime::currentDateTimeUtc().toString("yyyyMMdd'T'hhmmss'Z'"));
+      ui->completionButton->setText("Segna come non completata");
+    }
 
-        if (text == "Ogni giorno") event_->setRRULE("FREQ=DAILY");
+    QString text = completed.has_value() ? "Segna come non completata"
+                                         : "Segna come completata";
 
-        if (text == "Ogni settimana")
-            event_->setRRULE(QString("FREQ=WEEKLY; BYDAY=%1")
-                             .arg(CalendarEvent::stringFromWeekDay(
-                                      start_date.dayOfWeek())));
+    ui->completionButton->setText(text);
+  });
+  // SDATETIME
+  connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
+          [this](const QDateTime& datetime) {
+            component_->setStartDateTime(datetime);
+          });
+  // EDATETIME
+  connect(ui->endDateTime, &QDateTimeEdit::dateTimeChanged,
+          [this](const QDateTime& datetime) {
+            component_->setEndDateTime(datetime);
+          });
+  // RRULE
+  connect(ui->RRule, &QComboBox::currentTextChanged,
+          [this](const QString& text) {
+            QDate start_date = component_->getStartDateTime().value().date();
+            if (text == "Non si ripete") component_->removeProperty("RRULE");
 
-        if (text == "Ogni mese")
-            event_->setRRULE(
-                        QString("FREQ=MONTHLY; BYMONTHDAY=%1").arg(start_date.day()));
+            if (text == "Ogni giorno")
+              component_->setProperty("RRULE", "FREQ=DAILY");
 
-        if (text == "Ogni anno") event_->setRRULE("FREQ=YEARLY");
-    });
+            if (text == "Ogni settimana")
+              component_->setProperty("RRULE",
+                                      QString("FREQ=WEEKLY; BYDAY=%1")
+                                          .arg(CalendarEvent::stringFromWeekDay(
+                                              start_date.dayOfWeek())));
 
-    connect(ui->saveButton, &QPushButton::clicked, [this] {
-        if (dynamic_cast<Task*>(event_) == nullptr) {
-            if (ui->startDateTime->date() > ui->endDateTime->date()) {
-                QMessageBox::critical(this, "Error in date selection",
-                                      "The start date must be before the end date!");
-                return;
-            } else {
-                if (ui->startDateTime->time() > ui->endDateTime->time()) {
-                    QMessageBox::critical(this, "Error in time selection",
-                                          "The start time must be before the end time!");
-                    return;
-                }
-            }
+            if (text == "Ogni mese")
+              component_->setProperty(
+                  "RRULE",
+                  QString("FREQ=MONTHLY; BYMONTHDAY=%1").arg(start_date.day()));
+
+            if (text == "Ogni anno")
+              component_->setProperty("RRULE", "FREQ=YEARLY");
+          });
+
+  connect(ui->saveButton, &QPushButton::clicked, [this] {
+    if (component_->type() == "VTODO") {
+      if (ui->startDateTime->date() > ui->endDateTime->date()) {
+        QMessageBox::critical(this, "Error in date selection",
+                              "The start date must be before the end date!");
+        return;
+      } else {
+        if (ui->startDateTime->time() > ui->endDateTime->time()) {
+          QMessageBox::critical(this, "Error in time selection",
+                                "The start time must be before the end time!");
+          return;
         }
+      }
+    }
 
-        // NEW EVENT
-        if (!existing_) {
-            auto reply = client_->saveElement(*event_);
-            connect(reply, &QNetworkReply::finished, [this, reply]() {
-
-                if(reply->error()!=QNetworkReply::NoError || reply==nullptr){
-                    qWarning("Non riesco a salvare il nuovo elemento");
-                    QMessageBox::critical(
-                                this, "Errore",
+    // NEW EVENT
+    if (!existing_) {
+      auto reply = client_->saveElement(*component_);
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+          qWarning("Non riesco a salvare il nuovo elemento");
+          QMessageBox::critical(this, "Errore",
                                 "Il server non accetta il nuovo elemento");
-                    return;
-                }
-
-                // imposto il nuovo eTag dell'evento
-                bool isEvent;
-                event_->toICalendar().contains("BEGIN:VEVENT") ? isEvent=true : isEvent=false;
-                auto reply1 = client_->getElementByUID(event_->uid(), isEvent);
-                connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-
-                    if(reply1->error()!=QNetworkReply::NoError || reply1==nullptr){
-                        qWarning("Non riesco salvare il nuovo elemento");
-                        QMessageBox::critical(
-                                    this, "Errore",
-                                    "Il server non accetta il nuovo elemento");
-                        return;
-                    }
-
-                    QDomDocument res;
-                    res.setContent(reply1->readAll());
-
-                    QString status = res.elementsByTagName("d:status").at(0).toElement().text();
-                    if(!status.contains("200")){
-                        qWarning("Non riesco salvare il nuovo elemento");
-                        QMessageBox::critical(
-                                    this, "Errore",
-                                    "Il server non accetta il nuovo elemento");
-                        return;
-                    }
-
-                    auto eTagList = res.elementsByTagName("d:getetag");
-                    event_->setETag(eTagList.at(0).toElement().text());
-                    auto hrefList = res.elementsByTagName("d:href");
-                    event_->setHref(hrefList.at(0).toElement().text());
-                    qDebug() << "New event saved\n";
-                    emit requestView();
-                    accept();
-                });
-            });
+          return;
         }
-        // UPDATE EVENT
-        else {
-            auto reply = client_->updateElement(*event_, event_->eTag());
-            connect(reply, &QNetworkReply::finished, [this, reply]() {
 
-                if(reply->error()!=QNetworkReply::NoError || reply==nullptr){
-                    qWarning("Non riesco ad aggiornare l'elemento selezionato");
-                    QMessageBox::critical(
-                                this, "Errore",
-                                "Il server non accetta l'aggiornamento dell'elemento selezionato");
-                    return;
-                }
+        // imposto il nuovo eTag dell'evento
+        bool isEvent;
+        component_->toICalendar().contains("BEGIN:VEVENT") ? isEvent = true
+                                                           : isEvent = false;
+        auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
+        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+          if (reply1->error() != QNetworkReply::NoError || reply1 == nullptr) {
+            qWarning("Non riesco salvare il nuovo elemento");
+            QMessageBox::critical(this, "Errore",
+                                  "Il server non accetta il nuovo elemento");
+            return;
+          }
 
-                if (reply->hasRawHeader("ETag")) {
-                    event_->setETag(reply->rawHeader("ETag"));
-                    accept();
-                } else {
-                    bool isEvent;
-                    event_->toICalendar().contains("BEGIN:VEVENT") ? isEvent=true : isEvent=false;
-                    auto reply1 = client_->getElementByUID(event_->uid(), isEvent);
-                    connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+          QDomDocument res;
+          res.setContent(reply1->readAll());
 
-                        if(reply1->error()!=QNetworkReply::NoError || reply1==nullptr){
-                            qWarning("Non riesco ad aggiornare l'elemento selezionato");
-                            QMessageBox::critical(
-                                        this, "Errore",
-                                        "Il server non accetta l'aggiornamento dell'elemento selezionato");
-                            return;
-                        }
+          QString status =
+              res.elementsByTagName("d:status").at(0).toElement().text();
+          if (!status.contains("200")) {
+            qWarning("Non riesco salvare il nuovo elemento");
+            QMessageBox::critical(this, "Errore",
+                                  "Il server non accetta il nuovo elemento");
+            return;
+          }
 
-                        QDomDocument res;
-                        res.setContent(reply1->readAll());
-
-                        QString status = res.elementsByTagName("d:status").at(0).toElement().text();
-                        if(!status.contains("200")){
-                            qWarning("Non riesco ad aggiornare l'elemento selezionato");
-                            QMessageBox::critical(
-                                        this, "Errore",
-                                        "Il server non accetta l'aggiornamento dell'elemento selezionato");
-                            return;
-                        }
-
-                        auto eTagList = res.elementsByTagName("d:getetag");
-                        event_->setETag(eTagList.at(0).toElement().text());
-                        auto hrefList = res.elementsByTagName("d:href");
-                        event_->setHref(hrefList.at(0).toElement().text());
-                        qDebug() << "Event updated\n";
-                        emit requestView();
-                        accept();
-                    });
-                }
-            });
+          auto eTagList = res.elementsByTagName("d:getetag");
+          component_->setEtag(eTagList.at(0).toElement().text());
+          auto hrefList = res.elementsByTagName("d:href");
+          component_->setHref(hrefList.at(0).toElement().text());
+          qDebug() << "New event saved\n";
+          emit requestView();
+          accept();
+        });
+      });
+    }
+    // UPDATE EVENT
+    else {
+      auto reply = client_->updateElement(*component_, component_->eTag());
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+          qWarning("Non riesco ad aggiornare l'elemento selezionato");
+          QMessageBox::critical(this, "Errore",
+                                "Il server non accetta l'aggiornamento "
+                                "dell'elemento selezionato");
+          return;
         }
-    });
-    connect(ui->deleteButton, &QPushButton::clicked, [this] {
-        if (!existing_) {
-            qDebug() << "Event not deleted\n";
-            reject();
+
+        if (reply->hasRawHeader("ETag")) {
+          component_->setEtag(reply->rawHeader("ETag"));
+          accept();
         } else {
-            auto reply = client_->deleteElement(*event_, event_->eTag());
-            connect(reply, &QNetworkReply::finished, [this, reply]() {
-                if(reply->error()!=QNetworkReply::NoError || reply==nullptr){
-                    qWarning("Non riesco ad eliminare l'elemento selezionato");
-                    QMessageBox::critical(
-                                this, "Errore",
-                                "Il server non accetta l'eliminazione dell'elemento selezionato");
-                    return;
-                }
-            });
+          bool isEvent;
+          component_->toICalendar().contains("BEGIN:VEVENT") ? isEvent = true
+                                                             : isEvent = false;
+          auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
+          connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+            if (reply1->error() != QNetworkReply::NoError ||
+                reply1 == nullptr) {
+              qWarning("Non riesco ad aggiornare l'elemento selezionato");
+              QMessageBox::critical(this, "Errore",
+                                    "Il server non accetta l'aggiornamento "
+                                    "dell'elemento selezionato");
+              return;
+            }
+
+            QDomDocument res;
+            res.setContent(reply1->readAll());
+
+            QString status =
+                res.elementsByTagName("d:status").at(0).toElement().text();
+            if (!status.contains("200")) {
+              qWarning("Non riesco ad aggiornare l'elemento selezionato");
+              QMessageBox::critical(this, "Errore",
+                                    "Il server non accetta l'aggiornamento "
+                                    "dell'elemento selezionato");
+              return;
+            }
+
+            auto eTagList = res.elementsByTagName("d:getetag");
+            component_->setEtag(eTagList.at(0).toElement().text());
+            auto hrefList = res.elementsByTagName("d:href");
+            component_->setHref(hrefList.at(0).toElement().text());
+            qDebug() << "Event updated\n";
+            emit requestView();
+            accept();
+          });
         }
-    });
+      });
+    }
+  });
+  connect(ui->deleteButton, &QPushButton::clicked, [this] {
+    if (!existing_) {
+      qDebug() << "Event not deleted\n";
+      reject();
+    } else {
+      auto reply = client_->deleteElement(*component_, component_->eTag());
+      connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+          qWarning("Non riesco ad eliminare l'elemento selezionato");
+          QMessageBox::critical(
+              this, "Errore",
+              "Il server non accetta l'eliminazione dell'elemento selezionato");
+          return;
+        }
+      });
+      done(2);
+    }
+  });
 }
 
 CreateEventForm::~CreateEventForm() { delete ui; }
 
 void CreateEventForm::resetFormFields() {
-    ui->titleEdit->setText(event_->summary());
-    ui->startDateTime->setDateTime(event_->startDateTime());
-    ui->endDateTime->setDateTime(event_->endDateTime());
-    ui->allDayBox->setChecked(event_->all_day());
-    ui->locationEdit->setText(event_->location());
+  ui->titleEdit->setText(component_->getProperty("SUMMARY").value_or(""));
+  ui->startDateTime->setDateTime(
+      component_->getStartDateTime().value_or(QDateTime::currentDateTime()));
+  ui->endDateTime->setDateTime(component_->getEndDateTime().value_or(
+      QDateTime::currentDateTime().addSecs(60 * 60)));
+  ui->allDayBox->setChecked(component_->allDay());
+  ui->locationEdit->setText(component_->getProperty("LOCATION").value_or(""));
 
-    Task* task = dynamic_cast<Task*>(event_);
-    if (task != nullptr) {
-        ui->RRule->hide();
-        ui->locationEdit->hide();
-        ui->endDateTime->hide();
-        // Show
-        ui->completionButton->show();
-        // Completion button
-        QString text = task->completed().first ? "Segna come non completata"
-                                           : "Segna come completata";
-        ui->completionButton->setText(text);
-        ui->typeSelection->setCurrentText("Attività");
-    } else {
-        ui->completionButton->hide();
-        // Show
-        ui->RRule->show();
-        ui->locationEdit->show();
-        ui->endDateTime->show();
-        ui->typeSelection->setCurrentText("Evento");
-    }
+  if (component_->type() == "VTODO") {
+    ui->RRule->hide();
+    ui->locationEdit->hide();
+    ui->endDateTime->hide();
+    // Show
+    ui->completionButton->show();
+    // Completion button
+    QString text = component_->getProperty("COMPLETED").has_value()
+                       ? "Segna come non completata"
+                       : "Segna come completata";
+    ui->completionButton->setText(text);
+    ui->typeSelection->setCurrentText("Attività");
+  } else {
+    ui->completionButton->hide();
+    // Show
+    ui->RRule->show();
+    ui->locationEdit->show();
+    ui->endDateTime->show();
+    ui->typeSelection->setCurrentText("Evento");
+  }
 }

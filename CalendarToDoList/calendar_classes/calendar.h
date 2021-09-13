@@ -4,8 +4,7 @@
 #include <QDomElement>
 #include <QObject>
 
-#include "calendarevent.h"
-#include "task.h"
+#include "icalendarcomponent.h"
 
 class ICalendar {
  public:
@@ -16,18 +15,21 @@ class ICalendar {
   QString toICalendarObject();
   ICalendar &fromXmlResponse(QDomElement &xml);
 
-  QList<CalendarEvent> &events();
-  void setEvents(const QVector<CalendarEvent> &newEvents);
+  QList<ICalendarComponent> &components() { return components_; };
 
-  QList<Task> &tasks() { return tasks_; };
+  // QList<CalendarEvent> &events();
+  // void setEvents(const QVector<CalendarEvent> &newEvents);
+
+  // QList<Task> &tasks() { return tasks_; };
 
   QString getDisplayName() const;
   void setDisplayName(QString name);
 
  private:
   QString display_name_;
-  QList<CalendarEvent> events_;
-  QList<Task> tasks_;
+  QList<ICalendarComponent> components_;
+  // QList<CalendarEvent> events_;
+  // QList<Task> tasks_;
 };
 
 #endif  // CALENDAR_H

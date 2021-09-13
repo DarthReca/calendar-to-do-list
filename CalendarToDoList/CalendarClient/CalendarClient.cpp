@@ -519,26 +519,20 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
+QNetworkReply* CalendarClient::saveElement(ICalendarComponent& newElement) {
   if (!supportedMethods_.contains("PUT")) {
     qDebug() << "Method PUT not supported in call saveElement";
     return nullptr;
-  }
-  if (newElement.uid().isEmpty()) {
-    newElement.setUid(
-        QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" +
-        newElement.startDateTime().toString("yyyyMMddHHMM"));
   }
 
   QByteArray request_string =
       ("BEGIN:VCALENDAR\r\n" + newElement.toICalendar() + "END:VCALENDAR\r\n")
           .toUtf8();
 
-  qDebug() << newElement.startDateTime();
-
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_.toString() + "/" + newElement.uid() + ".ics"));
+  cal_part.setUrl(
+      QUrl(endpoint_.toString() + "/" + newElement.getUID() + ".ics"));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "text/calendar; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -549,16 +543,11 @@ QNetworkReply* CalendarClient::saveElement(CalendarEvent& newElement) {
                                             request_string);
 }
 
-QNetworkReply* CalendarClient::updateElement(CalendarEvent& updatedElement,
+QNetworkReply* CalendarClient::updateElement(ICalendarComponent& updatedElement,
                                              QString eTag) {
   if (!supportedMethods_.contains("PUT")) {
     qDebug() << "Method PUT not supported in call updateElement";
     return nullptr;
-  }
-  if (updatedElement.uid().isEmpty()) {
-    updatedElement.setUid(
-        QDateTime::currentDateTime().toString("yyyyMMdd-HHMM-00ss") + "-0000-" +
-        updatedElement.startDateTime().toString("yyyyMMddHHMM"));
   }
 
   QByteArray request_string =
@@ -579,7 +568,7 @@ QNetworkReply* CalendarClient::updateElement(CalendarEvent& updatedElement,
                                             request_string);
 }
 
-QNetworkReply* CalendarClient::deleteElement(CalendarEvent& event,
+QNetworkReply* CalendarClient::deleteElement(ICalendarComponent& event,
                                              QString eTag) {
   if (!supportedMethods_.contains("DELETE")) {
     qDebug() << "Method DELETE not supported in call deleteElement";

@@ -9,7 +9,7 @@
 #include "./ui_mainwindow.h"
 #include "CalendarClient/CalendarClient.h"
 #include "widgets/calendartable.h"
-#include "widgets/eventwidget.h"
+#include "widgets/calendartableitem.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -76,7 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
     } else {
-      showEventForm(CalendarEvent());
+      showEditForm(ICalendarComponent());
     }
   });
 
@@ -160,8 +160,6 @@ void MainWindow::refresh_calendar_events() {
   connect(
       reply, &QNetworkReply::finished,
       [this, reply, selected_date, end_date]() {
-        qDebug() << reply->readAll();
-
         if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
           qWarning("Non riesco a ottenere gli eventi dal server");
           QMessageBox::critical(this, "Errore di inizializzazione",
@@ -183,13 +181,14 @@ void MainWindow::refresh_calendar_events() {
         }
 
         QDomNodeList responses = res.elementsByTagName("d:response");
+        qDebug() << "Parsing events...";
 
         for (int i = 0; i < responses.length(); i++) {
           QDomElement current = responses.at(i).toElement();
           ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-          for (CalendarEvent &ev : tmp.events())
-            ui->calendarTable->createEventWidget(ev, this);
+          for (ICalendarComponent &ev : tmp.components())
+            ui->calendarTable->createTableItem(ev, this);
         }
         readyEvent = true;
       });
@@ -219,14 +218,14 @@ void MainWindow::refresh_calendar_events() {
             exit(-4);
           }
         }
-
+        qDebug() << "Parsing tasks...";
         QDomNodeList responses = res.elementsByTagName("d:response");
         for (int i = 0; i < responses.length(); i++) {
           QDomElement current = responses.at(i).toElement();
           ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-          for (Task &t : tmp.tasks())
-            ui->calendarTable->createTaskWidget(t, this);
+          for (ICalendarComponent &t : tmp.components())
+            ui->calendarTable->createTableItem(t, this);
         }
         readyTask = true;
       });
@@ -323,9 +322,9 @@ void MainWindow::on_actionSincronizza_triggered() {
 
         if (status.contains("200")) {
           ICalendar cal = ICalendar().fromXmlResponse(current);
-          for (CalendarEvent &event : cal.events()) {
-            if (event.RRULE().isEmpty()) {
-              ui->calendarTable->createEventWidget(event, this);
+          for (ICalendarComponent &event : cal.components()) {
+            if (!event.getProperty("RRULE")) {
+              ui->calendarTable->createTableItem(event, this);
             } else {
               auto rec_reply = client_->getExpandedRecurrentEvent(
                   event.href(), ui->calendarTable->getDateTimeRange());
@@ -339,15 +338,15 @@ void MainWindow::on_actionSincronizza_triggered() {
                   QDomElement current = responses.at(i).toElement();
                   ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-                  for (CalendarEvent &ev : tmp.events())
-                    ui->calendarTable->createEventWidget(ev, this);
+                  for (ICalendarComponent &ev : tmp.components())
+                    ui->calendarTable->createTableItem(ev, this);
                 }
               });
             }
           }
 
-          for (Task &task : cal.tasks())
-            ui->calendarTable->createTaskWidget(task, this);
+          // for (Task &task : cal.tasks())
+          //  ui->calendarTable->createTaskWidget(task, this);
         }
         if (status.contains("404")) {
           QString href =
@@ -381,6 +380,7 @@ void MainWindow::compareElements(QNetworkReply &reply,
   // e aggiorno la lista di eTag nel client
   QSet<QString> processed;
   // Deleted and updated events
+  /*
   for (CalendarEvent &ev : calendar_.events()) {
     QString href = ev.href();
     if (mapTmp.contains(href)) {
@@ -395,9 +395,10 @@ void MainWindow::compareElements(QNetworkReply &reply,
     } else {
       qDebug() << "Item with href " + href + "has been deleted\n\n";
     }
-    calendar_.events().removeOne(ev);
+    // calendar_.events().removeOne(ev);
     processed += href;
   }
+  */
   // Added events
   for (auto i = mapTmp.constBegin(); i != mapTmp.constEnd(); i++) {
     if (!processed.contains(i.key())) {
@@ -421,11 +422,12 @@ void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
       QString el = events.at(i).toElement().text();
       QTextStream stream(&el);
       ICalendar tmp = ICalendar(href_list.at(i).toElement().text(), "", stream);
-      for (CalendarEvent &ev : tmp.events()) {
+      /*for (CalendarEvent &ev : tmp.events()) {
         QString hrefToSearch = ev.href();
         QString eTagToPut = mapTmp.find(hrefToSearch).value();
         ev.setETag(eTagToPut);
       }
+      */
       /*
 if (calendar_.isNull())
 calendar_ = tmp;
@@ -437,6 +439,20 @@ calendar_->events().append(tmp->events());
   });
 }
 
+void MainWindow::showEditForm(ICalendarComponent component) {
+  bool existing =
+      ui->calendarTable->getShowingEvents().contains(component.getUID());
+  CreateEventForm form(&component, *client_, calendar_, existing, this);
+  int code = form.exec();
+  ICalendarComponent modified_component = *form.component();
+  if (code == QDialog::Accepted) {
+    ui->calendarTable->createTableItem(modified_component, this);
+  } else if (code == 2) {
+    ui->calendarTable->removeEventByUid(modified_component.getUID());
+  }
+}
+
+/*
 void MainWindow::showEventForm(CalendarEvent event) {
   bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
   CreateEventForm form(&event, *client_, calendar_, existing, this);
@@ -450,7 +466,7 @@ void MainWindow::showEventForm(CalendarEvent event) {
 }
 
 void MainWindow::showTaskForm(Task task) {
-  bool existing = ui->calendarTable->getShowingTask().contains(task.uid());
+  bool existing = ui->calendarTable->getShowingEvents().contains(task.uid());
 
   CreateEventForm form(&task, *client_, calendar_, existing, this);
   int code = form.exec();
@@ -461,6 +477,7 @@ void MainWindow::showTaskForm(Task task) {
   if (code == QDialog::Accepted) {
     ui->calendarTable->createTaskWidget(*modified_task, this);
   } else if (code == 2) {
-    ui->calendarTable->removeTaskByUid(modified_task->uid());
+    ui->calendarTable->removeEventByUid(modified_task->uid());
   }
 }
+*/

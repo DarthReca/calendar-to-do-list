@@ -7,8 +7,7 @@
 
 #include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
-#include "calendar_classes/calendarevent.h"
-#include "calendar_classes/task.h"
+#include "calendar_classes/icalendarcomponent.h"
 
 namespace Ui {
 class CreateEventForm;
@@ -18,20 +17,21 @@ class CreateEventForm : public QDialog {
   Q_OBJECT
 
  public:
-  explicit CreateEventForm(CalendarEvent* event, CalendarClient& client,
+  explicit CreateEventForm(ICalendarComponent* event, CalendarClient& client,
                            ICalendar& calendar, bool existing,
                            QWidget* parent = nullptr);
 
   ~CreateEventForm();
 
   void resetFormFields();
-  CalendarEvent* getEvent() { return event_; }
+  ICalendarComponent* component() { return component_; }
+
  signals:
   void requestView();
 
  private:
   Ui::CreateEventForm* ui;
-  CalendarEvent* event_;
+  ICalendarComponent* component_;
   QPointer<CalendarClient> client_;
   ICalendar* calendar_;
   bool existing_;

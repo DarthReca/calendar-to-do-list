@@ -10,6 +10,7 @@
 #include <QPointer>
 
 #include "calendar_classes/calendarevent.h"
+#include "calendar_classes/icalendarcomponent.h"
 #include "calendar_classes/task.h"
 
 class CalendarClient : public QObject {
@@ -107,15 +108,16 @@ class CalendarClient : public QObject {
    *
    * If the uid parameter is empty, a new event will be created.
    */
-  QNetworkReply* saveElement(CalendarEvent& event);
+  QNetworkReply* saveElement(ICalendarComponent& event);
   /**
    * @brief Updates a event in the calDAV server.
    */
-  QNetworkReply* updateElement(CalendarEvent& updatedElement, QString eTag);
+  QNetworkReply* updateElement(ICalendarComponent& updatedElement,
+                               QString eTag);
   /**
    * @brief Deletes a specific event from the calDAV server.
    */
-  QNetworkReply* deleteElement(CalendarEvent& event, QString eTag);
+  QNetworkReply* deleteElement(ICalendarComponent& event, QString eTag);
 
   QNetworkReply* getExpandedRecurrentEvent(const QString& href,
                                            QPair<QDateTime, QDateTime> range);

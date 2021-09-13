@@ -24,8 +24,9 @@ class MainWindow : public QMainWindow {
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-  void showEventForm(CalendarEvent event);
-  void showTaskForm(Task task);
+  // void showEventForm(CalendarEvent event);
+  // void showTaskForm(Task task);
+  void showEditForm(ICalendarComponent component);
 
  signals:
   void show();
