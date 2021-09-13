@@ -270,16 +270,7 @@ void MainWindow::on_actionSincronizza_triggered() {
         qDebug() << "Calendar already up to date";
       } else {  // se non sono uguali, qualcosa è cambiato
         client_->setCTag(newCTag);
-        // TODO: ottimizzare e rendere funzionante
-        auto reply1 = client_->lookForChanges();  // ottengo gli eTag per vedere
-        // quali sono cambiati
-        connect(reply1, &QNetworkReply::finished, [this, reply1]() {
-          qDebug() << reply1->readAll();
-          return;
-          QHash<QString, QString> mapTmp;
-          compareElements(*reply1, mapTmp);
-          fetchChangedElements(mapTmp);
-        });
+            refresh_calendar_events();
       }
     });
 
@@ -300,7 +291,8 @@ void MainWindow::on_actionSincronizza_triggered() {
 
       auto statusesList = xml.elementsByTagName("d:status");
       for (int i = 0; i < statusesList.length(); i++) {
-        if (!statusesList.at(i).toElement().text().contains("200")) {
+        if (!statusesList.at(i).toElement().text().contains("200")
+                && !statusesList.at(i).toElement().text().contains("404")) {
           qWarning(
               "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
               "dal server");
@@ -356,87 +348,6 @@ void MainWindow::on_actionSincronizza_triggered() {
       }
     });
   }
-}
-
-void MainWindow::compareElements(QNetworkReply &reply,
-                                 QHash<QString, QString> &mapTmp) {
-  // creo una mappa con gli href e gli etag nuovi
-  QDomDocument res;
-  res.setContent(reply.readAll());
-  auto hrefs_list = res.elementsByTagName("D:href");
-  auto eTags = res.elementsByTagName("D:getetag");
-
-  if (eTags.isEmpty()) {
-    qDebug() << "Calendar already up to date";
-    return;
-  }
-
-  for (int i = 0; i < eTags.size(); i++) {
-    mapTmp.insert(hrefs_list.at(i).toElement().text(),
-                  eTags.at(i).toElement().text());
-  }
-
-  // confronto la nuova mappa con quella esistente
-  // e aggiorno la lista di eTag nel client
-  QSet<QString> processed;
-  // Deleted and updated events
-  /*
-  for (CalendarEvent &ev : calendar_.events()) {
-    QString href = ev.href();
-    if (mapTmp.contains(href)) {
-      if (mapTmp[href].isEmpty()) {
-        qDebug() << "Item with href " + href + "has been deleted\n\n";
-      } else {
-        qDebug() << "Item with href " + href +
-                        "has a new etag: " + mapTmp[href] + "\n\n";
-        client_->deleteChangedItem(href);
-        client_->addChangedItem(href);
-      }
-    } else {
-      qDebug() << "Item with href " + href + "has been deleted\n\n";
-    }
-    // calendar_.events().removeOne(ev);
-    processed += href;
-  }
-  */
-  // Added events
-  for (auto i = mapTmp.constBegin(); i != mapTmp.constEnd(); i++) {
-    if (!processed.contains(i.key())) {
-      qDebug() << "There is a new Item with eTag: " + i.value() + "\n\n";
-      client_->addChangedItem(i.key());
-    }
-  }
-}
-
-void MainWindow::fetchChangedElements(QHash<QString, QString> &mapTmp) {
-  auto reply = client_->getChangedElements();
-  connect(reply, &QNetworkReply::finished, [this, reply, mapTmp]() {
-    QDomDocument res;
-    res.setContent(reply->readAll());
-    auto events = res.elementsByTagName("caldav:calendar-data");
-    auto href_list = res.elementsByTagName("D:href");
-    for (int i = 0; i < events.size(); i++) {
-      // qDebug() << events.at(i).toElement().text() + "\n\n";
-
-      // salvo l'evento nella lista di eventi del calendario
-      QString el = events.at(i).toElement().text();
-      QTextStream stream(&el);
-      ICalendar tmp = ICalendar(href_list.at(i).toElement().text(), "", stream);
-      /*for (CalendarEvent &ev : tmp.events()) {
-        QString hrefToSearch = ev.href();
-        QString eTagToPut = mapTmp.find(hrefToSearch).value();
-        ev.setETag(eTagToPut);
-      }
-      */
-      /*
-if (calendar_.isNull())
-calendar_ = tmp;
-else
-calendar_->events().append(tmp->events());
-*/
-    }
-    client_->clearChangedItems();
-  });
 }
 
 void MainWindow::showEditForm(ICalendarComponent component) {

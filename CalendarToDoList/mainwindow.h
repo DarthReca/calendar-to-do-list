@@ -35,8 +35,6 @@ class MainWindow : public QMainWindow {
  private slots:
   void refresh_calendar_events();
   void on_actionSincronizza_triggered();
-  void compareElements(QNetworkReply &reply, QHash<QString, QString> &mapTmp);
-  void fetchChangedElements(QHash<QString, QString> &mapTmp);
 
  private:
   Ui::MainWindow *ui;
