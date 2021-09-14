@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_(new QTimer(this)),
       client_(new CalendarClient(this)),
       sync_token_supported_(false),
+      readyUser_(false),
       readyEvent(false),
       readyTask(false) {
   // Setup

@@ -43,6 +43,14 @@ class CalendarClient : public QObject {
   };
   void deleteETag(QString href) { eTags_.remove(href); };
 
+  void setHost(QUrl& host) { host_ = host; };
+  QUrl getHost() { return host_; };
+  void setCredentials(QByteArray& credentials) { credentials_ = credentials; };
+  QString getCredentials() { return credentials_; };
+  void setEndpoint(QUrl& endpoint) { endpoint_ = endpoint; };
+  QUrl getEndpoint() { return endpoint_; };
+
+
   QList<QString> getChangedItems() { return changedItems_; }
   void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }
   void deleteChangedItem(QString href) { changedItems_.removeOne(href); };
@@ -50,7 +58,7 @@ class CalendarClient : public QObject {
 
  public slots:
 
-  //////////// Events APIs ////////////
+  //////////// Events/Tasks APIs ////////////
   /**
    * @brief Discovers the principal user.
    */

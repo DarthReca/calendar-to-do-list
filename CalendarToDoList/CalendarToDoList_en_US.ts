@@ -164,4 +164,38 @@
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>Userform</name>
+    <message>
+        <location filename="widgets/userform.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="42"/>
+        <source>*server al quale l&apos;utente desidera collegarsi</source>
+        <oldsource>*server al quale si desidera collegarsi</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="60"/>
+        <source>Host*:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="74"/>
+        <source>Username:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="88"/>
+        <source>Password:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="109"/>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>

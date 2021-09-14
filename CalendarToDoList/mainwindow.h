@@ -45,6 +45,7 @@ class MainWindow : public QMainWindow {
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;
+  bool readyUser_;
   bool readyEvent;
   bool readyTask;
 };
