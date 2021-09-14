@@ -38,6 +38,8 @@ class MainWindow : public QMainWindow {
   void on_actionSincronizza_triggered();
 
  private:
+  void getExpansion(ICalendarComponent &&original);
+
   Ui::MainWindow *ui;
 
   QPointer<CalendarEvent> editing_event_;

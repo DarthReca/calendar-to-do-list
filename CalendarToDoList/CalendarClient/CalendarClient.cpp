@@ -384,10 +384,10 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
   QDomElement tagProp = xml.createElement("d:prop");
   tagProp.appendChild(xml.createElement("d:getetag"));
   QDomElement cal_data = xml.createElement("c:calendar-data");
-  QDomElement expand = xml.createElement("c:expand");
-  expand.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  expand.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  cal_data.appendChild(expand);
+  // QDomElement expand = xml.createElement("c:expand");
+  // expand.setAttribute("start",
+  // start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'")); expand.setAttribute("end",
+  // end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'")); cal_data.appendChild(expand);
   tagProp.appendChild(cal_data);
   root.appendChild(tagProp);
   // FILTER

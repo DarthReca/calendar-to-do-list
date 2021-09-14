@@ -149,26 +149,25 @@ MainWindow::MainWindow(QWidget *parent)
   });
 }
 
-void MainWindow::getUserCalendars()
-{
-    auto reply = client_->discoverUser();
-    connect(reply, &QNetworkReply::finished, [reply, this](){
-        QDomDocument res;
-        res.setContent(reply->readAll());
-        user_ = res.elementsByTagName("d:href").at(1).toElement().text();
+void MainWindow::getUserCalendars() {
+  auto reply = client_->discoverUser();
+  connect(reply, &QNetworkReply::finished, [reply, this]() {
+    QDomDocument res;
+    res.setContent(reply->readAll());
+    user_ = res.elementsByTagName("d:href").at(1).toElement().text();
 
-        auto reply1 = client_->discoverUserCalendars(user_);
-        connect(reply1, &QNetworkReply::finished, [reply1, this](){
-            QDomDocument res;
-            res.setContent(reply1->readAll());
-            userCalendars_ = res.elementsByTagName("d:href").at(1).toElement().text();
-            auto reply2 = client_->listUserCalendars();
-            connect(reply2, &QNetworkReply::finished, [reply2, this](){
-                QDomDocument res;
-                res.setContent(reply2->readAll());
-            });
-        });
+    auto reply1 = client_->discoverUserCalendars(user_);
+    connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+      QDomDocument res;
+      res.setContent(reply1->readAll());
+      userCalendars_ = res.elementsByTagName("d:href").at(1).toElement().text();
+      auto reply2 = client_->listUserCalendars();
+      connect(reply2, &QNetworkReply::finished, [reply2, this]() {
+        QDomDocument res;
+        res.setContent(reply2->readAll());
+      });
     });
+  });
 }
 
 void MainWindow::refresh_calendar_events() {
@@ -210,52 +209,20 @@ void MainWindow::refresh_calendar_events() {
           QDomElement current = responses.at(i).toElement();
           ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-          for (ICalendarComponent &ev : tmp.components())
-            ui->calendarTable->createTableItem(ev, this);
-        }
-        readyEvent = true;
-      });
-
-  // prendo tutti i task dalla data selezionata a una settimana dopo
-  auto reply2 = client_->getDateRangeTasks(
-      QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-  connect(
-      reply2, &QNetworkReply::finished,
-      [this, reply2, selected_date, end_date]() {
-        if (reply2->error() != QNetworkReply::NoError || reply2 == nullptr) {
-          qWarning("Non riesco a ottenere le attività dal server");
-          QMessageBox::critical(this, "Errore di inizializzazione",
-                                "Il server non riesce a mandare le attività");
-          exit(-4);
-        }
-
-        QDomDocument res;
-        res.setContent(reply2->readAll());
-
-        auto statusesList = res.elementsByTagName("d:status");
-        for (int i = 0; i < statusesList.length(); i++) {
-          if (!statusesList.at(i).toElement().text().contains("200")) {
-            qWarning("Non riesco a ottenere le attività dal server");
-            QMessageBox::critical(this, "Errore di inizializzazione",
-                                  "Il server non riesce a mandare le attività");
-            exit(-4);
+          for (ICalendarComponent &ev : tmp.components()) {
+            if (!ev.getProperty("RRULE")) {
+              ui->calendarTable->createTableItem(ev, this);
+            } else {
+              getExpansion(std::move(ev));
+            }
           }
         }
-        qDebug() << "Parsing tasks...";
-        QDomNodeList responses = res.elementsByTagName("d:response");
-        for (int i = 0; i < responses.length(); i++) {
-          QDomElement current = responses.at(i).toElement();
-          ICalendar tmp = ICalendar().fromXmlResponse(current);
-
-          for (ICalendarComponent &t : tmp.components())
-            ui->calendarTable->createTableItem(t, this);
-        }
-        readyTask = true;
+        readyEvent = true;
       });
 }
 
 void MainWindow::on_actionSincronizza_triggered() {
-  if (!readyEvent || !readyTask) {
+  if (!readyEvent) {
     QMessageBox::warning(
         this, "Attendi ancora un pò",
         "Il server non è ancora pronto, riprova fra qualche istante");
@@ -342,32 +309,7 @@ void MainWindow::on_actionSincronizza_triggered() {
               ui->calendarTable->createTableItem(event, this);
             } else {
               qDebug() << "Syncing recurrent...";
-              auto rec_reply = client_->getExpandedRecurrentEvent(
-                  event.getUID(), ui->calendarTable->getDateTimeRange());
-              connect(
-                  rec_reply, &QNetworkReply::finished,
-                  [rec_reply, moved = std::move(event), this]() {
-                    QDomDocument res;
-                    res.setContent(rec_reply->readAll());
-                    qDebug() << res.toString();
-
-                    QDomNodeList responses =
-                        res.elementsByTagName("d:response");
-
-                    for (int i = 0; i < responses.length(); i++) {
-                      QDomElement current = responses.at(i).toElement();
-                      ICalendar tmp = ICalendar().fromXmlResponse(current);
-
-                      for (ICalendarComponent &ev : tmp.components()) {
-                        ICalendarComponent copy(moved);
-                        if (ev.getStartDateTime())
-                          copy.setStartDateTime(ev.getStartDateTime().value());
-                        if (ev.getEndDateTime())
-                          copy.setEndDateTime(ev.getEndDateTime().value());
-                        ui->calendarTable->createTableItem(copy, this);
-                      }
-                    }
-                  });
+              getExpansion(std::move(event));
             }
           }
         }
@@ -379,6 +321,33 @@ void MainWindow::on_actionSincronizza_triggered() {
       }
     });
   }
+}
+
+void MainWindow::getExpansion(ICalendarComponent &&original) {
+  auto reply = client_->getExpandedRecurrentEvent(
+      original.getUID(), ui->calendarTable->getDateTimeRange());
+  connect(reply, &QNetworkReply::finished, this,
+          [moved = std::move(original), reply, this]() {
+            QDomDocument res;
+            res.setContent(reply->readAll());
+            qDebug() << res.toString();
+
+            QDomNodeList responses = res.elementsByTagName("d:response");
+
+            for (int i = 0; i < responses.length(); i++) {
+              QDomElement current = responses.at(i).toElement();
+              ICalendar tmp = ICalendar().fromXmlResponse(current);
+
+              for (ICalendarComponent &ev : tmp.components()) {
+                ICalendarComponent copy(moved);
+                if (ev.getStartDateTime())
+                  copy.setStartDateTime(ev.getStartDateTime().value());
+                if (ev.getEndDateTime())
+                  copy.setEndDateTime(ev.getEndDateTime().value());
+                ui->calendarTable->createTableItem(copy, this);
+              }
+            }
+          });
 }
 
 void MainWindow::showEditForm(ICalendarComponent component) {
