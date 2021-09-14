@@ -321,20 +321,30 @@ void MainWindow::on_actionSincronizza_triggered() {
               qDebug() << "Syncing recurrent...";
               auto rec_reply = client_->getExpandedRecurrentEvent(
                   event.getUID(), ui->calendarTable->getDateTimeRange());
-              connect(rec_reply, &QNetworkReply::finished, [rec_reply, this]() {
-                QDomDocument res;
-                res.setContent(rec_reply->readAll());
+              connect(
+                  rec_reply, &QNetworkReply::finished,
+                  [rec_reply, moved = std::move(event), this]() {
+                    QDomDocument res;
+                    res.setContent(rec_reply->readAll());
+                    qDebug() << res.toString();
 
-                QDomNodeList responses = res.elementsByTagName("d:response");
+                    QDomNodeList responses =
+                        res.elementsByTagName("d:response");
 
-                for (int i = 0; i < responses.length(); i++) {
-                  QDomElement current = responses.at(i).toElement();
-                  ICalendar tmp = ICalendar().fromXmlResponse(current);
+                    for (int i = 0; i < responses.length(); i++) {
+                      QDomElement current = responses.at(i).toElement();
+                      ICalendar tmp = ICalendar().fromXmlResponse(current);
 
-                  for (ICalendarComponent &ev : tmp.components())
-                    ui->calendarTable->createTableItem(ev, this);
-                }
-              });
+                      for (ICalendarComponent &ev : tmp.components()) {
+                        ICalendarComponent copy(moved);
+                        if (ev.getStartDateTime())
+                          copy.setStartDateTime(ev.getStartDateTime().value());
+                        if (ev.getEndDateTime())
+                          copy.setEndDateTime(ev.getEndDateTime().value());
+                        ui->calendarTable->createTableItem(copy, this);
+                      }
+                    }
+                  });
             }
           }
         }
@@ -353,10 +363,5 @@ void MainWindow::showEditForm(ICalendarComponent component) {
       ui->calendarTable->getShowingEvents().contains(component.getUID());
   CreateEventForm form(&component, *client_, calendar_, existing, this);
   int code = form.exec();
-  ICalendarComponent modified_component = *form.component();
-  if (code == QDialog::Accepted) {
-    ui->calendarTable->createTableItem(modified_component, this);
-  } else if (code == 2) {
-    ui->calendarTable->removeEventByUid(modified_component.getUID());
-  }
+  if (code != QDialog::Rejected) on_actionSincronizza_triggered();
 }

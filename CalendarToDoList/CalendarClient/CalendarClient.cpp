@@ -653,8 +653,6 @@ QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
   tagFilter.appendChild(tagCompFilter);
   root.appendChild(tagFilter);
 
-  qDebug() << cal_part.url();
-
   return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
                                             xml.toByteArray());
 }

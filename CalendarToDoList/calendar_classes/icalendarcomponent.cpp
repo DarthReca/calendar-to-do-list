@@ -42,8 +42,9 @@ QString ICalendarComponent::toICalendar() {
 
   for (auto key_value = properties_.constKeyValueBegin();
        key_value != properties_.constKeyValueEnd(); key_value++)
-    ical_object +=
-        QString("%1:%2\r\n").arg(key_value->first, key_value->second);
+    if (key_value->first != "RECURRENCE-ID")
+      ical_object +=
+          QString("%1:%2\r\n").arg(key_value->first, key_value->second);
 
   ical_object += "END:" + type_ + "\r\n";
   return ical_object;
@@ -115,7 +116,8 @@ QString ICalendarComponent::stringFromWeekDay(int weekday) {
   return "";
 }
 
-std::optional<QString> ICalendarComponent::getProperty(const QString& name) {
+std::optional<QString> ICalendarComponent::getProperty(
+    const QString& name) const {
   if (!properties_.contains(name)) return {};
   return properties_[name];
 }

@@ -17,7 +17,7 @@ class ICalendarComponent {
   static int weekDayFromString(const QString& weekday_string);
   static QString stringFromWeekDay(int weekday);
 
-  std::optional<QString> getProperty(const QString& name);
+  std::optional<QString> getProperty(const QString& name) const;
   void setProperty(const QString& key, const QString& value);
   void removeProperty(const QString& name);
 

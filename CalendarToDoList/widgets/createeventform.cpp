@@ -176,9 +176,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           component_->setEtag(reply->rawHeader("ETag"));
           accept();
         } else {
-          bool isEvent;
-          component_->toICalendar().contains("BEGIN:VEVENT") ? isEvent = true
-                                                             : isEvent = false;
+          bool isEvent = component_->type() == "VEVENT";
           auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
           connect(reply1, &QNetworkReply::finished, [reply1, this]() {
             if (reply1->error() != QNetworkReply::NoError ||
