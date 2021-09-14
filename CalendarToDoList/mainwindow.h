@@ -27,6 +27,7 @@ class MainWindow : public QMainWindow {
   // void showEventForm(CalendarEvent event);
   // void showTaskForm(Task task);
   void showEditForm(ICalendarComponent component);
+  void getUserCalendars();
 
  signals:
   void show();
@@ -42,9 +43,12 @@ class MainWindow : public QMainWindow {
   QPointer<CalendarEvent> editing_event_;
   ICalendar calendar_;
   QPointer<CalendarClient> client_;
+  QString user_;
+  QString userCalendars_;
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;
+  bool readyUser_;
   bool readyEvent;
   bool readyTask;
 };
