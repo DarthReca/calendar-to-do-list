@@ -270,7 +270,7 @@ void MainWindow::on_actionSincronizza_triggered() {
         qDebug() << "Calendar already up to date";
       } else {  // se non sono uguali, qualcosa è cambiato
         client_->setCTag(newCTag);
-            refresh_calendar_events();
+        refresh_calendar_events();
       }
     });
 
@@ -291,8 +291,8 @@ void MainWindow::on_actionSincronizza_triggered() {
 
       auto statusesList = xml.elementsByTagName("d:status");
       for (int i = 0; i < statusesList.length(); i++) {
-        if (!statusesList.at(i).toElement().text().contains("200")
-                && !statusesList.at(i).toElement().text().contains("404")) {
+        if (!statusesList.at(i).toElement().text().contains("200") &&
+            !statusesList.at(i).toElement().text().contains("404")) {
           qWarning(
               "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
               "dal server");
@@ -318,8 +318,9 @@ void MainWindow::on_actionSincronizza_triggered() {
             if (!event.getProperty("RRULE")) {
               ui->calendarTable->createTableItem(event, this);
             } else {
+              qDebug() << "Syncing recurrent...";
               auto rec_reply = client_->getExpandedRecurrentEvent(
-                  event.href(), ui->calendarTable->getDateTimeRange());
+                  event.getUID(), ui->calendarTable->getDateTimeRange());
               connect(rec_reply, &QNetworkReply::finished, [rec_reply, this]() {
                 QDomDocument res;
                 res.setContent(rec_reply->readAll());
@@ -336,9 +337,6 @@ void MainWindow::on_actionSincronizza_triggered() {
               });
             }
           }
-
-          // for (Task &task : cal.tasks())
-          //  ui->calendarTable->createTaskWidget(task, this);
         }
         if (status.contains("404")) {
           QString href =
@@ -362,33 +360,3 @@ void MainWindow::showEditForm(ICalendarComponent component) {
     ui->calendarTable->removeEventByUid(modified_component.getUID());
   }
 }
-
-/*
-void MainWindow::showEventForm(CalendarEvent event) {
-  bool existing = ui->calendarTable->getShowingEvents().contains(event.uid());
-  CreateEventForm form(&event, *client_, calendar_, existing, this);
-  int code = form.exec();
-  CalendarEvent modified_event = *form.getEvent();
-  if (code == QDialog::Accepted) {
-    ui->calendarTable->createEventWidget(modified_event, this);
-  } else if (code == 2) {
-    ui->calendarTable->removeEventByUid(modified_event.uid());
-  }
-}
-
-void MainWindow::showTaskForm(Task task) {
-  bool existing = ui->calendarTable->getShowingEvents().contains(task.uid());
-
-  CreateEventForm form(&task, *client_, calendar_, existing, this);
-  int code = form.exec();
-  CalendarEvent *modified_event = form.getEvent();
-  Task *modified_task = dynamic_cast<Task *>(modified_event);
-  if (modified_task == nullptr) return;
-
-  if (code == QDialog::Accepted) {
-    ui->calendarTable->createTaskWidget(*modified_task, this);
-  } else if (code == 2) {
-    ui->calendarTable->removeEventByUid(modified_task->uid());
-  }
-}
-*/

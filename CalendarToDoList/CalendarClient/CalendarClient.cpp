@@ -591,7 +591,7 @@ QNetworkReply* CalendarClient::deleteElement(ICalendarComponent& event,
 }
 
 QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
-    const QString& href, QPair<QDateTime, QDateTime> range) {
+    const QString& uid, QPair<QDateTime, QDateTime> range) {
   if (!supportedMethods_.contains("REPORT")) {
     qWarning() << "Method REPORT not supported in call getDateRangeEvents";
     return nullptr;
@@ -599,7 +599,7 @@ QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(host_.toString() + href));
+  cal_part.setUrl(QUrl(endpoint_));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
                      "application/xml; charset=utf-8");
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -614,6 +614,7 @@ QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
   xml.appendChild(root);
   // PROP
   QDomElement tagProp = xml.createElement("d:prop");
+  tagProp.appendChild(xml.createElement("d:getetag"));
   QDomElement cal_data = xml.createElement("c:calendar-data");
   QDomElement expand = xml.createElement("c:expand");
   expand.setAttribute("start",
@@ -625,17 +626,34 @@ QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
   root.appendChild(tagProp);
   // FILTER
   QDomElement tagFilter = xml.createElement("c:filter");
-  // Filter without specefic class
+  // Filter VCALENDAR
   QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-  tagFilter.appendChild(tagCompFilter);
+  tagCompFilter.setAttribute("name", "VCALENDAR");
+  // Filter VEVENT
+  QDomElement tag_comp_filter2 = xml.createElement("c:comp-filter");
+  tag_comp_filter2.setAttribute("name", "VEVENT");
   // Time range filter
   QDomElement tagTime = xml.createElement("c:time-range");
   tagTime.setAttribute("start",
                        range.first.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
   tagTime.setAttribute("end",
                        range.second.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  tagFilter.appendChild(tagTime);
+  // UID match
+  QDomElement tagPropFilter = xml.createElement("c:prop-filter");
+  tagPropFilter.setAttribute("name", "UID");
+  tagCompFilter.appendChild(tagPropFilter);
+  QDomElement tagTextMatch = xml.createElement("c:text-match");
+  tagPropFilter.setAttribute("collation", "i;octet");
+  tagTextMatch.appendChild(xml.createTextNode(uid));
+  tagPropFilter.appendChild(tagTextMatch);
+
+  tagPropFilter.appendChild(tagTextMatch);
+  tag_comp_filter2.appendChild(tagPropFilter);
+  tagCompFilter.appendChild(tag_comp_filter2);
+  tagFilter.appendChild(tagCompFilter);
   root.appendChild(tagFilter);
+
+  qDebug() << cal_part.url();
 
   return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
                                             xml.toByteArray());

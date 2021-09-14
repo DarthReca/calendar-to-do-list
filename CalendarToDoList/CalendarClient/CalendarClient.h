@@ -119,7 +119,7 @@ class CalendarClient : public QObject {
    */
   QNetworkReply* deleteElement(ICalendarComponent& event, QString eTag);
 
-  QNetworkReply* getExpandedRecurrentEvent(const QString& href,
+  QNetworkReply* getExpandedRecurrentEvent(const QString& uid,
                                            QPair<QDateTime, QDateTime> range);
 
  private:
