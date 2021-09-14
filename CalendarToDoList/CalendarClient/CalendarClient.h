@@ -66,7 +66,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Discovers the principal user's calendars.
    */
-  QNetworkReply* discoverUserCalendars();
+  QNetworkReply* discoverUserCalendars(QString user);
   /**
    * @brief Lists the principal user's calendars.
    */

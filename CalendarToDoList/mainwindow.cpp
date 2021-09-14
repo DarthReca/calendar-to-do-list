@@ -141,13 +141,35 @@ MainWindow::MainWindow(QWidget *parent)
 
       if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
 
+      getUserCalendars();
+
       refresh_calendar_events();
       timer_->start(20000);
     });
   });
 }
 
-MainWindow::~MainWindow() { delete ui; }
+void MainWindow::getUserCalendars()
+{
+    auto reply = client_->discoverUser();
+    connect(reply, &QNetworkReply::finished, [reply, this](){
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        user_ = res.elementsByTagName("d:href").at(1).toElement().text();
+
+        auto reply1 = client_->discoverUserCalendars(user_);
+        connect(reply1, &QNetworkReply::finished, [reply1, this](){
+            QDomDocument res;
+            res.setContent(reply1->readAll());
+            userCalendars_ = res.elementsByTagName("d:href").at(1).toElement().text();
+            auto reply2 = client_->listUserCalendars();
+            connect(reply2, &QNetworkReply::finished, [reply2, this](){
+                QDomDocument res;
+                res.setContent(reply2->readAll());
+            });
+        });
+    });
+}
 
 void MainWindow::refresh_calendar_events() {
   QDate selected_date = ui->calendarWidget->selectedDate();
@@ -393,3 +415,5 @@ void MainWindow::showTaskForm(Task task) {
   }
 }
 */
+
+MainWindow::~MainWindow() { delete ui; }

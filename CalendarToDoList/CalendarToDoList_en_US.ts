@@ -192,10 +192,5 @@
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="widgets/userform.ui" line="109"/>
-        <source>OK</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 </TS>
