@@ -9,16 +9,14 @@
 #include <QString>
 
 #include "calendar_classes/calendar.h"
-//#include "widgets/userform.h"
+#include "userform.h"
 
 CalendarClient::CalendarClient(QObject* parent)
     : network_manager_(QNetworkAccessManager()) {
   QFile auth_file("auth.json");
   if (!auth_file.exists()) {
-    /*
     Userform form(*this);
     form.exec();
-    */
   } else {
     auth_file.open(QFile::OpenModeFlag::ReadOnly);
     QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();

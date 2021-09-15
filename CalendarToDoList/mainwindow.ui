@@ -179,11 +179,11 @@ background-color: rgb(37, 255, 99);</string>
    </property>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>Visualizza</string>
     </property>
     <widget class="QMenu" name="menuVedi_tabella">
      <property name="title">
-      <string>Vedi tabella</string>
+      <string>Visualizzazione calendario</string>
      </property>
      <addaction name="actionGiorno"/>
      <addaction name="actionSettimanale"/>
@@ -192,7 +192,7 @@ background-color: rgb(37, 255, 99);</string>
    </widget>
    <widget class="QMenu" name="menuSynch">
     <property name="title">
-     <string>Synch</string>
+     <string>Sincronizzazione</string>
     </property>
     <widget class="QMenu" name="menuImposta_intervallo_di_sincronizzazione">
      <property name="title">
@@ -208,8 +208,15 @@ background-color: rgb(37, 255, 99);</string>
     <addaction name="actionSincronizza"/>
     <addaction name="menuImposta_intervallo_di_sincronizzazione"/>
    </widget>
+   <widget class="QMenu" name="menuCambia_utente_server">
+    <property name="title">
+     <string>Impostazioni</string>
+    </property>
+    <addaction name="actionCambia_utente_server"/>
+   </widget>
    <addaction name="menuView"/>
    <addaction name="menuSynch"/>
+   <addaction name="menuCambia_utente_server"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLogin">
@@ -250,6 +257,11 @@ background-color: rgb(37, 255, 99);</string>
   <action name="actionOgni_10_minuti">
    <property name="text">
     <string>Ogni 10 minuti</string>
+   </property>
+  </action>
+  <action name="actionCambia_utente_server">
+   <property name="text">
+    <string>Cambia utente/server</string>
    </property>
   </action>
  </widget>

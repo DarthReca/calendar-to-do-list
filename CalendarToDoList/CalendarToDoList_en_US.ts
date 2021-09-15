@@ -93,34 +93,59 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="mainwindow.ui" line="182"/>
+        <source>Visualizza</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="186"/>
+        <source>Visualizzazione calendario</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="195"/>
+        <source>Sincronizzazione</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="mainwindow.ui" line="199"/>
         <source>Imposta intervallo di sincronizzazione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="232"/>
+        <location filename="mainwindow.ui" line="213"/>
+        <source>Impostazioni</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="239"/>
         <source>Sincronizza</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="237"/>
+        <location filename="mainwindow.ui" line="244"/>
         <source>Ogni 10 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="242"/>
+        <location filename="mainwindow.ui" line="249"/>
         <source>Ogni 30 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="247"/>
+        <location filename="mainwindow.ui" line="254"/>
         <source>Ogni minuto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="252"/>
+        <location filename="mainwindow.ui" line="259"/>
         <source>Ogni 10 minuti</source>
         <oldsource>Ogni ora</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="264"/>
+        <source>Cambia utente/server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -134,32 +159,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="182"/>
-        <source>View</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="186"/>
-        <source>Vedi tabella</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="195"/>
-        <source>Synch</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="217"/>
+        <location filename="mainwindow.ui" line="224"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="222"/>
+        <location filename="mainwindow.ui" line="229"/>
         <source>Giornaliera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="227"/>
+        <location filename="mainwindow.ui" line="234"/>
         <source>Settimanale</source>
         <translation type="unfinished"></translation>
     </message>
@@ -167,27 +177,27 @@
 <context>
     <name>Userform</name>
     <message>
-        <location filename="widgets/userform.ui" line="14"/>
+        <location filename="userform.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/userform.ui" line="42"/>
+        <location filename="userform.ui" line="42"/>
         <source>*server al quale l&apos;utente desidera collegarsi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/userform.ui" line="60"/>
+        <location filename="userform.ui" line="60"/>
         <source>Host*:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/userform.ui" line="74"/>
+        <location filename="userform.ui" line="74"/>
         <source>Username:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widgets/userform.ui" line="88"/>
+        <location filename="userform.ui" line="88"/>
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>

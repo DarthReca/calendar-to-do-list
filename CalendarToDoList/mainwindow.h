@@ -37,7 +37,9 @@ class MainWindow : public QMainWindow {
   void refresh_calendar_events();
   void on_actionSincronizza_triggered();
 
- private:
+  void on_actionCambia_utente_server_triggered();
+
+private:
   void getExpansion(ICalendarComponent &&original);
 
   Ui::MainWindow *ui;
