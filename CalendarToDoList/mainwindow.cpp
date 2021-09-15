@@ -323,6 +323,11 @@ void MainWindow::on_actionSincronizza_triggered() {
   }
 }
 
+void MainWindow::on_actionCambia_utente_server_triggered()
+{
+
+}
+
 void MainWindow::getExpansion(ICalendarComponent &&original) {
   auto reply = client_->getExpandedRecurrentEvent(
       original.getUID(), ui->calendarTable->getDateTimeRange());
