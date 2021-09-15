@@ -177,27 +177,27 @@
 <context>
     <name>Userform</name>
     <message>
-        <location filename="userform.ui" line="14"/>
+        <location filename="widgets/userform.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="userform.ui" line="42"/>
+        <location filename="widgets/userform.ui" line="42"/>
         <source>*server al quale l&apos;utente desidera collegarsi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="userform.ui" line="60"/>
+        <location filename="widgets/userform.ui" line="60"/>
         <source>Host*:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="userform.ui" line="74"/>
+        <location filename="widgets/userform.ui" line="74"/>
         <source>Username:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="userform.ui" line="88"/>
+        <location filename="widgets/userform.ui" line="88"/>
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>

@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 #include <QObject>
 #include <QPointer>
+#include <QMap>
 
 #include "calendar_classes/calendarevent.h"
 #include "calendar_classes/icalendarcomponent.h"
@@ -49,6 +50,8 @@ class CalendarClient : public QObject {
   QString getCredentials() { return credentials_; };
   void setEndpoint(QUrl& endpoint) { endpoint_ = endpoint; };
   QUrl getEndpoint() { return endpoint_; };
+
+  QMap<QString, QUrl>& getUserCalendars(){ return userCalendars_; }
 
 
   QList<QString> getChangedItems() { return changedItems_; }
@@ -142,6 +145,8 @@ class CalendarClient : public QObject {
 
   QUrl endpoint_;
   QUrl host_;
+
+  QMap<QString, QUrl> userCalendars_;
 };
 
 #endif  // CALENDARCLIENT_CALDAV_H

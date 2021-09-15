@@ -163,8 +163,23 @@ void MainWindow::getUserCalendars() {
       userCalendars_ = res.elementsByTagName("d:href").at(1).toElement().text();
       auto reply2 = client_->listUserCalendars();
       connect(reply2, &QNetworkReply::finished, [reply2, this]() {
+
         QDomDocument res;
         res.setContent(reply2->readAll());
+        auto cal1 = res.elementsByTagName("cal:calendar");
+        auto cal2 = res.elementsByTagName("c:calendar");
+        if(cal1.isEmpty() && cal2.isEmpty()){
+            QMessageBox::critical(this, "Errore", "Calendario non supportato");
+            exit(-1);
+        }
+
+        auto calendarNames = res.elementsByTagName("d:displayname");
+        auto hrefList = res.elementsByTagName("d:href");
+        for(int i=0; i<calendarNames.length(); i++){
+            QUrl url = QUrl(hrefList.at(i).toElement().text());
+            client_->getUserCalendars().insert(calendarNames.at(i).toElement().text(), url);
+        }
+
       });
     });
   });
