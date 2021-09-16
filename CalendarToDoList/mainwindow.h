@@ -47,8 +47,6 @@ private:
   QPointer<CalendarEvent> editing_event_;
   ICalendar calendar_;
   QPointer<CalendarClient> client_;
-  QString user_;
-  QString userCalendars_;
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;

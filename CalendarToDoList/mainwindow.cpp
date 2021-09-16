@@ -14,6 +14,7 @@
 #include "widgets/calendartable.h"
 #include "widgets/calendartableitem.h"
 #include "widgets/userform.h"
+#include "widgets/usercalendarschoice.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -36,8 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
         auth_file.open(QFile::OpenModeFlag::ReadOnly);
         QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();
 
-        QUrl url = QUrl(json["url"].toString());
-        client_->setEndpoint(url);
+        QUrl principal = QUrl(json["principal"].toString());
+        client_->setPrincipal(principal);
         QUrl host = QUrl(json["host"].toString());
         client_->setHost(host);
         QByteArray credentials = (json["username"].toString() + ":" + json["password"].toString()).toUtf8().toBase64();
@@ -104,22 +105,22 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
+
     // get principal if user didn't specify it
-    if(client_->getEndpoint().isEmpty()){
+    if(client_->getPrincipal().isEmpty()){
         auto reply = client_->discoverUser();
         connect(reply, &QNetworkReply::finished, [reply, this]() {
             QDomDocument res;
             res.setContent(reply->readAll());
             QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
             if(!principal.isEmpty()){
-                client_->setEndpoint(principal);
+                client_->setPrincipal(principal);
 
-                QString val;
                 QFile file("auth.json");
                 file.open(QFile::OpenModeFlag::ReadWrite);
                 QJsonObject json = QJsonDocument().fromJson(file.readAll()).object();
-                json.remove("url");
-                json.insert("url", principal.toString());
+                json.remove("principal");
+                json.insert("principal", principal.toString());
                 QJsonDocument doc(json);
                 file.resize(0);
                 file.write(doc.toJson());
@@ -128,12 +129,78 @@ MainWindow::MainWindow(QWidget *parent)
                 QMessageBox::critical(this, "Errore", "Necessario inserire l'url dell'utente principale");
                 exit(-1);
             }
-            initialize();
+            getUserCalendars();
         });
     }
     else{
-        initialize();
+        getUserCalendars();
     }
+}
+
+void MainWindow::getUserCalendars() {
+
+    // Get the link to all the principal user's calendars
+    auto reply1 = client_->discoverUserCalendars();
+    connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+        QDomDocument res;
+        res.setContent(reply1->readAll());
+        QString complete = client_->getHost().toString() + res.elementsByTagName("d:href").at(1).toElement().text();
+        QUrl calendars = QUrl(complete);
+        client_->setUserCalendars(calendars);
+
+        //get the link to every specific principal user's calendar
+        auto reply2 = client_->listUserCalendars();
+        connect(reply2, &QNetworkReply::finished, [reply2, this]() {
+            QDomDocument res;
+            res.setContent(reply2->readAll());
+            auto hrefList = res.elementsByTagName("d:href"); //first href must be ignored
+            auto calendarNames = res.elementsByTagName("d:displayname");
+
+            // ensure that it contains at least a calendar element in the CalDAV namespace
+            auto cal1 = res.elementsByTagName("cal:calendar");
+            auto cal2 = res.elementsByTagName("c:calendar");
+            if(cal1.length()!=calendarNames.length() && cal2.length()!=calendarNames.length()){
+                QMessageBox::critical(this, "Errore", "Calendario non supportato");
+                exit(-1);
+            }
+
+            //ensure that both VEVENT and VTODO are supported
+            /*auto calComp1 = res.elementsByTagName("cal:comp");
+            for(int i=0; i<calComp1.length(); i++){
+                if(!calComp1.at(i).toElement().attribute("name").contains("VEVENT")){
+                    QMessageBox::critical(this, "Errore", "Un calendario non supporta gli eventi");
+                    exit(-1);
+                }
+                if(!calComp1.at(i).toElement().attribute("name").contains("VTODO")){
+                    QMessageBox::critical(this, "Errore", "Un calendario non supporta le attività");
+                    exit(-1);
+                }
+            }
+            auto calComp2 = res.elementsByTagName("c:comp");
+            for(int i=0; i<calComp2.length(); i++){
+                if(!calComp2.at(i).toElement().attribute("name").contains("VEVENT")){
+                    QMessageBox::critical(this, "Errore", "Un calendario non supporta gli eventi");
+                    exit(-1);
+                }
+                if(!calComp2.at(i).toElement().attribute("name").contains("VTODO")){
+                    QMessageBox::critical(this, "Errore", "Un calendario non supporta le attività");
+                    exit(-1);
+                }
+            }*/
+
+            //get calendar name and relative href
+            for(int i=0; i<calendarNames.length(); i++){
+                QString url = hrefList.at(i+1).toElement().text();
+                QString complete = client_->getHost().toString() + url;
+                QUrl endpoint = QUrl(complete);
+                client_->getUserCalendarsList().insert(calendarNames.at(i).toElement().text(), endpoint);
+            }
+
+            UserCalendarsChoice form(*client_);
+            form.exec();
+            initialize();
+        });
+    });
 }
 
 void MainWindow::initialize(){
@@ -198,42 +265,9 @@ void MainWindow::initialize(){
 
             if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
 
-            getUserCalendars();
 
             refresh_calendar_events();
             timer_->start(20000);
-        });
-    });
-
-}
-
-void MainWindow::getUserCalendars() {
-
-
-    auto reply1 = client_->discoverUserCalendars(user_);
-    connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-        QDomDocument res;
-        res.setContent(reply1->readAll());
-        userCalendars_ = res.elementsByTagName("d:href").at(1).toElement().text();
-        auto reply2 = client_->listUserCalendars();
-        connect(reply2, &QNetworkReply::finished, [reply2, this]() {
-
-            QDomDocument res;
-            res.setContent(reply2->readAll());
-            auto cal1 = res.elementsByTagName("cal:calendar");
-            auto cal2 = res.elementsByTagName("c:calendar");
-            if(cal1.isEmpty() && cal2.isEmpty()){
-                QMessageBox::critical(this, "Errore", "Calendario non supportato");
-                exit(-1);
-            }
-
-            auto calendarNames = res.elementsByTagName("d:displayname");
-            auto hrefList = res.elementsByTagName("d:href");
-            for(int i=0; i<calendarNames.length(); i++){
-                QUrl url = QUrl(hrefList.at(i).toElement().text());
-                client_->getUserCalendars().insert(calendarNames.at(i).toElement().text(), url);
-            }
-
         });
     });
 

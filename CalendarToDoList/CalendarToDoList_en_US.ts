@@ -175,6 +175,20 @@
     </message>
 </context>
 <context>
+    <name>UserCalendarsChoice</name>
+    <message>
+        <location filename="widgets/usercalendarschoice.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/usercalendarschoice.ui" line="45"/>
+        <source>Scegli calendario:</source>
+        <oldsource>Calendario:</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Userform</name>
     <message>
         <location filename="widgets/userform.ui" line="14"/>
