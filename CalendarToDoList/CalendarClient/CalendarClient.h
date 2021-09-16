@@ -45,13 +45,17 @@ class CalendarClient : public QObject {
   void deleteETag(QString href) { eTags_.remove(href); };
 
   void setHost(QUrl& host) { host_ = host; };
-  QUrl getHost() { return host_; };
+  QUrl& getHost() { return host_; };
   void setCredentials(QByteArray& credentials) { credentials_ = credentials; };
-  QString getCredentials() { return credentials_; };
+  QByteArray& getCredentials() { return credentials_; };
   void setEndpoint(QUrl& endpoint) { endpoint_ = endpoint; };
-  QUrl getEndpoint() { return endpoint_; };
+  QUrl& getEndpoint() { return endpoint_; };
+  void setPrincipal(QUrl& principal) { principal_ = principal; };
+  QUrl& getPrincipal() { return principal_; };
+  void setUserCalendars(QUrl& userCalendars) { userCalendars_ = userCalendars; };
+  QUrl& getUserCalendars() { return userCalendars_; };
+  QMap<QString, QUrl>& getUserCalendarsList() { return userCalendarsList_; };
 
-  QMap<QString, QUrl>& getUserCalendars(){ return userCalendars_; }
 
 
   QList<QString> getChangedItems() { return changedItems_; }
@@ -69,7 +73,7 @@ class CalendarClient : public QObject {
   /**
    * @brief Discovers the principal user's calendars.
    */
-  QNetworkReply* discoverUserCalendars(QString user);
+  QNetworkReply* discoverUserCalendars();
   /**
    * @brief Lists the principal user's calendars.
    */
@@ -145,8 +149,9 @@ class CalendarClient : public QObject {
 
   QUrl endpoint_;
   QUrl host_;
-
-  QMap<QString, QUrl> userCalendars_;
+  QUrl principal_;
+  QUrl userCalendars_;
+  QMap<QString, QUrl> userCalendarsList_;
 };
 
 #endif  // CALENDARCLIENT_CALDAV_H

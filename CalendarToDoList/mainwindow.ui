@@ -153,7 +153,7 @@ background-color: rgb(37, 255, 99);</string>
        <bool>true</bool>
       </attribute>
       <attribute name="verticalHeaderVisible">
-       <bool>true</bool>
+       <bool>false</bool>
       </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
        <number>30</number>
@@ -213,6 +213,7 @@ background-color: rgb(37, 255, 99);</string>
      <string>Impostazioni</string>
     </property>
     <addaction name="actionCambia_utente_server"/>
+    <addaction name="actionCambia_calendario"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuSynch"/>
@@ -262,6 +263,11 @@ background-color: rgb(37, 255, 99);</string>
   <action name="actionCambia_utente_server">
    <property name="text">
     <string>Cambia utente/server</string>
+   </property>
+  </action>
+  <action name="actionCambia_calendario">
+   <property name="text">
+    <string>Cambia calendario</string>
    </property>
   </action>
  </widget>

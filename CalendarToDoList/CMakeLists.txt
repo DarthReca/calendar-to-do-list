@@ -44,6 +44,7 @@ set(PROJECT_SOURCES
         widgets/calendartableitem.h widgets/calendartableitem.cpp
         widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
         widgets/userform.h widgets/userform.cpp widgets/userform.ui
+        widgets/usercalendarschoice.h widgets/usercalendarschoice.cpp widgets/usercalendarschoice.ui
         widgets/calendartable.h widgets/calendartable.cpp
         calendar_classes/icalendarcomponent.h calendar_classes/icalendarcomponent.cpp
         icons/icons.qrc

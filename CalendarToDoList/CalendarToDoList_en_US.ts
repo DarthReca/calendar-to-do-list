@@ -118,34 +118,39 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="239"/>
+        <location filename="mainwindow.ui" line="240"/>
         <source>Sincronizza</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="244"/>
+        <location filename="mainwindow.ui" line="245"/>
         <source>Ogni 10 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="249"/>
+        <location filename="mainwindow.ui" line="250"/>
         <source>Ogni 30 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="254"/>
+        <location filename="mainwindow.ui" line="255"/>
         <source>Ogni minuto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="259"/>
+        <location filename="mainwindow.ui" line="260"/>
         <source>Ogni 10 minuti</source>
         <oldsource>Ogni ora</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="264"/>
+        <location filename="mainwindow.ui" line="265"/>
         <source>Cambia utente/server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="270"/>
+        <source>Cambia calendario</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -159,18 +164,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="224"/>
+        <location filename="mainwindow.ui" line="225"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="229"/>
+        <location filename="mainwindow.ui" line="230"/>
         <source>Giornaliera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="234"/>
+        <location filename="mainwindow.ui" line="235"/>
         <source>Settimanale</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UserCalendarsChoice</name>
+    <message>
+        <location filename="widgets/usercalendarschoice.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/usercalendarschoice.ui" line="45"/>
+        <source>Scegli calendario:</source>
+        <oldsource>Calendario:</oldsource>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -188,16 +207,21 @@
     </message>
     <message>
         <location filename="widgets/userform.ui" line="60"/>
-        <source>Host*:</source>
+        <source>Principal user:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="widgets/userform.ui" line="74"/>
-        <source>Username:</source>
+        <source>Host*:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="widgets/userform.ui" line="88"/>
+        <source>Username:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="102"/>
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>

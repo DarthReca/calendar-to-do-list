@@ -28,16 +28,19 @@ class MainWindow : public QMainWindow {
   // void showTaskForm(Task task);
   void showEditForm(ICalendarComponent component);
   void getUserCalendars();
+  void tryGetPrincipal();
 
  signals:
   void show();
   void initialized();
 
  private slots:
+  void initialize();
   void refresh_calendar_events();
   void on_actionSincronizza_triggered();
-
   void on_actionCambia_utente_server_triggered();
+
+  void on_actionCambia_calendario_triggered();
 
 private:
   void getExpansion(ICalendarComponent &&original);
@@ -47,8 +50,6 @@ private:
   QPointer<CalendarEvent> editing_event_;
   ICalendar calendar_;
   QPointer<CalendarClient> client_;
-  QString user_;
-  QString userCalendars_;
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;

@@ -9,26 +9,9 @@
 #include <QString>
 
 #include "calendar_classes/calendar.h"
-#include "./userform.h"
 
 CalendarClient::CalendarClient(QObject* parent)
-    : network_manager_(QNetworkAccessManager()) {
-  QFile auth_file("auth.json");
-  if (!auth_file.exists()) {
-    //Userform form(*this);
-    //form.exec();
-  } else {
-    auth_file.open(QFile::OpenModeFlag::ReadOnly);
-    QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();
-
-    endpoint_ = QUrl(json["url"].toString());
-    host_ = QUrl(json["host"].toString());
-    credentials_ =
-        (json["username"].toString() + ":" + json["password"].toString())
-            .toUtf8()
-            .toBase64();
-  }
-}
+    : network_manager_(QNetworkAccessManager()) {}
 
 //////////// Events APIs ////////////
 
@@ -62,14 +45,9 @@ QNetworkReply* CalendarClient::obtainCTag() {
 }
 
 QNetworkReply* CalendarClient::discoverUser() {
-  if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug() << "Method PROPFIND not supported in call discoverUser";
-    return nullptr;
-  }
-
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
+  cal_part.setUrl(QUrl(host_));
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setRawHeader("Depth", "0");
@@ -89,15 +67,10 @@ QNetworkReply* CalendarClient::discoverUser() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::discoverUserCalendars(QString user) {
-  if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug() << "Method PROPFIND not supported in call discoverUserCalendars";
-    return nullptr;
-  }
-
+QNetworkReply* CalendarClient::discoverUserCalendars() {
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(user));
+  cal_part.setUrl(principal_);
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setRawHeader("Depth", "0");
@@ -119,14 +92,9 @@ QNetworkReply* CalendarClient::discoverUserCalendars(QString user) {
 }
 
 QNetworkReply* CalendarClient::listUserCalendars() {
-  if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug() << "Method PROPFIND not supported in call listUserCalendars";
-    return nullptr;
-  }
-
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
+  cal_part.setUrl(userCalendars_);
   cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                      "CalendarClient_CalDAV");
   cal_part.setRawHeader("Depth", "1");
