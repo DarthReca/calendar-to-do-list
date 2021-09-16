@@ -32,12 +32,11 @@ class MainWindow : public QMainWindow {
  signals:
   void show();
   void initialized();
-  void goOn();
 
  private slots:
+  void initialize();
   void refresh_calendar_events();
   void on_actionSincronizza_triggered();
-
   void on_actionCambia_utente_server_triggered();
 
 private:

@@ -104,7 +104,6 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-
     // get principal if user didn't specify it
     if(client_->getEndpoint().isEmpty()){
         auto reply = client_->discoverUser();
@@ -129,81 +128,83 @@ MainWindow::MainWindow(QWidget *parent)
                 QMessageBox::critical(this, "Errore", "Necessario inserire l'url dell'utente principale");
                 exit(-1);
             }
-            emit goOn();
+            initialize();
         });
     }
     else{
-        emit goOn();
+        initialize();
     }
+}
+
+void MainWindow::initialize(){
 
     // Get allowed methods
-    connect(this, &MainWindow::goOn, [this](){
-        auto methods_reply = client_->findOutCalendarSupport();
-        connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
-            if (methods_reply->error() != QNetworkReply::NoError ||
-                    methods_reply == nullptr || !methods_reply->hasRawHeader("Allow") ||
-                    !methods_reply->hasRawHeader("allow")) {
-                qWarning("Non riesco a ottenere i metodi supportati dal server");
+    auto methods_reply = client_->findOutCalendarSupport();
+    connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
+        if (methods_reply->error() != QNetworkReply::NoError ||
+                methods_reply == nullptr || !methods_reply->hasRawHeader("Allow") ||
+                !methods_reply->hasRawHeader("allow")) {
+            qWarning("Non riesco a ottenere i metodi supportati dal server");
+            QMessageBox::critical(
+                        this, "Errore di inizializzazione",
+                        "Il server non riesce a mandare i metodi supportati");
+            exit(-1);
+        }
+        if (methods_reply->hasRawHeader("Allow")) {
+            for (QByteArray &method : methods_reply->rawHeader("Allow").split(',')) {
+                client_->getSupportedMethods().insert(method.trimmed());
+            }
+        } else if (methods_reply->hasRawHeader("allow")) {
+            for (QByteArray &method : methods_reply->rawHeader("allow").split(',')) {
+                client_->getSupportedMethods().insert(method.trimmed());
+            }
+        }
+
+        // Get supported properties
+        auto props_reply = client_->findOutSupportedProperties();
+        connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
+            if (props_reply->error() != QNetworkReply::NoError ||
+                    props_reply == nullptr) {
+                qWarning("Non riesco a ottenere le proprietà supportate dal server");
                 QMessageBox::critical(
                             this, "Errore di inizializzazione",
-                            "Il server non riesce a mandare i metodi supportati");
-                exit(-1);
-            }
-            if (methods_reply->hasRawHeader("Allow")) {
-                for (QByteArray &method : methods_reply->rawHeader("Allow").split(',')) {
-                    client_->getSupportedMethods().insert(method.trimmed());
-                }
-            } else if (methods_reply->hasRawHeader("allow")) {
-                for (QByteArray &method : methods_reply->rawHeader("allow").split(',')) {
-                    client_->getSupportedMethods().insert(method.trimmed());
-                }
+                            "Il server non riesce a mandare le proprietà supportate");
+                exit(-2);
             }
 
-            // Get supported properties
-            auto props_reply = client_->findOutSupportedProperties();
-            connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
-                if (props_reply->error() != QNetworkReply::NoError ||
-                        props_reply == nullptr) {
+            QDomDocument res;
+            res.setContent(props_reply->readAll());
+            QDomNodeList propstat = res.elementsByTagName("d:propstat");
+
+            for (int i = 0; i < propstat.length(); i++) {
+                QDomElement current = propstat.at(i).toElement();
+                QString status =
+                        current.elementsByTagName("d:status").at(0).toElement().text();
+                if (!status.contains("200")) {
                     qWarning("Non riesco a ottenere le proprietà supportate dal server");
                     QMessageBox::critical(
                                 this, "Errore di inizializzazione",
                                 "Il server non riesce a mandare le proprietà supportate");
                     exit(-2);
                 }
-
-                QDomDocument res;
-                res.setContent(props_reply->readAll());
-                QDomNodeList propstat = res.elementsByTagName("d:propstat");
-
-                for (int i = 0; i < propstat.length(); i++) {
-                    QDomElement current = propstat.at(i).toElement();
-                    QString status =
-                            current.elementsByTagName("d:status").at(0).toElement().text();
-                    if (!status.contains("200")) {
-                        qWarning("Non riesco a ottenere le proprietà supportate dal server");
-                        QMessageBox::critical(
-                                    this, "Errore di inizializzazione",
-                                    "Il server non riesce a mandare le proprietà supportate");
-                        exit(-2);
-                    }
-                    QDomNodeList sync_token = current.elementsByTagName("d:sync-token");
-                    QDomNodeList ctag = current.elementsByTagName("cs:getctag");
-                    if (sync_token.length() != 0) {
-                        sync_token_supported_ = true;
-                        client_->setSyncToken(sync_token.at(0).toElement().text());
-                    }
-                    if (ctag.length() != 0) client_->setCTag(ctag.at(0).toElement().text());
+                QDomNodeList sync_token = current.elementsByTagName("d:sync-token");
+                QDomNodeList ctag = current.elementsByTagName("cs:getctag");
+                if (sync_token.length() != 0) {
+                    sync_token_supported_ = true;
+                    client_->setSyncToken(sync_token.at(0).toElement().text());
                 }
+                if (ctag.length() != 0) client_->setCTag(ctag.at(0).toElement().text());
+            }
 
-                if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
+            if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
 
-                getUserCalendars();
+            getUserCalendars();
 
-                refresh_calendar_events();
-                timer_->start(20000);
-            });
+            refresh_calendar_events();
+            timer_->start(20000);
         });
     });
+
 }
 
 void MainWindow::getUserCalendars() {
