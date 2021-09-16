@@ -32,6 +32,7 @@ class MainWindow : public QMainWindow {
  signals:
   void show();
   void initialized();
+  void goOn();
 
  private slots:
   void refresh_calendar_events();

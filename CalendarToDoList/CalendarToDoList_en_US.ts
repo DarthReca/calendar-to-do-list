@@ -188,16 +188,21 @@
     </message>
     <message>
         <location filename="widgets/userform.ui" line="60"/>
-        <source>Host*:</source>
+        <source>Principal user:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="widgets/userform.ui" line="74"/>
-        <source>Username:</source>
+        <source>Host*:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="widgets/userform.ui" line="88"/>
+        <source>Username:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/userform.ui" line="102"/>
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>
