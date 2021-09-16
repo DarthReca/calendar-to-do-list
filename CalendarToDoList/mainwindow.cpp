@@ -119,8 +119,27 @@ void MainWindow::tryGetPrincipal(){
 
     auto reply = client_->discoverUser();
     connect(reply, &QNetworkReply::finished, [reply, this]() {
+
+        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+            qWarning("Non riesco a ottenere il link all'utente principale");
+            QMessageBox::critical(
+                        this, "Errore di inizializzazione",
+                        "Il server non riesce a mandare il link all'utente principale");
+            exit(-1);
+        }
+
         QDomDocument res;
         res.setContent(reply->readAll());
+
+        QString status = res.elementsByTagName("d:status").at(0).toElement().text();
+        if (!status.contains("200")) {
+            qWarning("Non riesco a ottenere il link all'utente principale");
+            QMessageBox::critical(
+                        this, "Errore di inizializzazione",
+                        "Il server non riesce a mandare il link all'utente principale");
+            exit(-1);
+        }
+
         QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
         if(!principal.isEmpty()){
             client_->setPrincipal(principal);
@@ -148,8 +167,27 @@ void MainWindow::getUserCalendars() {
     // Get the link to all the principal user's calendars
     auto reply1 = client_->discoverUserCalendars();
     connect(reply1, &QNetworkReply::finished, [reply1, this]() {
+
+        if (reply1->error() != QNetworkReply::NoError || reply1 == nullptr) {
+            qWarning("Non riesco a ottenere il link ai calendari utente");
+            QMessageBox::critical(
+                        this, "Errore di inizializzazione",
+                        "Il server non riesce a mandare il link ai calendari utente");
+            exit(-1);
+        }
+
         QDomDocument res;
         res.setContent(reply1->readAll());
+
+        QString status = res.elementsByTagName("d:status").at(0).toElement().text();
+        if (!status.contains("200")) {
+            qWarning("Non riesco a ottenere il link ai calendari utente");
+            QMessageBox::critical(
+                        this, "Errore di inizializzazione",
+                        "Il server non riesce a mandare il link ai calendari utente");
+            exit(-1);
+        }
+
         QString complete = client_->getHost().toString() + res.elementsByTagName("d:href").at(1).toElement().text();
         QUrl calendars = QUrl(complete);
         client_->setUserCalendars(calendars);
@@ -157,8 +195,29 @@ void MainWindow::getUserCalendars() {
         //get the link to every specific principal user's calendar
         auto reply2 = client_->listUserCalendars();
         connect(reply2, &QNetworkReply::finished, [reply2, this]() {
+
+            if (reply2->error() != QNetworkReply::NoError || reply2 == nullptr) {
+                qWarning("Non riesco a ottenere i calendari utente");
+                QMessageBox::critical(
+                            this, "Errore di inizializzazione",
+                            "Il server non riesce a mandare i calendari utente");
+                exit(-2);
+            }
+
             QDomDocument res;
             res.setContent(reply2->readAll());
+
+            auto statusesList = res.elementsByTagName("d:status");
+            for (int i = 0; i < statusesList.length(); i++) {
+                if (!statusesList.at(i).toElement().text().contains("200")) {
+                    qWarning("Non riesco a ottenere il link ai calendari utente");
+                    QMessageBox::critical(
+                                this, "Errore di inizializzazione",
+                                "Il server non riesce a mandare il link ai calendari utente");
+                    exit(-2);
+                }
+            }
+
             auto hrefList = res.elementsByTagName("d:href"); //first href must be ignored
             auto calendarNames = res.elementsByTagName("d:displayname");
 
