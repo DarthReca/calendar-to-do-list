@@ -28,6 +28,7 @@ class MainWindow : public QMainWindow {
   // void showTaskForm(Task task);
   void showEditForm(ICalendarComponent component);
   void getUserCalendars();
+  void tryGetPrincipal();
 
  signals:
   void show();
@@ -38,6 +39,8 @@ class MainWindow : public QMainWindow {
   void refresh_calendar_events();
   void on_actionSincronizza_triggered();
   void on_actionCambia_utente_server_triggered();
+
+  void on_actionCambia_calendario_triggered();
 
 private:
   void getExpansion(ICalendarComponent &&original);

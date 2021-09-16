@@ -108,33 +108,39 @@ MainWindow::MainWindow(QWidget *parent)
 
     // get principal if user didn't specify it
     if(client_->getPrincipal().isEmpty()){
-        auto reply = client_->discoverUser();
-        connect(reply, &QNetworkReply::finished, [reply, this]() {
-            QDomDocument res;
-            res.setContent(reply->readAll());
-            QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
-            if(!principal.isEmpty()){
-                client_->setPrincipal(principal);
-
-                QFile file("auth.json");
-                file.open(QFile::OpenModeFlag::ReadWrite);
-                QJsonObject json = QJsonDocument().fromJson(file.readAll()).object();
-                json.remove("principal");
-                json.insert("principal", principal.toString());
-                QJsonDocument doc(json);
-                file.resize(0);
-                file.write(doc.toJson());
-            }
-            else{
-                QMessageBox::critical(this, "Errore", "Necessario inserire l'url dell'utente principale");
-                exit(-1);
-            }
-            getUserCalendars();
-        });
+        tryGetPrincipal();
     }
     else{
         getUserCalendars();
     }
+}
+
+void MainWindow::tryGetPrincipal(){
+
+    auto reply = client_->discoverUser();
+    connect(reply, &QNetworkReply::finished, [reply, this]() {
+        QDomDocument res;
+        res.setContent(reply->readAll());
+        QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
+        if(!principal.isEmpty()){
+            client_->setPrincipal(principal);
+
+            QFile file("auth.json");
+            file.open(QFile::OpenModeFlag::ReadWrite);
+            QJsonObject json = QJsonDocument().fromJson(file.readAll()).object();
+            json.remove("principal");
+            json.insert("principal", principal.toString());
+            QJsonDocument doc(json);
+            file.resize(0);
+            file.write(doc.toJson());
+        }
+        else{
+            QMessageBox::critical(this, "Errore", "Necessario inserire l'url dell'utente principale");
+            exit(-1);
+        }
+        getUserCalendars();
+    });
+
 }
 
 void MainWindow::getUserCalendars() {
@@ -428,7 +434,28 @@ void MainWindow::on_actionSincronizza_triggered() {
 
 void MainWindow::on_actionCambia_utente_server_triggered()
 {
+    Userform form(*client_);
+    form.exec();
+    if(client_->getPrincipal().isEmpty()){
+        tryGetPrincipal();
+    }
+    else{
+        getUserCalendars();
+    }
+}
 
+void MainWindow::on_actionCambia_calendario_triggered()
+{
+    if(client_->getUserCalendarsList().isEmpty()){
+        QMessageBox::warning(
+                    this, "Attendi ancora un pò",
+                    "Il server non è ancora pronto, riprova fra qualche istante");
+    }
+    else {
+        UserCalendarsChoice form(*client_);
+        form.exec();
+        initialize();
+    }
 }
 
 void MainWindow::getExpansion(ICalendarComponent &&original) {
@@ -467,3 +494,4 @@ void MainWindow::showEditForm(ICalendarComponent component) {
 }
 
 MainWindow::~MainWindow() { delete ui; }
+
