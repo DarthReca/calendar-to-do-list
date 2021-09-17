@@ -378,11 +378,13 @@ void MainWindow::refresh_calendar_events() {
             ICalendar tmp = ICalendar().fromXmlResponse(current);
 
             for (ICalendarComponent &ev : tmp.components()) {
-                if (!ev.getProperty("RRULE")) {
+                if(!ev.getEndDateTime() && !ev.getStartDateTime())
+                    ui->taskList->addItem(ev.getProperty("SUMMARY").value_or("Senza titolo"));
+                else if (!ev.getProperty("RRULE"))
                     ui->calendarTable->createTableItem(ev, this);
-                } else {
+                else
                     getExpansion(std::move(ev));
-                }
+
             }
         }
         readyEvent = true;
@@ -473,12 +475,13 @@ void MainWindow::on_actionSincronizza_triggered() {
                 if (status.contains("200")) {
                     ICalendar cal = ICalendar().fromXmlResponse(current);
                     for (ICalendarComponent &event : cal.components()) {
-                        if (!event.getProperty("RRULE")) {
+                        if(!event.getStartDateTime() && !event.getEndDateTime())
+                            ui->taskList->addItem(event.getProperty("SUMMARY").value_or("Senza titolo"));
+                        else if (!event.getProperty("RRULE"))
                             ui->calendarTable->createTableItem(event, this);
-                        } else {
-                            qDebug() << "Syncing recurrent...";
+                        else
                             getExpansion(std::move(event));
-                        }
+
                     }
                 }
                 if (status.contains("404")) {
@@ -548,8 +551,8 @@ void MainWindow::showEditForm(ICalendarComponent component) {
     bool existing =
             ui->calendarTable->getShowingEvents().contains(component.getUID());
     CreateEventForm form(&component, *client_, calendar_, existing, this);
-    int code = form.exec();
-    if (code != QDialog::Rejected) on_actionSincronizza_triggered();
+    connect(&form, &CreateEventForm::accepted, this, &MainWindow::on_actionSincronizza_triggered);
+    form.exec();
 }
 
 MainWindow::~MainWindow() { delete ui; }

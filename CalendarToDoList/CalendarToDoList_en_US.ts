@@ -93,64 +93,69 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="182"/>
+        <location filename="mainwindow.ui" line="195"/>
         <source>Visualizza</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="186"/>
+        <location filename="mainwindow.ui" line="199"/>
         <source>Visualizzazione calendario</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="195"/>
+        <location filename="mainwindow.ui" line="209"/>
         <source>Sincronizzazione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="199"/>
+        <location filename="mainwindow.ui" line="213"/>
         <source>Imposta intervallo di sincronizzazione</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="213"/>
+        <location filename="mainwindow.ui" line="227"/>
         <source>Impostazioni</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="240"/>
+        <location filename="mainwindow.ui" line="254"/>
         <source>Sincronizza</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="245"/>
+        <location filename="mainwindow.ui" line="259"/>
         <source>Ogni 10 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="250"/>
+        <location filename="mainwindow.ui" line="264"/>
         <source>Ogni 30 secondi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="255"/>
+        <location filename="mainwindow.ui" line="269"/>
         <source>Ogni minuto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="260"/>
+        <location filename="mainwindow.ui" line="274"/>
         <source>Ogni 10 minuti</source>
         <oldsource>Ogni ora</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="265"/>
+        <location filename="mainwindow.ui" line="279"/>
         <source>Cambia utente/server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="270"/>
+        <location filename="mainwindow.ui" line="284"/>
         <source>Cambia calendario</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="289"/>
+        <source>Mostra task senza data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -164,17 +169,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="225"/>
+        <location filename="mainwindow.ui" line="239"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="230"/>
+        <location filename="mainwindow.ui" line="244"/>
         <source>Giornaliera</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="235"/>
+        <location filename="mainwindow.ui" line="249"/>
         <source>Settimanale</source>
         <translation type="unfinished"></translation>
     </message>

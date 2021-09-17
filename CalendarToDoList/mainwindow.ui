@@ -153,11 +153,24 @@ background-color: rgb(37, 255, 99);</string>
        <bool>true</bool>
       </attribute>
       <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
+       <bool>true</bool>
       </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
        <number>30</number>
       </attribute>
+     </widget>
+    </item>
+    <item>
+     <widget class="QListWidget" name="taskList">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="resizeMode">
+       <enum>QListView::Adjust</enum>
+      </property>
+      <property name="modelColumn">
+       <number>0</number>
+      </property>
      </widget>
     </item>
    </layout>
@@ -189,6 +202,7 @@ background-color: rgb(37, 255, 99);</string>
      <addaction name="actionSettimanale"/>
     </widget>
     <addaction name="menuVedi_tabella"/>
+    <addaction name="actionMostra_task_senza_data"/>
    </widget>
    <widget class="QMenu" name="menuSynch">
     <property name="title">
@@ -268,6 +282,11 @@ background-color: rgb(37, 255, 99);</string>
   <action name="actionCambia_calendario">
    <property name="text">
     <string>Cambia calendario</string>
+   </property>
+  </action>
+  <action name="actionMostra_task_senza_data">
+   <property name="text">
+    <string>Mostra task senza data</string>
    </property>
   </action>
  </widget>

@@ -228,7 +228,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           return;
         }
       });
-      done(2);
+      accept();
     }
   });
 }

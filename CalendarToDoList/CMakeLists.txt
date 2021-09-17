@@ -47,6 +47,7 @@ set(PROJECT_SOURCES
         widgets/usercalendarschoice.h widgets/usercalendarschoice.cpp widgets/usercalendarschoice.ui
         widgets/calendartable.h widgets/calendartable.cpp
         calendar_classes/icalendarcomponent.h calendar_classes/icalendarcomponent.cpp
+        widgets/tasklistwidget.h widgets/tasklistwidget.cpp
         icons/icons.qrc
         ${TS_FILES}
 )
