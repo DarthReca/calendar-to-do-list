@@ -161,7 +161,7 @@ background-color: rgb(37, 255, 99);</string>
      </widget>
     </item>
     <item>
-     <widget class="QListWidget" name="taskList">
+     <widget class="ComponentListWidget" name="taskList">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -295,6 +295,11 @@ background-color: rgb(37, 255, 99);</string>
    <class>CalendarTable</class>
    <extends>QTableWidget</extends>
    <header location="global">widgets/calendartable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ComponentListWidget</class>
+   <extends>QListWidget</extends>
+   <header location="global">widgets/componentlistwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

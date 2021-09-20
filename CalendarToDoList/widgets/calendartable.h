@@ -10,16 +10,17 @@
 
 #include "calendar_classes/icalendarcomponent.h"
 #include "calendartableitem.h"
-#include "mainwindow.h"
 
 enum class TimeFrame { kDaily, kWeekly };
 
 class CalendarTable : public QTableWidget {
+  Q_OBJECT
  public:
   explicit CalendarTable(QWidget* parent = nullptr);
+  virtual ~CalendarTable(){};
   void init();
 
-  void createTableItem(ICalendarComponent& component, MainWindow* main_window);
+  void createTableItem(ICalendarComponent& component);
   void clearShowingWidgets();
 
   void removeByHref(const QString& href);
@@ -32,6 +33,8 @@ class CalendarTable : public QTableWidget {
 
   QPair<QDate, QDate> getDateRange();
   QPair<QDateTime, QDateTime> getDateTimeRange();
+ signals:
+  void calendarItemClicked(CalendarTableItem* item);
 
  protected:
   void resizeEvent(QResizeEvent* event);

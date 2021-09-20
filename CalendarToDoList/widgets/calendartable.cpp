@@ -10,8 +10,8 @@ CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
 }
 
 void CalendarTable::init() {
-    horizontalHeader()->show();
-    verticalHeader()->show();
+  horizontalHeader()->show();
+  verticalHeader()->show();
   // Stretch
   horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -28,8 +28,7 @@ void CalendarTable::init() {
   setVisualMode(TimeFrame::kWeekly, QDate::currentDate());
 }
 
-void CalendarTable::createTableItem(ICalendarComponent &component,
-                                    MainWindow *main_window) {
+void CalendarTable::createTableItem(ICalendarComponent &component) {
   auto range = getDateRange();
   auto dtstart = component.getStartDateTime();
   auto dtend = component.getEndDateTime();
@@ -46,9 +45,8 @@ void CalendarTable::createTableItem(ICalendarComponent &component,
     clearWidgetList(showing_items_[component.getUID()]);
 
   auto widget = new CalendarTableItem(std::move(component), viewport());
-  connect(widget, &QPushButton::clicked, [widget, main_window]() {
-    main_window->showEditForm(widget->component());
-  });
+  connect(widget, &QPushButton::clicked,
+          [this, widget]() { emit calendarItemClicked(widget); });
   showing_items_[component.getUID()] += widget;
 
   resizeAndMove(widget);
@@ -137,7 +135,6 @@ QPair<QDateTime, QDateTime> CalendarTable::getDateTimeRange() {
   range.second = QDateTime(date_range.second, QTime(23, 59));
   return range;
 }
-
 
 void CalendarTable::clearShowingWidgets() {
   for (auto &widget_list : showing_items_) clearWidgetList(widget_list);
