@@ -35,14 +35,23 @@ MainWindow::MainWindow(QWidget *parent)
     auth_file.open(QFile::OpenModeFlag::ReadOnly);
     QJsonObject json = QJsonDocument().fromJson(auth_file.readAll()).object();
 
+    if (!json.contains("principal") || !json.contains("host") ||
+        !json.contains("password") || !json.contains("username")) {
+      QMessageBox::critical(
+          this, "Chiavi mancanti in json",
+          "auth.json deve contenere: host, principal, username e password");
+      exit(1);
+    }
+
     QUrl principal = QUrl(json["principal"].toString());
-    client_->setPrincipal(principal);
     QUrl host = QUrl(json["host"].toString());
-    client_->setHost(host);
     QByteArray credentials =
         (json["username"].toString() + ":" + json["password"].toString())
             .toUtf8()
             .toBase64();
+
+    client_->setPrincipal(principal);
+    client_->setHost(host);
     client_->setCredentials(credentials);
   }
 

@@ -85,10 +85,10 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
               component_->setProperty("RRULE", "FREQ=DAILY");
 
             if (text == "Ogni settimana")
-              component_->setProperty("RRULE",
-                                      QString("FREQ=WEEKLY; BYDAY=%1")
-                                          .arg(CalendarEvent::stringFromWeekDay(
-                                              start_date.dayOfWeek())));
+              component_->setProperty(
+                  "RRULE", QString("FREQ=WEEKLY; BYDAY=%1")
+                               .arg(ICalendarComponent::stringFromWeekDay(
+                                   start_date.dayOfWeek())));
 
             if (text == "Ogni mese")
               component_->setProperty(
