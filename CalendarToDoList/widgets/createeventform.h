@@ -31,7 +31,7 @@ class CreateEventForm : public QDialog {
  private:
   Ui::CreateEventForm* ui;
   ICalendarComponent* component_;
-  QPointer<CalendarClient> client_;
+  CalendarClient* client_;
   bool existing_;
 };
 

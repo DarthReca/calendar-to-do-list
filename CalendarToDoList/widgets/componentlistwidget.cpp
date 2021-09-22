@@ -1,8 +1,7 @@
 #include "componentlistwidget.h"
 
 ComponentListWidget::ComponentListWidget(QWidget *parent)
-    : QListWidget(parent),
-      components_(QHash<QString, QPair<int, ICalendarComponent>>()) {}
+    : QListWidget(parent) {}
 
 void ComponentListWidget::createListWidget(ICalendarComponent &&component) {
   QString uid = component.getUID();

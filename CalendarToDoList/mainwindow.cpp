@@ -19,9 +19,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
-      calendar_(ICalendar()),
       timer_(new QTimer(this)),
-      client_(new CalendarClient(this)),
+      client_(new CalendarClient()),
       sync_token_supported_(false),
       readyUser_(false),
       readyEvent(false),
@@ -136,7 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::tryGetPrincipal() {
   auto reply = client_->discoverUser();
   connect(reply, &QNetworkReply::finished, [reply, this]() {
-    if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+    if (reply->error() != QNetworkReply::NoError) {
       qWarning("Non riesco a ottenere il link all'utente principale");
       QMessageBox::critical(
           this, "Errore di inizializzazione",
@@ -181,7 +180,7 @@ void MainWindow::getUserCalendars() {
   // Get the link to all the principal user's calendars
   auto reply1 = client_->discoverUserCalendars();
   connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-    if (reply1->error() != QNetworkReply::NoError || reply1 == nullptr) {
+    if (reply1->error() != QNetworkReply::NoError) {
       qWarning("Non riesco a ottenere il link ai calendari utente");
       QMessageBox::critical(
           this, "Errore di inizializzazione",
@@ -209,7 +208,7 @@ void MainWindow::getUserCalendars() {
     // get the link to every specific principal user's calendar
     auto reply2 = client_->listUserCalendars();
     connect(reply2, &QNetworkReply::finished, [reply2, this]() {
-      if (reply2->error() != QNetworkReply::NoError || reply2 == nullptr) {
+      if (reply2->error() != QNetworkReply::NoError) {
         qWarning("Non riesco a ottenere i calendari utente");
         QMessageBox::critical(
             this, "Errore di inizializzazione",
@@ -290,7 +289,7 @@ void MainWindow::initialize() {
   auto methods_reply = client_->findOutCalendarSupport();
   connect(methods_reply, &QNetworkReply::finished, [methods_reply, this]() {
     if (methods_reply->error() != QNetworkReply::NoError ||
-        methods_reply == nullptr || !methods_reply->hasRawHeader("Allow") ||
+        !methods_reply->hasRawHeader("Allow") ||
         !methods_reply->hasRawHeader("allow")) {
       qWarning("Non riesco a ottenere i metodi supportati dal server");
       QMessageBox::critical(
@@ -311,8 +310,7 @@ void MainWindow::initialize() {
     // Get supported properties
     auto props_reply = client_->findOutSupportedProperties();
     connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
-      if (props_reply->error() != QNetworkReply::NoError ||
-          props_reply == nullptr) {
+      if (props_reply->error() != QNetworkReply::NoError) {
         qWarning("Non riesco a ottenere le proprietà supportate dal server");
         QMessageBox::critical(
             this, "Errore di inizializzazione",
@@ -364,7 +362,7 @@ void MainWindow::refresh_calendar_events() {
   connect(
       reply, &QNetworkReply::finished,
       [this, reply, selected_date, end_date]() {
-        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+        if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco a ottenere gli eventi dal server");
           QMessageBox::critical(this, "Errore di inizializzazione",
                                 "Il server non riesce a mandare gli eventi");
@@ -389,7 +387,7 @@ void MainWindow::refresh_calendar_events() {
 
         for (int i = 0; i < responses.length(); i++) {
           QDomElement current = responses.at(i).toElement();
-          ICalendar tmp = ICalendar().fromXmlResponse(current);
+          ICalendar tmp = ICalendar::fromXmlResponse(current);
 
           for (ICalendarComponent &ev : tmp.components()) {
             if (!ev.getEndDateTime() && !ev.getStartDateTime())
@@ -418,7 +416,7 @@ void MainWindow::on_actionSincronizza_triggered() {
     // ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
-      if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+      if (reply->error() != QNetworkReply::NoError) {
         qWarning("Non riesco a ottenere il ctag dal server");
         QMessageBox::critical(this, "Errore di sincronizzazione",
                               "Il server non riesce a mandare il ctag");
@@ -450,7 +448,7 @@ void MainWindow::on_actionSincronizza_triggered() {
   } else {
     auto reply2 = client_->receiveChangesBySyncToken();
     connect(reply2, &QNetworkReply::finished, [this, reply2]() {
-      if (reply2->error() != QNetworkReply::NoError || reply2 == nullptr) {
+      if (reply2->error() != QNetworkReply::NoError) {
         qWarning(
             "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
             "dal server");
@@ -486,7 +484,7 @@ void MainWindow::on_actionSincronizza_triggered() {
             current.elementsByTagName("d:status").at(0).toElement().text();
 
         if (status.contains("200")) {
-          ICalendar cal = ICalendar().fromXmlResponse(current);
+          ICalendar cal = ICalendar::fromXmlResponse(current);
           for (ICalendarComponent &event : cal.components()) {
             if (!event.getStartDateTime() && !event.getEndDateTime())
               ui->taskList->createListWidget(std::move(event));
@@ -542,7 +540,7 @@ void MainWindow::getExpansion(ICalendarComponent &&original) {
 
             for (int i = 0; i < responses.length(); i++) {
               QDomElement current = responses.at(i).toElement();
-              ICalendar tmp = ICalendar().fromXmlResponse(current);
+              ICalendar tmp = ICalendar::fromXmlResponse(current);
 
               for (ICalendarComponent &ev : tmp.components()) {
                 ICalendarComponent copy(moved);

@@ -27,7 +27,7 @@ class Userform : public QDialog {
 
  private:
   Ui::Userform *ui;
-  CalendarClient formClient_;
+  CalendarClient *formClient_;
 };
 
 #endif  // USERFORM_H

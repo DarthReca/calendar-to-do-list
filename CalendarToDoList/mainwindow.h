@@ -46,7 +46,7 @@ class MainWindow : public QMainWindow {
   Ui::MainWindow *ui;
 
   ICalendar calendar_;
-  QPointer<CalendarClient> client_;
+  CalendarClient *client_;
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;

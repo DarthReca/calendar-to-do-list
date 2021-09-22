@@ -1,4 +1,4 @@
-#include "CalendarClient.h"
+#include "calendarclient.h"
 
 #include <QByteArray>
 #include <QDomDocument>
@@ -10,8 +10,7 @@
 
 #include "calendar_classes/calendar.h"
 
-CalendarClient::CalendarClient(QObject* parent)
-    : network_manager_(QNetworkAccessManager()) {}
+CalendarClient::CalendarClient() {}
 
 //////////// Events APIs ////////////
 
@@ -160,41 +159,6 @@ QNetworkReply* CalendarClient::findOutSupportedProperties() {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getAllElements() {
-  if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call getAllElements";
-    return nullptr;
-  }
-
-  QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                     "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                     "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Prefer", "return-minimal");
-  cal_part.setRawHeader("Depth", "1");
-
-  QDomDocument xml;
-  QDomElement root = xml.createElement("c:calendar-query");
-  root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
-  xml.appendChild(root);
-  QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:getetag"));
-  tagProp.appendChild(xml.createElement("c:calendar-data"));
-  root.appendChild(tagProp);
-  QDomElement tagFilter = xml.createElement("c:filter");
-  QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-  tagCompFilter.setAttribute("name", "VCALENDAR");
-  tagFilter.appendChild(tagCompFilter);
-  root.appendChild(tagFilter);
-
-  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
-                                            xml.toByteArray());
-}
-
 QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
   if (!supportedMethods_.contains("REPORT")) {
     qDebug() << "Method REPORT not supported in call getElementByUID";
@@ -241,89 +205,6 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::lookForChanges() {
-  if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call lookForChanges";
-    return nullptr;
-  }
-
-  QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                     "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                     "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Prefer", "return-minimal");
-  cal_part.setRawHeader("Depth", "1");
-
-  QDomDocument xml;
-  QDomElement root = xml.createElement("c:calendar-query");
-  root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
-  xml.appendChild(root);
-  QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:getetag"));
-  QDomElement calendar_data = xml.createElement("c:calendar-data");
-  QDomElement calendar_comp = xml.createElement("c:comp");
-  calendar_comp.setAttribute("name", "VCALENDAR");
-  QDomElement event_comp = xml.createElement("c:comp");
-  event_comp.setAttribute("name", "VEVENT");
-  QDomElement prop = xml.createElement("c:prop");
-  prop.setAttribute("name", "UID");
-  event_comp.appendChild(prop);
-  calendar_comp.appendChild(event_comp);
-  calendar_data.appendChild(calendar_comp);
-  tagProp.appendChild(calendar_data);
-  root.appendChild(tagProp);
-  QDomElement tagFilter = xml.createElement("c:filter");
-  QDomElement tagCompFilter = xml.createElement("c:comp-filter");
-  tagCompFilter.setAttribute("name", "VCALENDAR");
-  tagFilter.appendChild(tagCompFilter);
-  root.appendChild(tagFilter);
-
-  qDebug() << xml.toString();
-
-  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
-                                            xml.toByteArray());
-}
-
-QNetworkReply* CalendarClient::getChangedElements() {
-  if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call getChangedElements";
-    return nullptr;
-  }
-
-  QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                     "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                     "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Prefer", "return-minimal");
-  cal_part.setRawHeader("Depth", "1");
-
-  QDomDocument xml;
-  QDomElement root = xml.createElement("c:calendar-multiget");
-  root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
-  xml.appendChild(root);
-  QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:getetag"));
-  tagProp.appendChild(xml.createElement("c:calendar-data"));
-  root.appendChild(tagProp);
-  QDomElement tagHref;
-  for (QString Item : changedItems_) {
-    tagHref = xml.createElement("d:href");
-    tagHref.appendChild(xml.createTextNode(Item));
-    root.appendChild(tagHref);
-  }
-
-  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
-                                            xml.toByteArray());
-}
-
 QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
                                                   QDateTime end) {
   if (!supportedMethods_.contains("REPORT")) {
@@ -353,7 +234,8 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
   // QDomElement expand = xml.createElement("c:expand");
   // expand.setAttribute("start",
   // start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'")); expand.setAttribute("end",
-  // end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'")); cal_data.appendChild(expand);
+  // end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
+  // cal_data.appendChild(expand);
   tagProp.appendChild(cal_data);
   root.appendChild(tagProp);
   // FILTER
@@ -372,92 +254,11 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
                                             xml.toByteArray());
 }
 
-QNetworkReply* CalendarClient::getDateRangeTasks(QDateTime start,
-                                                 QDateTime end) {
-  if (!supportedMethods_.contains("REPORT")) {
-    qWarning() << "Method REPORT not supported in call getDateRangeEvents";
-    return nullptr;
-  }
-
-  QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                     "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                     "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Prefer", "return-minimal");
-  cal_part.setRawHeader("Depth", "1");
-
-  QDomDocument xml;
-  QDomElement root = xml.createElement("c:calendar-query");
-  root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:c", "urn:ietf:params:xml:ns:caldav");
-  xml.appendChild(root);
-  // PROP
-  QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:getetag"));
-  QDomElement cal_data = xml.createElement("c:calendar-data");
-  tagProp.appendChild(cal_data);
-  root.appendChild(tagProp);
-  // FILTER
-  QDomElement tagFilter = xml.createElement("c:filter");
-  // Filter the tasks
-  QDomElement tagCompFilter1 = xml.createElement("c:comp-filter");
-  tagCompFilter1.setAttribute("name", "VCALENDAR");
-  tagFilter.appendChild(tagCompFilter1);
-  QDomElement tagCompFilter2 = xml.createElement("c:comp-filter");
-  tagCompFilter2.setAttribute("name", "VTODO");
-  tagCompFilter1.appendChild(tagCompFilter2);
-  // Time range filter
-  QDomElement tagTime = xml.createElement("c:time-range");
-  tagTime.setAttribute("start", start.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  tagTime.setAttribute("end", end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'"));
-  tagFilter.appendChild(tagTime);
-  root.appendChild(tagFilter);
-
-  return network_manager_.sendCustomRequest(cal_part, QByteArray("REPORT"),
-                                            xml.toByteArray());
-}
-
-QNetworkReply* CalendarClient::requestSyncToken() {
-  if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug() << "Method PROPFIND not supported in call requestSyncToken";
-    return nullptr;
-  }
-
-  QNetworkRequest cal_part;
-  cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
-  cal_part.setUrl(QUrl(endpoint_));
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader,
-                     "application/xml; charset=utf-8");
-  cal_part.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
-                     "CalendarClient_CalDAV");
-  cal_part.setRawHeader("Depth", "0");
-
-  QDomDocument xml;
-  QDomElement root = xml.createElement("d:propfind");
-  root.setAttribute("xmlns:d", "DAV:");
-  root.setAttribute("xmlns:cs", endpoint_.toString());
-  xml.appendChild(root);
-  QDomElement tagProp = xml.createElement("d:prop");
-  tagProp.appendChild(xml.createElement("d:displayname"));
-  tagProp.appendChild(xml.createElement("cs:getctag"));
-  tagProp.appendChild(xml.createElement("d:sync-token"));
-  root.appendChild(tagProp);
-
-  return network_manager_.sendCustomRequest(cal_part, QByteArray("PROPFIND"),
-                                            xml.toByteArray());
-}
-
 QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   if (!supportedMethods_.contains("REPORT")) {
     qDebug() << "Method REPORT not supported in call receiveChangesBySyncToken";
     return nullptr;
   }
-  QDateTime start = QDateTime::currentDateTime();
-  QDateTime end = start.addDays(3);
-
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
   cal_part.setUrl(QUrl(endpoint_));

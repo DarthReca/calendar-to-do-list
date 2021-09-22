@@ -5,9 +5,8 @@
 #include <QTime>
 #include <QTimer>
 
-CalendarTable::CalendarTable(QWidget *parent) : QTableWidget(parent) {
-  showing_items_ = QHash<QString, QList<QPointer<CalendarTableItem>>>();
-}
+CalendarTable::CalendarTable(QWidget *parent)
+    : QTableWidget(parent), time_frame_(TimeFrame::kWeekly) {}
 
 void CalendarTable::init() {
   horizontalHeader()->show();
@@ -45,7 +44,7 @@ void CalendarTable::createTableItem(ICalendarComponent &component) {
     clearWidgetList(showing_items_[component.getUID()]);
 
   auto widget = new CalendarTableItem(std::move(component), viewport());
-  connect(widget, &QPushButton::clicked,
+  connect(widget, &QPushButton::clicked, this,
           [this, widget]() { emit calendarItemClicked(widget); });
   showing_items_[component.getUID()] += widget;
 

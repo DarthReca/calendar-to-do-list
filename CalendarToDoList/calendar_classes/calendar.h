@@ -9,27 +9,20 @@
 class ICalendar {
  public:
   ICalendar();
-  ICalendar(const QString &href, const QString &eTag, QTextStream &ical_object);
+  static ICalendar fromXmlResponse(QDomElement &xml);
+
   ~ICalendar();
 
   QString toICalendarObject();
-  ICalendar &fromXmlResponse(QDomElement &xml);
 
   QList<ICalendarComponent> &components() { return components_; };
 
-  // QList<CalendarEvent> &events();
-  // void setEvents(const QVector<CalendarEvent> &newEvents);
-
-  // QList<Task> &tasks() { return tasks_; };
-
-  QString getDisplayName() const;
-  void setDisplayName(QString name);
+  QString getDisplayName() const { return display_name_; };
+  void setDisplayName(const QString &name) { display_name_ = name; };
 
  private:
   QString display_name_;
   QList<ICalendarComponent> components_;
-  // QList<CalendarEvent> events_;
-  // QList<Task> tasks_;
 };
 
 #endif  // CALENDAR_H

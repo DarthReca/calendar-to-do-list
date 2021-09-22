@@ -117,7 +117,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
     if (!existing_) {
       auto reply = client_->saveElement(*component_);
       connect(reply, &QNetworkReply::finished, [this, reply]() {
-        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+        if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco a salvare il nuovo elemento");
           QMessageBox::critical(this, "Errore",
                                 "Il server non accetta il nuovo elemento");
@@ -130,7 +130,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                                            : isEvent = false;
         auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
         connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-          if (reply1->error() != QNetworkReply::NoError || reply1 == nullptr) {
+          if (reply1->error() != QNetworkReply::NoError) {
             qWarning("Non riesco salvare il nuovo elemento");
             QMessageBox::critical(this, "Errore",
                                   "Il server non accetta il nuovo elemento");
@@ -163,7 +163,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
     else {
       auto reply = client_->updateElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
-        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+        if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco ad aggiornare l'elemento selezionato");
           QMessageBox::critical(this, "Errore",
                                 "Il server non accetta l'aggiornamento "
@@ -178,8 +178,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           bool isEvent = component_->type() == "VEVENT";
           auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
           connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-            if (reply1->error() != QNetworkReply::NoError ||
-                reply1 == nullptr) {
+            if (reply1->error() != QNetworkReply::NoError) {
               qWarning("Non riesco ad aggiornare l'elemento selezionato");
               QMessageBox::critical(this, "Errore",
                                     "Il server non accetta l'aggiornamento "
@@ -219,7 +218,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
     } else {
       auto reply = client_->deleteElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
-        if (reply->error() != QNetworkReply::NoError || reply == nullptr) {
+        if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco ad eliminare l'elemento selezionato");
           QMessageBox::critical(
               this, "Errore",

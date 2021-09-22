@@ -1,15 +1,10 @@
 #include "icalendarcomponent.h"
 
-ICalendarComponent::ICalendarComponent() {
-  href_ = "";
-  eTag_ = "";
-  type_ = "VEVENT";
-  properties_ = QHash<QString, QString>();
+ICalendarComponent::ICalendarComponent() : type_("VEVENT"), all_day_(false) {
   properties_["TRANSP"] = "OPAQUE";
   properties_["VERSION"] = "2.0";
   // TODO: add something random to UID
   properties_["UID"] = QDateTime::currentDateTime().toString(Qt::ISODateWithMs);
-  all_day_ = false;
 }
 
 ICalendarComponent ICalendarComponent::fromICalendar(QTextStream& icalendar,

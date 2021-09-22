@@ -12,11 +12,9 @@
 
 #include "calendar_classes/icalendarcomponent.h"
 
-class CalendarClient : public QObject {
-  Q_OBJECT
-
+class CalendarClient {
  public:
-  CalendarClient(QObject* parent = nullptr);
+  CalendarClient();
 
   /**
    * @brief Obtain the ctag from the server.
@@ -42,26 +40,31 @@ class CalendarClient : public QObject {
   };
   void deleteETag(QString href) { eTags_.remove(href); };
 
-  void setHost(QUrl& host) { host_ = host; };
+  void setHost(const QUrl& host) { host_ = host; };
   QUrl& getHost() { return host_; };
-  void setCredentials(QByteArray& credentials) { credentials_ = credentials; };
+
+  void setCredentials(const QByteArray& credentials) {
+    credentials_ = credentials;
+  };
   QByteArray& getCredentials() { return credentials_; };
-  void setEndpoint(QUrl& endpoint) { endpoint_ = endpoint; };
+
+  void setEndpoint(const QUrl& endpoint) { endpoint_ = endpoint; };
   QUrl& getEndpoint() { return endpoint_; };
-  void setPrincipal(QUrl& principal) { principal_ = principal; };
+
+  void setPrincipal(const QUrl& principal) { principal_ = principal; };
   QUrl& getPrincipal() { return principal_; };
-  void setUserCalendars(QUrl& userCalendars) {
+
+  void setUserCalendars(const QUrl& userCalendars) {
     userCalendars_ = userCalendars;
   };
   QUrl& getUserCalendars() { return userCalendars_; };
+
   QMap<QString, QUrl>& getUserCalendarsList() { return userCalendarsList_; };
 
   QList<QString> getChangedItems() { return changedItems_; }
   void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }
   void deleteChangedItem(QString href) { changedItems_.removeOne(href); };
   void clearChangedItems() { changedItems_.clear(); }
-
- public slots:
 
   //////////// Events/Tasks APIs ////////////
   /**
@@ -85,10 +88,6 @@ class CalendarClient : public QObject {
    */
   QNetworkReply* findOutSupportedProperties();
   /**
-   * @brief Gets all elements from the calDAV server.
-   */
-  QNetworkReply* getAllElements();
-  /**
    * @brief Gets an event with a specific UID from the calDAV server.
    */
   QNetworkReply* getElementByUID(QString UID, bool isEvent);
@@ -97,25 +96,9 @@ class CalendarClient : public QObject {
    */
   QNetworkReply* getDateRangeEvents(QDateTime start, QDateTime end);
   /**
-   * @brief Gets all events in a specific time range.
-   */
-  QNetworkReply* getDateRangeTasks(QDateTime start, QDateTime end);
-  /**
-   * @brief Requests the sync token from the server.
-   */
-  QNetworkReply* requestSyncToken();
-  /**
    * @brief Receives the changed elements through the sync token.
    */
   QNetworkReply* receiveChangesBySyncToken();
-  /**
-   * @brief Looks for changes done in the server.
-   */
-  QNetworkReply* lookForChanges();
-  /**
-   * @brief Fetches the changed things in the calendar.
-   */
-  QNetworkReply* getChangedElements();
   /**
    * @brief Saves a event to the calDAV server.
    *

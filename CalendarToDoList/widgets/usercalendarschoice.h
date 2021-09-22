@@ -23,7 +23,7 @@ class UserCalendarsChoice : public QDialog {
 
  private:
   Ui::UserCalendarsChoice *ui;
-  QPointer<CalendarClient> formClient_;
+  CalendarClient *formClient_;
 };
 
 #endif  // USERCALENDARSCHOICE_H

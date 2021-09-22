@@ -44,9 +44,7 @@ class ICalendarComponent {
  private:
   QString href_;
   QString eTag_;
-
   QString type_;
-
   bool all_day_;
 
   QHash<QString, QString> properties_;
