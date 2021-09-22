@@ -10,7 +10,7 @@
 #include <functional>
 
 #include "./ui_mainwindow.h"
-#include "CalendarClient/CalendarClient.h"
+#include "calendarclient.h"
 #include "widgets/calendartable.h"
 #include "widgets/calendartableitem.h"
 #include "widgets/usercalendarschoice.h"
@@ -558,8 +558,9 @@ void MainWindow::getExpansion(ICalendarComponent &&original) {
 
 void MainWindow::showEditForm(ICalendarComponent component) {
   bool existing =
-      ui->calendarTable->getShowingEvents().contains(component.getUID());
-  CreateEventForm form(&component, *client_, calendar_, existing, this);
+      ui->calendarTable->getShowingEvents().contains(component.getUID()) ||
+      ui->taskList->getShowingComponents().contains(component.getUID());
+  CreateEventForm form(&component, *client_, existing, this);
   connect(&form, &CreateEventForm::accepted, this,
           &MainWindow::on_actionSincronizza_triggered);
   form.exec();

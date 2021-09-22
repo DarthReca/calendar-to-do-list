@@ -5,9 +5,9 @@
 #include <QJsonArray>
 #include <memory>
 
-#include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
 #include "calendar_classes/icalendarcomponent.h"
+#include "calendarclient.h"
 
 namespace Ui {
 class CreateEventForm;
@@ -18,8 +18,7 @@ class CreateEventForm : public QDialog {
 
  public:
   explicit CreateEventForm(ICalendarComponent* event, CalendarClient& client,
-                           ICalendar& calendar, bool existing,
-                           QWidget* parent = nullptr);
+                           bool existing, QWidget* parent = nullptr);
 
   ~CreateEventForm();
 
@@ -33,7 +32,6 @@ class CreateEventForm : public QDialog {
   Ui::CreateEventForm* ui;
   ICalendarComponent* component_;
   QPointer<CalendarClient> client_;
-  ICalendar* calendar_;
   bool existing_;
 };
 

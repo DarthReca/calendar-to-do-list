@@ -16,6 +16,7 @@ class ComponentListWidget : public QListWidget {
   void removeByHref(const QString& href);
 
   ICalendarComponent componentByItem(QListWidgetItem* widget_item);
+  const auto& getShowingComponents() { return components_; }
 
  private:
   QHash<QString, QPair<int, ICalendarComponent>> components_;

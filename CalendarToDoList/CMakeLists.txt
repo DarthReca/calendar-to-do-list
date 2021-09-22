@@ -37,8 +37,7 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         calendar_classes/calendar.h calendar_classes/calendar.cpp
-        CalendarClient/calendarclient.cpp
-        CalendarClient/calendarclient.h
+        calendarclient.cpp calendarclient.h
         widgets/calendartableitem.h widgets/calendartableitem.cpp
         widgets/createeventform.h widgets/createeventform.cpp widgets/createeventform.ui
         widgets/userform.h widgets/userform.cpp widgets/userform.ui

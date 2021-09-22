@@ -1,34 +1,33 @@
 #ifndef USERFORM_H
 #define USERFORM_H
 
-#include <QDialog>
 #include <QAbstractButton>
-#include <QMessageBox>
-#include <QJsonObject>
-#include <QJsonDocument>
+#include <QDialog>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMessageBox>
 
-#include "./CalendarClient/CalendarClient.h"
+#include "calendarclient.h"
 
 namespace Ui {
 class Userform;
 }
 
-class Userform : public QDialog
-{
-    Q_OBJECT
+class Userform : public QDialog {
+  Q_OBJECT
 
-public:
-    explicit Userform(CalendarClient& client, QWidget *parent = nullptr);
-    ~Userform();
+ public:
+  explicit Userform(CalendarClient &client, QWidget *parent = nullptr);
+  ~Userform();
 
-private slots:
+ private slots:
 
-    void on_buttonBox_clicked(QAbstractButton *button);
+  void on_buttonBox_clicked(QAbstractButton *button);
 
-private:
-    Ui::Userform *ui;
-    CalendarClient formClient_;
+ private:
+  Ui::Userform *ui;
+  CalendarClient formClient_;
 };
 
-#endif // USERFORM_H
+#endif  // USERFORM_H

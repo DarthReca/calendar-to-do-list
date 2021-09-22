@@ -2,18 +2,17 @@
 
 #include <QMessageBox>
 
-#include "CalendarClient/CalendarClient.h"
+#include "calendarclient.h"
 #include "calendartable.h"
 #include "ui_createeventform.h"
 
 CreateEventForm::CreateEventForm(ICalendarComponent* event,
-                                 CalendarClient& client, ICalendar& calendar,
-                                 bool existing, QWidget* parent)
+                                 CalendarClient& client, bool existing,
+                                 QWidget* parent)
     : QDialog(parent),
       ui(new Ui::CreateEventForm),
       component_(event),
       client_(&client),
-      calendar_(&calendar),
       existing_(existing) {
   ui->setupUi(this);
 

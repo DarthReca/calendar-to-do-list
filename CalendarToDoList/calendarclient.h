@@ -4,15 +4,13 @@
 #include <QAuthenticator>
 #include <QDomDocument>
 #include <QJsonDocument>
+#include <QMap>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
 #include <QPointer>
-#include <QMap>
 
-#include "calendar_classes/calendarevent.h"
 #include "calendar_classes/icalendarcomponent.h"
-#include "calendar_classes/task.h"
 
 class CalendarClient : public QObject {
   Q_OBJECT
@@ -52,11 +50,11 @@ class CalendarClient : public QObject {
   QUrl& getEndpoint() { return endpoint_; };
   void setPrincipal(QUrl& principal) { principal_ = principal; };
   QUrl& getPrincipal() { return principal_; };
-  void setUserCalendars(QUrl& userCalendars) { userCalendars_ = userCalendars; };
+  void setUserCalendars(QUrl& userCalendars) {
+    userCalendars_ = userCalendars;
+  };
   QUrl& getUserCalendars() { return userCalendars_; };
   QMap<QString, QUrl>& getUserCalendarsList() { return userCalendarsList_; };
-
-
 
   QList<QString> getChangedItems() { return changedItems_; }
   void addChangedItem(QString new_Item) { changedItems_.append(new_Item); }

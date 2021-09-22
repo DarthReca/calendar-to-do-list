@@ -5,10 +5,8 @@
 #include <QMainWindow>
 #include <QTimer>
 
-#include "CalendarClient/calendarclient.h"
 #include "calendar_classes/calendar.h"
-#include "calendar_classes/calendarevent.h"
-#include "calendar_classes/task.h"
+#include "calendarclient.h"
 #include "widgets/createeventform.h"
 
 QT_BEGIN_NAMESPACE
@@ -42,12 +40,11 @@ class MainWindow : public QMainWindow {
 
   void on_actionCambia_calendario_triggered();
 
-private:
+ private:
   void getExpansion(ICalendarComponent &&original);
 
   Ui::MainWindow *ui;
 
-  QPointer<CalendarEvent> editing_event_;
   ICalendar calendar_;
   QPointer<CalendarClient> client_;
 
