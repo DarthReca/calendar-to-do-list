@@ -22,26 +22,22 @@ class MainWindow : public QMainWindow {
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-  // void showEventForm(CalendarEvent event);
-  // void showTaskForm(Task task);
-  void showEditForm(ICalendarComponent component);
-  void getUserCalendars();
-  void tryGetPrincipal();
-
  signals:
-  void show();
   void initialized();
 
  private slots:
   void initialize();
-  void refresh_calendar_events();
-  void on_actionSincronizza_triggered();
-  void on_actionCambia_utente_server_triggered();
+  void refreshCalendarEvents();
 
-  void on_actionCambia_calendario_triggered();
+  void synchronize();
+  void changeUserServer();
+  void changeCalendar();
 
  private:
   void getExpansion(ICalendarComponent &&original);
+  void getUserCalendars();
+  void tryGetPrincipal();
+  void showEditForm(ICalendarComponent component);
 
   Ui::MainWindow *ui;
 
@@ -50,8 +46,8 @@ class MainWindow : public QMainWindow {
 
   QPointer<QTimer> timer_;
   bool sync_token_supported_;
-  bool readyUser_;
-  bool readyEvent;
-  bool readyTask;
+  bool ready_user_;
+  bool ready_event_;
+  bool ready_task_;
 };
 #endif  // MAINWINDOW_H

@@ -119,8 +119,8 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco a salvare il nuovo elemento");
-          QMessageBox::critical(this, "Errore",
-                                "Il server non accetta il nuovo elemento");
+          QMessageBox::warning(this, "Errore",
+                               "Il server non accetta il nuovo elemento");
           return;
         }
 
@@ -132,8 +132,8 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
         connect(reply1, &QNetworkReply::finished, [reply1, this]() {
           if (reply1->error() != QNetworkReply::NoError) {
             qWarning("Non riesco salvare il nuovo elemento");
-            QMessageBox::critical(this, "Errore",
-                                  "Il server non accetta il nuovo elemento");
+            QMessageBox::warning(this, "Errore",
+                                 "Il server non accetta il nuovo elemento");
             return;
           }
 
@@ -144,8 +144,8 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
               res.elementsByTagName("d:status").at(0).toElement().text();
           if (!status.contains("200")) {
             qWarning("Non riesco salvare il nuovo elemento");
-            QMessageBox::critical(this, "Errore",
-                                  "Il server non accetta il nuovo elemento");
+            QMessageBox::warning(this, "Errore",
+                                 "Il server non accetta il nuovo elemento");
             return;
           }
 
@@ -165,9 +165,9 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco ad aggiornare l'elemento selezionato");
-          QMessageBox::critical(this, "Errore",
-                                "Il server non accetta l'aggiornamento "
-                                "dell'elemento selezionato");
+          QMessageBox::warning(this, "Errore",
+                               "Il server non accetta l'aggiornamento "
+                               "dell'elemento selezionato");
           return;
         }
 
@@ -180,9 +180,9 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           connect(reply1, &QNetworkReply::finished, [reply1, this]() {
             if (reply1->error() != QNetworkReply::NoError) {
               qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::critical(this, "Errore",
-                                    "Il server non accetta l'aggiornamento "
-                                    "dell'elemento selezionato");
+              QMessageBox::warning(this, "Errore",
+                                   "Il server non accetta l'aggiornamento "
+                                   "dell'elemento selezionato");
               return;
             }
 
@@ -193,9 +193,9 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                 res.elementsByTagName("d:status").at(0).toElement().text();
             if (!status.contains("200")) {
               qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::critical(this, "Errore",
-                                    "Il server non accetta l'aggiornamento "
-                                    "dell'elemento selezionato");
+              QMessageBox::warning(this, "Errore",
+                                   "Il server non accetta l'aggiornamento "
+                                   "dell'elemento selezionato");
               return;
             }
 
@@ -220,7 +220,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
           qWarning("Non riesco ad eliminare l'elemento selezionato");
-          QMessageBox::critical(
+          QMessageBox::warning(
               this, "Errore",
               "Il server non accetta l'eliminazione dell'elemento selezionato");
           return;

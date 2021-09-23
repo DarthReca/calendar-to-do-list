@@ -11,6 +11,7 @@
 
 #include "./ui_mainwindow.h"
 #include "calendarclient.h"
+#include "errormanager.h"
 #include "widgets/calendartable.h"
 #include "widgets/calendartableitem.h"
 #include "widgets/usercalendarschoice.h"
@@ -22,9 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
       timer_(new QTimer(this)),
       client_(new CalendarClient()),
       sync_token_supported_(false),
-      readyUser_(false),
-      readyEvent(false),
-      readyTask(false) {
+      ready_user_(false),
+      ready_event_(false),
+      ready_task_(false) {
   // read auth file or create it from user given data
   QFile auth_file("auth.json");
   if (!auth_file.exists()) {
@@ -39,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
       QMessageBox::critical(
           this, "Chiavi mancanti in json",
           "auth.json deve contenere: host, principal, username e password");
-      exit(1);
+      exit(INITIALIZATION_ERROR);
     }
 
     QUrl principal = QUrl(json["principal"].toString());
@@ -60,14 +61,13 @@ MainWindow::MainWindow(QWidget *parent)
   qDebug() << "Starting...\n";
 
   // Internal signals
-  connect(timer_, &QTimer::timeout, this,
-          &MainWindow::on_actionSincronizza_triggered);
+  connect(timer_, &QTimer::timeout, this, &MainWindow::synchronize);
   // UI
   connect(ui->testButton, &QPushButton::clicked, this,
-          &MainWindow::refresh_calendar_events);
+          &MainWindow::refreshCalendarEvents);
 
   connect(ui->calendarWidget, &QCalendarWidget::clicked, [this](QDate date) {
-    refresh_calendar_events();
+    refreshCalendarEvents();
     ui->calendarTable->setVisualMode(ui->calendarTable->visualMode(), date);
   });
   connect(ui->taskList, &ComponentListWidget::itemClicked, this,
@@ -80,9 +80,15 @@ MainWindow::MainWindow(QWidget *parent)
   // ACTIONS
   connect(ui->actionMostra_task_senza_data, &QAction::triggered,
           [this]() { ui->taskList->setVisible(!ui->taskList->isVisible()); });
+  connect(ui->actionSincronizza, &QAction::triggered, this,
+          &MainWindow::synchronize);
+  connect(ui->actionCambia_utente_server, &QAction::triggered, this,
+          &MainWindow::changeUserServer);
+  connect(ui->actionCambia_calendario, &QAction::triggered, this,
+          &MainWindow::changeCalendar);
 
   connect(ui->actionOgni_10_secondi, &QAction::triggered, [this]() {
-    if (!readyEvent || !readyTask)
+    if (!ready_event_ || !ready_task_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -90,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(10000);
   });
   connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() {
-    if (!readyEvent || !readyTask)
+    if (!ready_event_ || !ready_task_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -98,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(30000);
   });
   connect(ui->actionOgni_minuto, &QAction::triggered, [this]() {
-    if (!readyEvent || !readyTask)
+    if (!ready_event_ || !ready_task_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non ha ancora risposto, riprova fra qualche istante");
@@ -106,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(60000);
   });
   connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() {
-    if (!readyEvent || !readyTask)
+    if (!ready_event_ || !ready_task_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -115,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
   });
 
   connect(ui->createEvent, &QPushButton::clicked, [this]() {
-    if (!readyEvent || !readyTask) {
+    if (!ready_event_ || !ready_task_) {
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -137,10 +143,8 @@ void MainWindow::tryGetPrincipal() {
   connect(reply, &QNetworkReply::finished, [reply, this]() {
     if (reply->error() != QNetworkReply::NoError) {
       qWarning("Non riesco a ottenere il link all'utente principale");
-      QMessageBox::critical(
-          this, "Errore di inizializzazione",
-          "Il server non riesce a mandare il link all'utente principale");
-      exit(-1);
+      ErrorManager::initializationError(
+          this, "Il server non riesce a mandare il link all'utente principale");
     }
 
     QDomDocument res;
@@ -149,10 +153,8 @@ void MainWindow::tryGetPrincipal() {
     QString status = res.elementsByTagName("d:status").at(0).toElement().text();
     if (!status.contains("200")) {
       qWarning("Non riesco a ottenere il link all'utente principale");
-      QMessageBox::critical(
-          this, "Errore di inizializzazione",
-          "Il server non riesce a mandare il link all'utente principale");
-      exit(-1);
+      ErrorManager::initializationError(
+          this, "Il server non riesce a mandare il link all'utente principale");
     }
 
     QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
@@ -170,7 +172,7 @@ void MainWindow::tryGetPrincipal() {
     } else {
       QMessageBox::critical(this, "Errore",
                             "Necessario inserire l'url dell'utente principale");
-      exit(-1);
+      exit(LOGIC_ERROR);
     }
     getUserCalendars();
   });
@@ -182,10 +184,8 @@ void MainWindow::getUserCalendars() {
   connect(reply1, &QNetworkReply::finished, [reply1, this]() {
     if (reply1->error() != QNetworkReply::NoError) {
       qWarning("Non riesco a ottenere il link ai calendari utente");
-      QMessageBox::critical(
-          this, "Errore di inizializzazione",
-          "Il server non riesce a mandare il link ai calendari utente");
-      exit(-1);
+      ErrorManager::initializationError(
+          this, "Il server non riesce a mandare il link ai calendari utente");
     }
 
     QDomDocument res;
@@ -194,10 +194,8 @@ void MainWindow::getUserCalendars() {
     QString status = res.elementsByTagName("d:status").at(0).toElement().text();
     if (!status.contains("200")) {
       qWarning("Non riesco a ottenere il link ai calendari utente");
-      QMessageBox::critical(
-          this, "Errore di inizializzazione",
-          "Il server non riesce a mandare il link ai calendari utente");
-      exit(-1);
+      ErrorManager::initializationError(
+          this, "Il server non riesce a mandare il link ai calendari utente");
     }
 
     QString complete = client_->getHost().toString() +
@@ -210,10 +208,8 @@ void MainWindow::getUserCalendars() {
     connect(reply2, &QNetworkReply::finished, [reply2, this]() {
       if (reply2->error() != QNetworkReply::NoError) {
         qWarning("Non riesco a ottenere i calendari utente");
-        QMessageBox::critical(
-            this, "Errore di inizializzazione",
-            "Il server non riesce a mandare i calendari utente");
-        exit(-2);
+        ErrorManager::initializationError(
+            this, "Il server non riesce a mandare i calendari utente");
       }
 
       QDomDocument res;
@@ -223,10 +219,9 @@ void MainWindow::getUserCalendars() {
       for (int i = 0; i < statusesList.length(); i++) {
         if (!statusesList.at(i).toElement().text().contains("200")) {
           qWarning("Non riesco a ottenere il link ai calendari utente");
-          QMessageBox::critical(
-              this, "Errore di inizializzazione",
+          ErrorManager::initializationError(
+              this,
               "Il server non riesce a mandare il link ai calendari utente");
-          exit(-2);
         }
       }
 
@@ -241,7 +236,7 @@ void MainWindow::getUserCalendars() {
       if (cal1.length() != calendarNames.length() &&
           cal2.length() != calendarNames.length()) {
         QMessageBox::critical(this, "Errore", "Calendario non supportato");
-        exit(-1);
+        exit(UNSUPPORTED_ERROR);
       }
 
       // ensure that both VEVENT and VTODO are supported
@@ -292,10 +287,8 @@ void MainWindow::initialize() {
         !methods_reply->hasRawHeader("Allow") ||
         !methods_reply->hasRawHeader("allow")) {
       qWarning("Non riesco a ottenere i metodi supportati dal server");
-      QMessageBox::critical(
-          this, "Errore di inizializzazione",
-          "Il server non riesce a mandare i metodi supportati");
-      exit(-1);
+      ErrorManager::initializationError(
+          this, "Il server non riesce a mandare i metodi supportati");
     }
     if (methods_reply->hasRawHeader("Allow")) {
       for (QByteArray &method : methods_reply->rawHeader("Allow").split(',')) {
@@ -312,10 +305,8 @@ void MainWindow::initialize() {
     connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
       if (props_reply->error() != QNetworkReply::NoError) {
         qWarning("Non riesco a ottenere le proprietà supportate dal server");
-        QMessageBox::critical(
-            this, "Errore di inizializzazione",
-            "Il server non riesce a mandare le proprietà supportate");
-        exit(-2);
+        ErrorManager::initializationError(
+            this, "Il server non riesce a mandare le proprietà supportate");
       }
 
       QDomDocument res;
@@ -328,10 +319,8 @@ void MainWindow::initialize() {
             current.elementsByTagName("d:status").at(0).toElement().text();
         if (!status.contains("200")) {
           qWarning("Non riesco a ottenere le proprietà supportate dal server");
-          QMessageBox::critical(
-              this, "Errore di inizializzazione",
-              "Il server non riesce a mandare le proprietà supportate");
-          exit(-2);
+          ErrorManager::initializationError(
+              this, "Il server non riesce a mandare le proprietà supportate");
         }
         QDomNodeList sync_token = current.elementsByTagName("d:sync-token");
         QDomNodeList ctag = current.elementsByTagName("cs:getctag");
@@ -344,13 +333,13 @@ void MainWindow::initialize() {
 
       if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
 
-      refresh_calendar_events();
+      refreshCalendarEvents();
       timer_->start(20000);
     });
   });
 }
 
-void MainWindow::refresh_calendar_events() {
+void MainWindow::refreshCalendarEvents() {
   QDate selected_date = ui->calendarWidget->selectedDate();
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
 
@@ -359,51 +348,51 @@ void MainWindow::refresh_calendar_events() {
   // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
-  connect(
-      reply, &QNetworkReply::finished,
-      [this, reply, selected_date, end_date]() {
-        if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco a ottenere gli eventi dal server");
-          QMessageBox::critical(this, "Errore di inizializzazione",
-                                "Il server non riesce a mandare gli eventi");
-          exit(-3);
-        }
+  connect(reply, &QNetworkReply::finished,
+          [this, reply, selected_date, end_date]() {
+            if (reply->error() != QNetworkReply::NoError) {
+              qWarning("Non riesco a ottenere gli eventi dal server");
+              QMessageBox::critical(
+                  this, "Errore", "Il server non riesce a mandare gli eventi");
+              exit(NETWORK_ERROR);
+            }
 
-        QDomDocument res;
-        res.setContent(reply->readAll());
+            QDomDocument res;
+            res.setContent(reply->readAll());
 
-        auto statusesList = res.elementsByTagName("d:status");
-        for (int i = 0; i < statusesList.length(); i++) {
-          if (!statusesList.at(i).toElement().text().contains("200")) {
-            qWarning("Non riesco a ottenere gli eventi dal server");
-            QMessageBox::critical(this, "Errore di inizializzazione",
-                                  "Il server non riesce a mandare gli eventi");
-            exit(-3);
-          }
-        }
+            auto statusesList = res.elementsByTagName("d:status");
+            for (int i = 0; i < statusesList.length(); i++) {
+              if (!statusesList.at(i).toElement().text().contains("200")) {
+                qWarning("Non riesco a ottenere gli eventi dal server");
+                QMessageBox::critical(
+                    this, "Errore",
+                    "Il server non riesce a mandare gli eventi");
+                exit(NETWORK_ERROR);
+              }
+            }
 
-        QDomNodeList responses = res.elementsByTagName("d:response");
-        qDebug() << "Parsing events...";
+            QDomNodeList responses = res.elementsByTagName("d:response");
+            qDebug() << "Parsing events...";
 
-        for (int i = 0; i < responses.length(); i++) {
-          QDomElement current = responses.at(i).toElement();
-          ICalendar tmp = ICalendar::fromXmlResponse(current);
+            for (int i = 0; i < responses.length(); i++) {
+              QDomElement current = responses.at(i).toElement();
+              ICalendar tmp = ICalendar::fromXmlResponse(current);
 
-          for (ICalendarComponent &ev : tmp.components()) {
-            if (!ev.getEndDateTime() && !ev.getStartDateTime())
-              ui->taskList->createListWidget(std::move(ev));
-            else if (!ev.getProperty("RRULE"))
-              ui->calendarTable->createTableItem(ev);
-            else
-              getExpansion(std::move(ev));
-          }
-        }
-        readyEvent = true;
-      });
+              for (ICalendarComponent &ev : tmp.components()) {
+                if (!ev.getEndDateTime() && !ev.getStartDateTime())
+                  ui->taskList->createListWidget(std::move(ev));
+                else if (!ev.getProperty("RRULE"))
+                  ui->calendarTable->createTableItem(ev);
+                else
+                  getExpansion(std::move(ev));
+              }
+            }
+            ready_event_ = true;
+          });
 }
 
-void MainWindow::on_actionSincronizza_triggered() {
-  if (!readyEvent) {
+void MainWindow::synchronize() {
+  if (!ready_event_) {
     QMessageBox::warning(
         this, "Attendi ancora un pò",
         "Il server non è ancora pronto, riprova fra qualche istante");
@@ -441,7 +430,7 @@ void MainWindow::on_actionSincronizza_triggered() {
         qDebug() << "Calendar already up to date";
       } else {  // se non sono uguali, qualcosa è cambiato
         client_->setCTag(newCTag);
-        refresh_calendar_events();
+        refreshCalendarEvents();
       }
     });
 
@@ -452,9 +441,9 @@ void MainWindow::on_actionSincronizza_triggered() {
         qWarning(
             "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
             "dal server");
-        QMessageBox::critical(this, "Errore di sincronizzazione",
-                              "Il server non riesce a mandare eventuali "
-                              "cambiamenti a eventi o attività");
+        QMessageBox::warning(this, "Errore di sincronizzazione",
+                             "Il server non riesce a mandare eventuali "
+                             "cambiamenti a eventi o attività");
       }
 
       QDomDocument xml;
@@ -467,9 +456,9 @@ void MainWindow::on_actionSincronizza_triggered() {
           qWarning(
               "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
               "dal server");
-          QMessageBox::critical(this, "Errore di inizializzazione",
-                                "Il server non riesce a mandare eventuali "
-                                "cambiamenti a eventi o attività");
+          QMessageBox::warning(this, "Errore di inizializzazione",
+                               "Il server non riesce a mandare eventuali "
+                               "cambiamenti a eventi o attività");
         }
       }
 
@@ -505,7 +494,7 @@ void MainWindow::on_actionSincronizza_triggered() {
   }
 }
 
-void MainWindow::on_actionCambia_utente_server_triggered() {
+void MainWindow::changeUserServer() {
   Userform form(*client_);
   form.exec();
   if (client_->getPrincipal().isEmpty()) {
@@ -515,7 +504,7 @@ void MainWindow::on_actionCambia_utente_server_triggered() {
   }
 }
 
-void MainWindow::on_actionCambia_calendario_triggered() {
+void MainWindow::changeCalendar() {
   if (client_->getUserCalendarsList().isEmpty()) {
     QMessageBox::warning(
         this, "Attendi ancora un pò",
@@ -559,8 +548,7 @@ void MainWindow::showEditForm(ICalendarComponent component) {
       ui->calendarTable->getShowingEvents().contains(component.getUID()) ||
       ui->taskList->getShowingComponents().contains(component.getUID());
   CreateEventForm form(&component, *client_, existing, this);
-  connect(&form, &CreateEventForm::accepted, this,
-          &MainWindow::on_actionSincronizza_triggered);
+  connect(&form, &CreateEventForm::accepted, this, &MainWindow::synchronize);
   form.exec();
 }
 

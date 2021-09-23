@@ -46,6 +46,7 @@ set(PROJECT_SOURCES
         widgets/calendartable.h widgets/calendartable.cpp
         calendar_classes/icalendarcomponent.h calendar_classes/icalendarcomponent.cpp
         widgets/componentlistwidget.h widgets/componentlistwidget.cpp
+        errormanager.h
         icons/icons.qrc
         ${TS_FILES}
 )
