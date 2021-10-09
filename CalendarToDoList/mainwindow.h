@@ -48,6 +48,5 @@ class MainWindow : public QMainWindow {
   bool sync_token_supported_;
   bool ready_user_;
   bool ready_event_;
-  bool ready_task_;
 };
 #endif  // MAINWINDOW_H

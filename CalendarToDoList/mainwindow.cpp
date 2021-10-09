@@ -24,8 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
       client_(new CalendarClient()),
       sync_token_supported_(false),
       ready_user_(false),
-      ready_event_(false),
-      ready_task_(false) {
+      ready_event_(false)
+      {
   // read auth file or create it from user given data
   QFile auth_file("auth.json");
   if (!auth_file.exists()) {
@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
           "auth.json deve contenere: host, principal, username e password");
       exit(INITIALIZATION_ERROR);
     }
+
 
     QUrl principal = QUrl(json["principal"].toString());
     QUrl host = QUrl(json["host"].toString());
@@ -88,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::changeCalendar);
 
   connect(ui->actionOgni_10_secondi, &QAction::triggered, [this]() {
-    if (!ready_event_ || !ready_task_)
+    if (!ready_event_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -96,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(10000);
   });
   connect(ui->actionOgni_30_secondi, &QAction::triggered, [this]() {
-    if (!ready_event_ || !ready_task_)
+    if (!ready_event_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -104,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(30000);
   });
   connect(ui->actionOgni_minuto, &QAction::triggered, [this]() {
-    if (!ready_event_ || !ready_task_)
+    if (!ready_event_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non ha ancora risposto, riprova fra qualche istante");
@@ -112,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
       timer_->start(60000);
   });
   connect(ui->actionOgni_10_minuti, &QAction::triggered, [this]() {
-    if (!ready_event_ || !ready_task_)
+    if (!ready_event_)
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");
@@ -121,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
   });
 
   connect(ui->createEvent, &QPushButton::clicked, [this]() {
-    if (!ready_event_ || !ready_task_) {
+    if (!ready_event_) {
       QMessageBox::warning(
           this, "Attendi ancora un pò",
           "Il server non è ancora pronto, riprova fra qualche istante");

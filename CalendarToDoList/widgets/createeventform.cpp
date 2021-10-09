@@ -99,7 +99,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           });
 
   connect(ui->saveButton, &QPushButton::clicked, [this] {
-    if (component_->type() == "VTODO") {
+    if (component_->type() == "VEVENT") {
       if (ui->startDateTime->date() > ui->endDateTime->date()) {
         QMessageBox::critical(this, "Error in date selection",
                               "The start date must be before the end date!");
