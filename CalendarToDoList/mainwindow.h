@@ -55,6 +55,5 @@ private:
   bool sync_token_supported_;
   bool readyUser_;
   bool readyEvent;
-  bool readyTask;
 };
 #endif  // MAINWINDOW_H
