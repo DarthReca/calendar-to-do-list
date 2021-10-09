@@ -34,6 +34,7 @@ void CalendarTable::createTableItem(ICalendarComponent &component) {
 
   if (!dtstart && !dtend) return;
   if (!dtstart) dtstart = dtend;
+  if (!dtend) dtend = dtstart;
 
   if (dtstart && dtstart->date() < range.first || dtend->date() > range.second)
     return;

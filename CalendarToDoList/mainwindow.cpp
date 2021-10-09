@@ -343,6 +343,7 @@ void MainWindow::refreshCalendarEvents() {
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
 
   ui->calendarTable->clearShowingWidgets();
+  //TODO: clear tasklist
 
   // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
@@ -474,9 +475,12 @@ void MainWindow::synchronize() {
         if (status.contains("200")) {
           ICalendar cal = ICalendar::fromXmlResponse(current);
           for (ICalendarComponent &event : cal.components()) {
-            if (!event.getStartDateTime() && !event.getEndDateTime())
-              ui->taskList->createListWidget(std::move(event));
-            else if (!event.getProperty("RRULE"))
+            if (!event.getStartDateTime() && !event.getEndDateTime()){
+                ui->taskList->createListWidget(std::move(event));
+                continue;
+            }
+            ui->taskList->removeByUid(event.getUID());//non funziona
+            if (!event.getProperty("RRULE"))
               ui->calendarTable->createTableItem(event);
             else
               getExpansion(std::move(event));
