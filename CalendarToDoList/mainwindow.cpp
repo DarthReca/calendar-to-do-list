@@ -64,8 +64,6 @@ MainWindow::MainWindow(QWidget *parent)
   // Internal signals
   connect(timer_, &QTimer::timeout, this, &MainWindow::synchronize);
   // UI
-  connect(ui->testButton, &QPushButton::clicked, this,
-          &MainWindow::refreshCalendarEvents);
 
   connect(ui->calendarWidget, &QCalendarWidget::clicked, [this](QDate date) {
     refreshCalendarEvents();
