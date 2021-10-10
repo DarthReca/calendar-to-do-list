@@ -153,6 +153,7 @@ void CalendarTable::removeByHref(const QString &href) {
 }
 
 void CalendarTable::removeByUid(const QString &uid) {
+  if (!showing_items_.contains(uid)) return;
   clearWidgetList(showing_items_[uid]);
   showing_items_.remove(uid);
 }

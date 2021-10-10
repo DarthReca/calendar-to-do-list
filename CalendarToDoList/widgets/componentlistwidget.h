@@ -14,6 +14,7 @@ class ComponentListWidget : public QListWidget {
 
   void removeByUid(const QString& uid);
   void removeByHref(const QString& href);
+  void clearListWidget();
 
   ICalendarComponent componentByItem(QListWidgetItem* widget_item);
   const auto& getShowingComponents() { return components_; }

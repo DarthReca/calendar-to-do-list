@@ -24,8 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
       client_(new CalendarClient()),
       sync_token_supported_(false),
       ready_user_(false),
-      ready_event_(false)
-      {
+      ready_event_(false) {
   // read auth file or create it from user given data
   QFile auth_file("auth.json");
   if (!auth_file.exists()) {
@@ -42,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
           "auth.json deve contenere: host, principal, username e password");
       exit(INITIALIZATION_ERROR);
     }
-
 
     QUrl principal = QUrl(json["principal"].toString());
     QUrl host = QUrl(json["host"].toString());
@@ -343,7 +341,7 @@ void MainWindow::refreshCalendarEvents() {
   QDate end_date = selected_date.addDays(ui->calendarTable->columnCount());
 
   ui->calendarTable->clearShowingWidgets();
-  //TODO: clear tasklist
+  ui->taskList->clearListWidget();
 
   // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
@@ -475,11 +473,12 @@ void MainWindow::synchronize() {
         if (status.contains("200")) {
           ICalendar cal = ICalendar::fromXmlResponse(current);
           for (ICalendarComponent &event : cal.components()) {
-            if (!event.getStartDateTime() && !event.getEndDateTime()){
-                ui->taskList->createListWidget(std::move(event));
-                continue;
+            if (!event.getStartDateTime() && !event.getEndDateTime()) {
+              ui->calendarTable->removeByUid(event.getUID());
+              ui->taskList->createListWidget(std::move(event));
+              continue;
             }
-            ui->taskList->removeByUid(event.getUID());//non funziona
+            ui->taskList->removeByUid(event.getUID());
             if (!event.getProperty("RRULE"))
               ui->calendarTable->createTableItem(event);
             else

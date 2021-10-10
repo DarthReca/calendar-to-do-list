@@ -20,8 +20,7 @@ void ComponentListWidget::createListWidget(ICalendarComponent &&component) {
 void ComponentListWidget::removeByUid(const QString &uid) {
   if (!components_.contains(uid)) return;
 
-  QListWidgetItem *to_remove = item(components_[uid].first);
-  if (to_remove != nullptr) removeItemWidget(to_remove);
+  takeItem(components_[uid].first);
   components_.remove(uid);
 }
 
@@ -32,6 +31,11 @@ void ComponentListWidget::removeByHref(const QString &href) {
       break;
     }
   }
+}
+
+void ComponentListWidget::clearListWidget() {
+  clear();
+  components_.clear();
 }
 
 ICalendarComponent ComponentListWidget::componentByItem(
