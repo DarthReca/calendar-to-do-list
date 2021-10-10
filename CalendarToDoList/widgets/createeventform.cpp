@@ -17,6 +17,11 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
   ui->setupUi(this);
 
   if (existing_) ui->typeSelection->hide();
+  if (existing_ && component_->type() == "VTODO" &&
+      !component_->getEndDateTime()) {
+    for (int i = 0; i < ui->gridLayout->count(); i++)
+      ui->gridLayout->itemAt(i)->widget()->hide();
+  }
   resetFormFields();
 
   connect(ui->typeSelection, &QComboBox::currentTextChanged,
@@ -48,8 +53,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
   });
   // COMPLETION
   connect(ui->completionButton, &QPushButton::clicked, [this]() {
-    auto completed = component_->getProperty("COMPLETED");
-    if (completed.has_value()) {
+    if (component_->getProperty("COMPLETED")) {
       component_->removeProperty("COMPLETED");
       ui->completionButton->setText("Segna come completata");
     } else {
@@ -58,11 +62,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           QDateTime::currentDateTimeUtc().toString("yyyyMMdd'T'hhmmss'Z'"));
       ui->completionButton->setText("Segna come non completata");
     }
-
-    QString text = completed.has_value() ? "Segna come non completata"
-                                         : "Segna come completata";
-
-    ui->completionButton->setText(text);
   });
   // SDATETIME
   connect(ui->startDateTime, &QDateTimeEdit::dateTimeChanged,
@@ -245,11 +244,11 @@ void CreateEventForm::resetFormFields() {
   if (component_->type() == "VTODO") {
     ui->RRule->hide();
     ui->locationEdit->hide();
-    ui->endDateTime->hide();
+    ui->startDateTime->hide();
     // Show
     ui->completionButton->show();
     // Completion button
-    QString text = component_->getProperty("COMPLETED").has_value()
+    QString text = component_->getProperty("COMPLETED")
                        ? "Segna come non completata"
                        : "Segna come completata";
     ui->completionButton->setText(text);
@@ -259,7 +258,7 @@ void CreateEventForm::resetFormFields() {
     // Show
     ui->RRule->show();
     ui->locationEdit->show();
-    ui->endDateTime->show();
+    ui->startDateTime->show();
     ui->typeSelection->setCurrentText("Evento");
   }
 }
