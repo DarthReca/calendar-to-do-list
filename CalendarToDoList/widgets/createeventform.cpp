@@ -76,6 +76,8 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
   // RRULE
   connect(ui->RRule, &QComboBox::currentTextChanged,
           [this](const QString& text) {
+            if (!component_->getStartDateTime())
+              component_->setStartDateTime(ui->startDateTime->dateTime());
             QDate start_date = component_->getStartDateTime().value().date();
             if (text == "Non si ripete") component_->removeProperty("RRULE");
 
@@ -122,11 +124,12 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                "Il server non accetta il nuovo elemento");
           return;
         }
+        qDebug() << component_->toICalendar();
+        accept();
 
+        // PROBABLY NOT NECESSARY
         // imposto il nuovo eTag dell'evento
-        bool isEvent;
-        component_->toICalendar().contains("BEGIN:VEVENT") ? isEvent = true
-                                                           : isEvent = false;
+        bool isEvent = component_->type() == "VEVENT";
         auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
         connect(reply1, &QNetworkReply::finished, [reply1, this]() {
           if (reply1->error() != QNetworkReply::NoError) {
@@ -147,11 +150,12 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                  "Il server non accetta il nuovo elemento");
             return;
           }
-
+          /*
           auto eTagList = res.elementsByTagName("d:getetag");
           component_->setEtag(eTagList.at(0).toElement().text());
           auto hrefList = res.elementsByTagName("d:href");
           component_->setHref(hrefList.at(0).toElement().text());
+          */
           qDebug() << "New event saved\n";
           emit requestView();
           accept();

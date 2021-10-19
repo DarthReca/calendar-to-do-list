@@ -451,6 +451,7 @@ void MainWindow::synchronize() {
       for (int i = 0; i < statusesList.length(); i++) {
         if (!statusesList.at(i).toElement().text().contains("200") &&
             !statusesList.at(i).toElement().text().contains("404")) {
+          qDebug() << statusesList.at(i).toElement().text();
           qWarning(
               "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
               "dal server");
@@ -525,7 +526,6 @@ void MainWindow::getExpansion(ICalendarComponent &&original) {
           [moved = std::move(original), reply, this]() {
             QDomDocument res;
             res.setContent(reply->readAll());
-            qDebug() << res.toString();
 
             QDomNodeList responses = res.elementsByTagName("d:response");
 
