@@ -124,11 +124,11 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                "Il server non accetta il nuovo elemento");
           return;
         }
-        qDebug() << component_->toICalendar();
         accept();
+        return;
 
-        // PROBABLY NOT NECESSARY
         // imposto il nuovo eTag dell'evento
+        /*
         bool isEvent = component_->type() == "VEVENT";
         auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
         connect(reply1, &QNetworkReply::finished, [reply1, this]() {
@@ -150,16 +150,14 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                  "Il server non accetta il nuovo elemento");
             return;
           }
-          /*
           auto eTagList = res.elementsByTagName("d:getetag");
           component_->setEtag(eTagList.at(0).toElement().text());
           auto hrefList = res.elementsByTagName("d:href");
           component_->setHref(hrefList.at(0).toElement().text());
-          */
           qDebug() << "New event saved\n";
-          emit requestView();
           accept();
         });
+        */
       });
     }
     // UPDATE EVENT
@@ -207,7 +205,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
             auto hrefList = res.elementsByTagName("d:href");
             component_->setHref(hrefList.at(0).toElement().text());
             qDebug() << "Event updated\n";
-            emit requestView();
             accept();
           });
         }
@@ -245,6 +242,8 @@ void CreateEventForm::resetFormFields() {
   ui->allDayBox->setChecked(component_->allDay());
   ui->locationEdit->setText(component_->getProperty("LOCATION").value_or(""));
 
+  component_->setEndDateTime(ui->endDateTime->dateTime());
+
   if (component_->type() == "VTODO") {
     ui->RRule->hide();
     ui->locationEdit->hide();
@@ -257,6 +256,8 @@ void CreateEventForm::resetFormFields() {
                        : "Segna come completata";
     ui->completionButton->setText(text);
     ui->typeSelection->setCurrentText("Attività");
+
+    component_->removeProperty("DTSTART");
   } else {
     ui->completionButton->hide();
     // Show
@@ -264,5 +265,7 @@ void CreateEventForm::resetFormFields() {
     ui->locationEdit->show();
     ui->startDateTime->show();
     ui->typeSelection->setCurrentText("Evento");
+
+    component_->setStartDateTime(ui->startDateTime->dateTime());
   }
 }

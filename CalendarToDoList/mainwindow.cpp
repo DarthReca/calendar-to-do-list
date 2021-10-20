@@ -520,12 +520,16 @@ void MainWindow::changeCalendar() {
 }
 
 void MainWindow::getExpansion(ICalendarComponent &&original) {
+  qDebug() << "Expanding: " << original.getUID() << " in "
+           << ui->calendarTable->getDateTimeRange();
   auto reply = client_->getExpandedRecurrentEvent(
       original.getUID(), ui->calendarTable->getDateTimeRange());
   connect(reply, &QNetworkReply::finished, this,
           [moved = std::move(original), reply, this]() {
             QDomDocument res;
             res.setContent(reply->readAll());
+
+            qDebug() << "Success: " << res.toString();
 
             QDomNodeList responses = res.elementsByTagName("d:response");
 
