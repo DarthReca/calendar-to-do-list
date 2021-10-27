@@ -200,4 +200,7 @@ void CreateEventForm::resetFormFields() {
 
     component_->setStartDateTime(ui->startDateTime->dateTime());
   }
+
+  // TEMPORARY
+  ui->RRule->hide();
 }
