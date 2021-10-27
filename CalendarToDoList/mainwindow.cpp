@@ -529,8 +529,6 @@ void MainWindow::getExpansion(ICalendarComponent &&original) {
             QDomDocument res;
             res.setContent(reply->readAll());
 
-            qDebug() << "Success: " << res.toString();
-
             QDomNodeList responses = res.elementsByTagName("d:response");
 
             for (int i = 0; i < responses.length(); i++) {

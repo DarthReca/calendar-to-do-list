@@ -124,40 +124,8 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                "Il server non accetta il nuovo elemento");
           return;
         }
+        qDebug() << reply->readAll();
         accept();
-        return;
-
-        // imposto il nuovo eTag dell'evento
-        /*
-        bool isEvent = component_->type() == "VEVENT";
-        auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
-        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-          if (reply1->error() != QNetworkReply::NoError) {
-            qWarning("Non riesco salvare il nuovo elemento");
-            QMessageBox::warning(this, "Errore",
-                                 "Il server non accetta il nuovo elemento");
-            return;
-          }
-
-          QDomDocument res;
-          res.setContent(reply1->readAll());
-
-          QString status =
-              res.elementsByTagName("d:status").at(0).toElement().text();
-          if (!status.contains("200")) {
-            qWarning("Non riesco salvare il nuovo elemento");
-            QMessageBox::warning(this, "Errore",
-                                 "Il server non accetta il nuovo elemento");
-            return;
-          }
-          auto eTagList = res.elementsByTagName("d:getetag");
-          component_->setEtag(eTagList.at(0).toElement().text());
-          auto hrefList = res.elementsByTagName("d:href");
-          component_->setHref(hrefList.at(0).toElement().text());
-          qDebug() << "New event saved\n";
-          accept();
-        });
-        */
       });
     }
     // UPDATE EVENT
@@ -171,43 +139,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                "dell'elemento selezionato");
           return;
         }
-
-        if (reply->hasRawHeader("ETag")) {
-          component_->setEtag(reply->rawHeader("ETag"));
-          accept();
-        } else {
-          bool isEvent = component_->type() == "VEVENT";
-          auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
-          connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-            if (reply1->error() != QNetworkReply::NoError) {
-              qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::warning(this, "Errore",
-                                   "Il server non accetta l'aggiornamento "
-                                   "dell'elemento selezionato");
-              return;
-            }
-
-            QDomDocument res;
-            res.setContent(reply1->readAll());
-
-            QString status =
-                res.elementsByTagName("d:status").at(0).toElement().text();
-            if (!status.contains("200")) {
-              qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::warning(this, "Errore",
-                                   "Il server non accetta l'aggiornamento "
-                                   "dell'elemento selezionato");
-              return;
-            }
-
-            auto eTagList = res.elementsByTagName("d:getetag");
-            component_->setEtag(eTagList.at(0).toElement().text());
-            auto hrefList = res.elementsByTagName("d:href");
-            component_->setHref(hrefList.at(0).toElement().text());
-            qDebug() << "Event updated\n";
-            accept();
-          });
-        }
+        accept();
       });
     }
   });
