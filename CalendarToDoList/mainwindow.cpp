@@ -398,12 +398,14 @@ void MainWindow::synchronize() {
       xml.setContent(reply2->readAll());
 
       auto statusesList = xml.elementsByTagName("d:status");
+      /*
       for (int i = 0; i < statusesList.length(); i++) {
         if (!statusesList.at(i).toElement().text().contains("200") &&
             !statusesList.at(i).toElement().text().contains("404")) {
           ErrorManager::synchronizationError(nullptr, "Il server non riesce a mandare eventuali cambiamenti a eventi o attività");
         }
       }
+      */
 
       QDomNodeList responses = xml.elementsByTagName("d:response");
       QString sync_token =
