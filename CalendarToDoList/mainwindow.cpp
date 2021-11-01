@@ -207,38 +207,13 @@ void MainWindow::getUserCalendars() {
           res.elementsByTagName("d:href");  // first href must be ignored
       auto calendarNames = res.elementsByTagName("d:displayname");
 
-      // ensure that it contains at least a calendar element in the CalDAV
-      // namespace
+      // ensure that it contains at least a calendar element in the CalDAV namespace
       auto cal1 = res.elementsByTagName("cal:calendar");
       auto cal2 = res.elementsByTagName("c:calendar");
       if (cal1.length() != calendarNames.length() &&
           cal2.length() != calendarNames.length()) {
         ErrorManager::supportError(nullptr, "Calendario non supportato");
       }
-
-      // ensure that both VEVENT and VTODO are supported
-      /*auto calComp1 = res.elementsByTagName("cal:comp");
-      for(int i=0; i<calComp1.length(); i++){
-          if(!calComp1.at(i).toElement().attribute("name").contains("VEVENT")){
-              QMessageBox::critical(this, "Errore", "Un calendario non supporta
-      gli eventi"); exit(-1);
-          }
-          if(!calComp1.at(i).toElement().attribute("name").contains("VTODO")){
-              QMessageBox::critical(this, "Errore", "Un calendario non supporta
-      le attività"); exit(-1);
-          }
-      }
-      auto calComp2 = res.elementsByTagName("c:comp");
-      for(int i=0; i<calComp2.length(); i++){
-          if(!calComp2.at(i).toElement().attribute("name").contains("VEVENT")){
-              QMessageBox::critical(this, "Errore", "Un calendario non supporta
-      gli eventi"); exit(-1);
-          }
-          if(!calComp2.at(i).toElement().attribute("name").contains("VTODO")){
-              QMessageBox::critical(this, "Errore", "Un calendario non supporta
-      le attività"); exit(-1);
-          }
-      }*/
 
       // get calendar name and relative href
       for (int i = 0; i < calendarNames.length(); i++) {
@@ -315,7 +290,6 @@ void MainWindow::refreshCalendarEvents() {
   ui->calendarTable->clearShowingWidgets();
   ui->taskList->clearListWidget();
 
-  // prendo tutti gli eventi dalla data selezionata a una settimana dopo
   auto reply = client_->getDateRangeEvents(
       QDateTime(selected_date, QTime(0, 0)), QDateTime(end_date, QTime(0, 0)));
   connect(reply, &QNetworkReply::finished,
@@ -363,7 +337,6 @@ void MainWindow::synchronize() {
   if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
 
   if (!sync_token_supported_) {
-    // ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
       if (reply->error() != QNetworkReply::NoError) {
