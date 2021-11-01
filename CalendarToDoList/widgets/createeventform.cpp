@@ -46,7 +46,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           });
   // DESCRIPTION
   connect(ui->descriptionEdit, &QTextEdit::textChanged, [this]() {
-    component_->setProperty("DESCRIPTION", ui->descriptionEdit->toHtml());
+    component_->setProperty("DESCRIPTION", ui->descriptionEdit->toPlainText());
   });
   // ALLDAY
   connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
@@ -131,7 +131,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
         auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
         connect(reply1, &QNetworkReply::finished, [reply1, this]() {
           if (reply1->error() != QNetworkReply::NoError) {
-            qWarning("Non riesco salvare il nuovo elemento");
             QMessageBox::warning(this, "Errore",
                                  "Il server non accetta il nuovo elemento");
             return;
@@ -143,7 +142,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           QString status =
               res.elementsByTagName("d:status").at(0).toElement().text();
           if (!status.contains("200")) {
-            qWarning("Non riesco salvare il nuovo elemento");
             QMessageBox::warning(this, "Errore",
                                  "Il server non accetta il nuovo elemento");
             return;

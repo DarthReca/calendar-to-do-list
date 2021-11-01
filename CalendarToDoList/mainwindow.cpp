@@ -302,8 +302,6 @@ void MainWindow::initialize() {
         if (ctag.length() != 0) client_->setCTag(ctag.at(0).toElement().text());
       }
 
-      if (!sync_token_supported_) qWarning() << "Using cTag is deprecated";
-
       refreshCalendarEvents();
       timer_->start(20000);
     });

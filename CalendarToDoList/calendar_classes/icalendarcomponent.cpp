@@ -36,12 +36,16 @@ QString ICalendarComponent::toICalendar() {
       "\r\n";
 
   for (auto key_value = properties_.constKeyValueBegin();
-       key_value != properties_.constKeyValueEnd(); key_value++)
+       key_value != properties_.constKeyValueEnd(); key_value++){
+      qDebug() << key_value->first + "   " + key_value->second;
     if (key_value->first != "RECURRENCE-ID")
       ical_object +=
           QString("%1:%2\r\n").arg(key_value->first, key_value->second);
+  }
 
   ical_object += "END:" + type_ + "\r\n";
+
+  qDebug() << ical_object;
   return ical_object;
 }
 
@@ -64,8 +68,6 @@ QDateTime ICalendarComponent::dateTimeFromString(
   // No Hour
   date_time = QDateTime::fromString(date_time_string, "yyyyMMdd");
   if (date_time.isValid()) return date_time;
-
-  qWarning() << date_time_string << " is not parsable";
   return date_time;
 }
 
