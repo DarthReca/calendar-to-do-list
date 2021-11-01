@@ -124,35 +124,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
         }
         accept();
         return;
-
-        // imposto il nuovo eTag dell'evento
-        /*
-        bool isEvent = component_->type() == "VEVENT";
-        auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
-        connect(reply1, &QNetworkReply::finished, [reply1, this]() {
-          if (reply1->error() != QNetworkReply::NoError) {
-            QMessageBox::warning(this, "Errore",
-                                 "Il server non accetta il nuovo elemento");
-            return;
-          }
-
-          QDomDocument res;
-          res.setContent(reply1->readAll());
-
-          QString status =
-              res.elementsByTagName("d:status").at(0).toElement().text();
-          if (!status.contains("200")) {
-            QMessageBox::warning(this, "Errore",
-                                 "Il server non accetta il nuovo elemento");
-            return;
-          }
-          auto eTagList = res.elementsByTagName("d:getetag");
-          component_->setEtag(eTagList.at(0).toElement().text());
-          auto hrefList = res.elementsByTagName("d:href");
-          component_->setHref(hrefList.at(0).toElement().text());
-          accept();
-        });
-        */
       });
     }
     // UPDATE EVENT
@@ -218,6 +189,7 @@ void CreateEventForm::resetFormFields() {
       QDateTime::currentDateTime().addSecs(60 * 60)));
   ui->allDayBox->setChecked(component_->allDay());
   ui->locationEdit->setText(component_->getProperty("LOCATION").value_or(""));
+  ui->descriptionEdit->setText(component_->getProperty("DESCRIPTION").value_or(""));
 
   component_->setEndDateTime(ui->endDateTime->dateTime());
 
