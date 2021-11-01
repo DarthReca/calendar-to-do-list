@@ -5,6 +5,7 @@
 #include "calendarclient.h"
 #include "calendartable.h"
 #include "ui_createeventform.h"
+#include "errormanager.h"
 
 CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                  CalendarClient& client, bool existing,
@@ -45,7 +46,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           });
   // DESCRIPTION
   connect(ui->descriptionEdit, &QTextEdit::textChanged, [this]() {
-    component_->setProperty("DESCRIPTION", ui->descriptionEdit->toHtml());
+    component_->setProperty("DESCRIPTION", ui->descriptionEdit->toPlainText());
   });
   // ALLDAY
   connect(ui->allDayBox, &QCheckBox::stateChanged, [this](int state) {
@@ -119,10 +120,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       auto reply = client_->saveElement(*component_);
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco a salvare il nuovo elemento");
-          QMessageBox::warning(this, "Errore",
-                               "Il server non accetta il nuovo elemento");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta il nuovo elemento");
         }
         qDebug() << reply->readAll();
         accept();
@@ -133,11 +131,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       auto reply = client_->updateElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco ad aggiornare l'elemento selezionato");
-          QMessageBox::warning(this, "Errore",
-                               "Il server non accetta l'aggiornamento "
-                               "dell'elemento selezionato");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta l'aggiornamento dell'elemento selezionato");
         }
         accept();
       });
@@ -145,17 +139,12 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
   });
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      qDebug() << "Event not deleted\n";
       reject();
     } else {
       auto reply = client_->deleteElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco ad eliminare l'elemento selezionato");
-          QMessageBox::warning(
-              this, "Errore",
-              "Il server non accetta l'eliminazione dell'elemento selezionato");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta l'eliminazione dell'elemento selezionato");
         }
       });
       accept();
@@ -173,6 +162,7 @@ void CreateEventForm::resetFormFields() {
       QDateTime::currentDateTime().addSecs(60 * 60)));
   ui->allDayBox->setChecked(component_->allDay());
   ui->locationEdit->setText(component_->getProperty("LOCATION").value_or(""));
+  ui->descriptionEdit->setText(component_->getProperty("DESCRIPTION").value_or(""));
 
   component_->setEndDateTime(ui->endDateTime->dateTime());
 
