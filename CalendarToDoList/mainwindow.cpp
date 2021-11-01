@@ -36,10 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (!json.contains("principal") || !json.contains("host") ||
         !json.contains("password") || !json.contains("username")) {
-      QMessageBox::critical(
-          this, "Chiavi mancanti in json",
-          "auth.json deve contenere: host, principal, username e password");
-      exit(INITIALIZATION_ERROR);
+        ErrorManager::initializationError(this, "Chiavi mancanti in json. \nauth.json deve contenere: host, principal, username e password");
     }
 
     QUrl principal = QUrl(json["principal"].toString());
@@ -57,7 +54,6 @@ MainWindow::MainWindow(QWidget *parent)
   // Setup
   ui->setupUi(this);
   ui->calendarTable->init();
-  qDebug() << "Starting...\n";
 
   // Internal signals
   connect(timer_, &QTimer::timeout, this, &MainWindow::synchronize);
@@ -139,9 +135,7 @@ void MainWindow::tryGetPrincipal() {
   auto reply = client_->discoverUser();
   connect(reply, &QNetworkReply::finished, [reply, this]() {
     if (reply->error() != QNetworkReply::NoError) {
-      qWarning("Non riesco a ottenere il link all'utente principale");
-      ErrorManager::initializationError(
-          this, "Il server non riesce a mandare il link all'utente principale");
+      ErrorManager::initializationError(this, "Il server non riesce a mandare il link all'utente principale");
     }
 
     QDomDocument res;
@@ -149,9 +143,7 @@ void MainWindow::tryGetPrincipal() {
 
     QString status = res.elementsByTagName("d:status").at(0).toElement().text();
     if (!status.contains("200")) {
-      qWarning("Non riesco a ottenere il link all'utente principale");
-      ErrorManager::initializationError(
-          this, "Il server non riesce a mandare il link all'utente principale");
+      ErrorManager::initializationError(this, "Il server non riesce a mandare il link all'utente principale");
     }
 
     QUrl principal = res.elementsByTagName("d:href").at(1).toElement().text();
@@ -167,9 +159,7 @@ void MainWindow::tryGetPrincipal() {
       file.resize(0);
       file.write(doc.toJson());
     } else {
-      QMessageBox::critical(this, "Errore",
-                            "Necessario inserire l'url dell'utente principale");
-      exit(LOGIC_ERROR);
+        ErrorManager::logicError(this, "Necessario inserire l'url dell'utente principale");
     }
     getUserCalendars();
   });
@@ -180,9 +170,7 @@ void MainWindow::getUserCalendars() {
   auto reply1 = client_->discoverUserCalendars();
   connect(reply1, &QNetworkReply::finished, [reply1, this]() {
     if (reply1->error() != QNetworkReply::NoError) {
-      qWarning("Non riesco a ottenere il link ai calendari utente");
-      ErrorManager::initializationError(
-          this, "Il server non riesce a mandare il link ai calendari utente");
+      ErrorManager::initializationError(this, "Il server non riesce a mandare il link ai calendari utente");
     }
 
     QDomDocument res;
@@ -190,9 +178,7 @@ void MainWindow::getUserCalendars() {
 
     QString status = res.elementsByTagName("d:status").at(0).toElement().text();
     if (!status.contains("200")) {
-      qWarning("Non riesco a ottenere il link ai calendari utente");
-      ErrorManager::initializationError(
-          this, "Il server non riesce a mandare il link ai calendari utente");
+      ErrorManager::initializationError(this, "Il server non riesce a mandare il link ai calendari utente");
     }
 
     QString complete = client_->getHost().toString() +
@@ -204,9 +190,7 @@ void MainWindow::getUserCalendars() {
     auto reply2 = client_->listUserCalendars();
     connect(reply2, &QNetworkReply::finished, [reply2, this]() {
       if (reply2->error() != QNetworkReply::NoError) {
-        qWarning("Non riesco a ottenere i calendari utente");
-        ErrorManager::initializationError(
-            this, "Il server non riesce a mandare i calendari utente");
+        ErrorManager::initializationError(this, "Il server non riesce a mandare i calendari utente");
       }
 
       QDomDocument res;
@@ -215,10 +199,7 @@ void MainWindow::getUserCalendars() {
       auto statusesList = res.elementsByTagName("d:status");
       for (int i = 0; i < statusesList.length(); i++) {
         if (!statusesList.at(i).toElement().text().contains("200")) {
-          qWarning("Non riesco a ottenere il link ai calendari utente");
-          ErrorManager::initializationError(
-              this,
-              "Il server non riesce a mandare il link ai calendari utente");
+          ErrorManager::initializationError(this, "Il server non riesce a mandare il link ai calendari utente");
         }
       }
 
@@ -232,8 +213,7 @@ void MainWindow::getUserCalendars() {
       auto cal2 = res.elementsByTagName("c:calendar");
       if (cal1.length() != calendarNames.length() &&
           cal2.length() != calendarNames.length()) {
-        QMessageBox::critical(this, "Errore", "Calendario non supportato");
-        exit(UNSUPPORTED_ERROR);
+        ErrorManager::supportError(nullptr, "Calendario non supportato");
       }
 
       // ensure that both VEVENT and VTODO are supported
@@ -283,9 +263,7 @@ void MainWindow::initialize() {
     if (methods_reply->error() != QNetworkReply::NoError ||
         !methods_reply->hasRawHeader("Allow") ||
         !methods_reply->hasRawHeader("allow")) {
-      qWarning("Non riesco a ottenere i metodi supportati dal server");
-      ErrorManager::initializationError(
-          this, "Il server non riesce a mandare i metodi supportati");
+      ErrorManager::initializationError(this, "Il server non riesce a mandare i metodi supportati");
     }
     if (methods_reply->hasRawHeader("Allow")) {
       for (QByteArray &method : methods_reply->rawHeader("Allow").split(',')) {
@@ -301,9 +279,7 @@ void MainWindow::initialize() {
     auto props_reply = client_->findOutSupportedProperties();
     connect(props_reply, &QNetworkReply::finished, [props_reply, this]() {
       if (props_reply->error() != QNetworkReply::NoError) {
-        qWarning("Non riesco a ottenere le proprietà supportate dal server");
-        ErrorManager::initializationError(
-            this, "Il server non riesce a mandare le proprietà supportate");
+        ErrorManager::initializationError(this, "Il server non riesce a mandare le proprietà supportate");
       }
 
       QDomDocument res;
@@ -315,9 +291,7 @@ void MainWindow::initialize() {
         QString status =
             current.elementsByTagName("d:status").at(0).toElement().text();
         if (!status.contains("200")) {
-          qWarning("Non riesco a ottenere le proprietà supportate dal server");
-          ErrorManager::initializationError(
-              this, "Il server non riesce a mandare le proprietà supportate");
+          ErrorManager::initializationError(this, "Il server non riesce a mandare le proprietà supportate");
         }
         QDomNodeList sync_token = current.elementsByTagName("d:sync-token");
         QDomNodeList ctag = current.elementsByTagName("cs:getctag");
@@ -349,10 +323,7 @@ void MainWindow::refreshCalendarEvents() {
   connect(reply, &QNetworkReply::finished,
           [this, reply, selected_date, end_date]() {
             if (reply->error() != QNetworkReply::NoError) {
-              qWarning("Non riesco a ottenere gli eventi dal server");
-              QMessageBox::critical(
-                  this, "Errore", "Il server non riesce a mandare gli eventi");
-              exit(NETWORK_ERROR);
+                ErrorManager::networkError(nullptr, "Il server non riesce a mandare gli eventi");
             }
 
             QDomDocument res;
@@ -361,16 +332,11 @@ void MainWindow::refreshCalendarEvents() {
             auto statusesList = res.elementsByTagName("d:status");
             for (int i = 0; i < statusesList.length(); i++) {
               if (!statusesList.at(i).toElement().text().contains("200")) {
-                qWarning("Non riesco a ottenere gli eventi dal server");
-                QMessageBox::critical(
-                    this, "Errore",
-                    "Il server non riesce a mandare gli eventi");
-                exit(NETWORK_ERROR);
+                ErrorManager::networkError(nullptr, "Il server non riesce a mandare gli eventi");
               }
             }
 
             QDomNodeList responses = res.elementsByTagName("d:response");
-            qDebug() << "Parsing events...";
 
             for (int i = 0; i < responses.length(); i++) {
               QDomElement current = responses.at(i).toElement();
@@ -397,17 +363,13 @@ void MainWindow::synchronize() {
     return;
   }
   if (!sync_token_supported_ && client_->getCTag().isEmpty()) return;
-  qDebug() << "Syncing...";
 
   if (!sync_token_supported_) {
     // ottengo il nuovo cTag e lo confronto con il vecchio
     auto reply = client_->obtainCTag();
     connect(reply, &QNetworkReply::finished, [this, reply]() mutable {
       if (reply->error() != QNetworkReply::NoError) {
-        qWarning("Non riesco a ottenere il ctag dal server");
-        QMessageBox::critical(this, "Errore di sincronizzazione",
-                              "Il server non riesce a mandare il ctag");
-        return;
+          ErrorManager::synchronizationError(nullptr, "Il server non riesce a mandare il ctag");
       }
 
       QDomDocument res;
@@ -416,17 +378,12 @@ void MainWindow::synchronize() {
       QString status =
           res.elementsByTagName("d:status").at(0).toElement().text();
       if (!status.contains("200")) {
-        qWarning("Non riesco a ottenere il ctag dal server");
-        QMessageBox::critical(this, "Errore di sincronizzazione",
-                              "Il server non riesce a mandare il ctag");
-        return;
+        ErrorManager::synchronizationError(nullptr, "Il server non riesce a mandare il ctag");
       }
 
       QString newCTag =
           res.elementsByTagName("cs:getctag").at(0).toElement().text();
-      if (newCTag == client_->getCTag()) {
-        qDebug() << "Calendar already up to date";
-      } else {  // se non sono uguali, qualcosa è cambiato
+      if (newCTag != client_->getCTag()) {// se non sono uguali, qualcosa è cambiato
         client_->setCTag(newCTag);
         refreshCalendarEvents();
       }
@@ -436,12 +393,7 @@ void MainWindow::synchronize() {
     auto reply2 = client_->receiveChangesBySyncToken();
     connect(reply2, &QNetworkReply::finished, [this, reply2]() {
       if (reply2->error() != QNetworkReply::NoError) {
-        qWarning(
-            "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
-            "dal server");
-        QMessageBox::warning(this, "Errore di sincronizzazione",
-                             "Il server non riesce a mandare eventuali "
-                             "cambiamenti a eventi o attività");
+        ErrorManager::synchronizationError(nullptr, "Il server non riesce a mandare eventuali cambiamenti a eventi o attività");
       }
 
       QDomDocument xml;
@@ -451,13 +403,7 @@ void MainWindow::synchronize() {
       for (int i = 0; i < statusesList.length(); i++) {
         if (!statusesList.at(i).toElement().text().contains("200") &&
             !statusesList.at(i).toElement().text().contains("404")) {
-          qDebug() << statusesList.at(i).toElement().text();
-          qWarning(
-              "Non riesco a ottenere eventuali cambiamenti a eventi o attività "
-              "dal server");
-          QMessageBox::warning(this, "Errore di inizializzazione",
-                               "Il server non riesce a mandare eventuali "
-                               "cambiamenti a eventi o attività");
+          ErrorManager::synchronizationError(nullptr, "Il server non riesce a mandare eventuali cambiamenti a eventi o attività");
         }
       }
 
@@ -520,16 +466,12 @@ void MainWindow::changeCalendar() {
 }
 
 void MainWindow::getExpansion(ICalendarComponent &&original) {
-  qDebug() << "Expanding: " << original.getUID() << " in "
-           << ui->calendarTable->getDateTimeRange();
   auto reply = client_->getExpandedRecurrentEvent(
       original.getUID(), ui->calendarTable->getDateTimeRange());
   connect(reply, &QNetworkReply::finished, this,
           [moved = std::move(original), reply, this]() {
             QDomDocument res;
             res.setContent(reply->readAll());
-
-            qDebug() << "Success: " << res.toString();
 
             QDomNodeList responses = res.elementsByTagName("d:response");
 

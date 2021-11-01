@@ -5,6 +5,7 @@
 #include "calendarclient.h"
 #include "calendartable.h"
 #include "ui_createeventform.h"
+#include "errormanager.h"
 
 CreateEventForm::CreateEventForm(ICalendarComponent* event,
                                  CalendarClient& client, bool existing,
@@ -119,10 +120,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       auto reply = client_->saveElement(*component_);
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco a salvare il nuovo elemento");
-          QMessageBox::warning(this, "Errore",
-                               "Il server non accetta il nuovo elemento");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta il nuovo elemento");
         }
         accept();
         return;
@@ -154,7 +152,6 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           component_->setEtag(eTagList.at(0).toElement().text());
           auto hrefList = res.elementsByTagName("d:href");
           component_->setHref(hrefList.at(0).toElement().text());
-          qDebug() << "New event saved\n";
           accept();
         });
         */
@@ -165,11 +162,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
       auto reply = client_->updateElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco ad aggiornare l'elemento selezionato");
-          QMessageBox::warning(this, "Errore",
-                               "Il server non accetta l'aggiornamento "
-                               "dell'elemento selezionato");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta l'aggiornamento dell'elemento selezionato");
         }
 
         if (reply->hasRawHeader("ETag")) {
@@ -180,11 +173,7 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
           auto reply1 = client_->getElementByUID(component_->getUID(), isEvent);
           connect(reply1, &QNetworkReply::finished, [reply1, this]() {
             if (reply1->error() != QNetworkReply::NoError) {
-              qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::warning(this, "Errore",
-                                   "Il server non accetta l'aggiornamento "
-                                   "dell'elemento selezionato");
-              return;
+              ErrorManager::creationError(this, "Il server non accetta l'aggiornamento dell'elemento selezionato");
             }
 
             QDomDocument res;
@@ -193,18 +182,13 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
             QString status =
                 res.elementsByTagName("d:status").at(0).toElement().text();
             if (!status.contains("200")) {
-              qWarning("Non riesco ad aggiornare l'elemento selezionato");
-              QMessageBox::warning(this, "Errore",
-                                   "Il server non accetta l'aggiornamento "
-                                   "dell'elemento selezionato");
-              return;
+              ErrorManager::creationError(this, "Il server non accetta l'aggiornamento dell'elemento selezionato");
             }
 
             auto eTagList = res.elementsByTagName("d:getetag");
             component_->setEtag(eTagList.at(0).toElement().text());
             auto hrefList = res.elementsByTagName("d:href");
             component_->setHref(hrefList.at(0).toElement().text());
-            qDebug() << "Event updated\n";
             accept();
           });
         }
@@ -213,17 +197,12 @@ CreateEventForm::CreateEventForm(ICalendarComponent* event,
   });
   connect(ui->deleteButton, &QPushButton::clicked, [this] {
     if (!existing_) {
-      qDebug() << "Event not deleted\n";
       reject();
     } else {
       auto reply = client_->deleteElement(*component_, component_->eTag());
       connect(reply, &QNetworkReply::finished, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
-          qWarning("Non riesco ad eliminare l'elemento selezionato");
-          QMessageBox::warning(
-              this, "Errore",
-              "Il server non accetta l'eliminazione dell'elemento selezionato");
-          return;
+          ErrorManager::creationError(this, "Il server non accetta l'eliminazione dell'elemento selezionato");
         }
       });
       accept();

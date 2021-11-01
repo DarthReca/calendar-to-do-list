@@ -9,6 +9,7 @@
 #include <QString>
 
 #include "calendar_classes/calendar.h"
+#include "errormanager.h"
 
 CalendarClient::CalendarClient() {}
 
@@ -16,8 +17,7 @@ CalendarClient::CalendarClient() {}
 
 QNetworkReply* CalendarClient::obtainCTag() {
   if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug() << "Method PROPFIND not supported in call obtainCTag";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method PROPFIND not supported");
   }
 
   QNetworkRequest cal_part;
@@ -130,9 +130,7 @@ QNetworkReply* CalendarClient::findOutCalendarSupport() {
 
 QNetworkReply* CalendarClient::findOutSupportedProperties() {
   if (!supportedMethods_.contains("PROPFIND")) {
-    qDebug()
-        << "Method PROPFIND not supported in call findOutSupportedProperties";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method PROPFIND not supported");
   }
 
   QNetworkRequest cal_part;
@@ -161,8 +159,7 @@ QNetworkReply* CalendarClient::findOutSupportedProperties() {
 
 QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
   if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call getElementByUID";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method REPORT not supported");
   }
 
   QNetworkRequest cal_part;
@@ -208,8 +205,7 @@ QNetworkReply* CalendarClient::getElementByUID(QString UID, bool isEvent) {
 QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
                                                   QDateTime end) {
   if (!supportedMethods_.contains("REPORT")) {
-    qWarning() << "Method REPORT not supported in call getDateRangeEvents";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method REPORT not supported");
   }
 
   QNetworkRequest cal_part;
@@ -256,8 +252,7 @@ QNetworkReply* CalendarClient::getDateRangeEvents(QDateTime start,
 
 QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
   if (!supportedMethods_.contains("REPORT")) {
-    qDebug() << "Method REPORT not supported in call receiveChangesBySyncToken";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method REPORT not supported");
   }
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
@@ -290,8 +285,7 @@ QNetworkReply* CalendarClient::receiveChangesBySyncToken() {
 
 QNetworkReply* CalendarClient::saveElement(ICalendarComponent& newElement) {
   if (!supportedMethods_.contains("PUT")) {
-    qDebug() << "Method PUT not supported in call saveElement";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method PUT not supported");
   }
 
   QByteArray request_string =
@@ -315,8 +309,7 @@ QNetworkReply* CalendarClient::saveElement(ICalendarComponent& newElement) {
 QNetworkReply* CalendarClient::updateElement(ICalendarComponent& updatedElement,
                                              QString eTag) {
   if (!supportedMethods_.contains("PUT")) {
-    qDebug() << "Method PUT not supported in call updateElement";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method PUT not supported");
   }
 
   QByteArray request_string =
@@ -340,14 +333,11 @@ QNetworkReply* CalendarClient::updateElement(ICalendarComponent& updatedElement,
 QNetworkReply* CalendarClient::deleteElement(ICalendarComponent& event,
                                              QString eTag) {
   if (!supportedMethods_.contains("DELETE")) {
-    qDebug() << "Method DELETE not supported in call deleteElement";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method DELETE not supported");
   }
   if (eTag.isEmpty()) {
-    qDebug() << "No eTag";
     return nullptr;
   }
-  qDebug() << "deleting event with eTag" << eTag;
 
   QNetworkRequest cal_part;
   cal_part.setRawHeader("Authorization", ("Basic " + credentials_));
@@ -362,8 +352,7 @@ QNetworkReply* CalendarClient::deleteElement(ICalendarComponent& event,
 QNetworkReply* CalendarClient::getExpandedRecurrentEvent(
     const QString& uid, QPair<QDateTime, QDateTime> range) {
   if (!supportedMethods_.contains("REPORT")) {
-    qWarning() << "Method REPORT not supported in call getDateRangeEvents";
-    return nullptr;
+    ErrorManager::supportError(nullptr, "Method REPORT not supported");
   }
 
   QNetworkRequest cal_part;
