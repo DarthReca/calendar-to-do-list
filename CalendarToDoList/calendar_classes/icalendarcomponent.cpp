@@ -152,9 +152,15 @@ void ICalendarComponent::setEndDateTime(const QDateTime& end) {
   QString date_string = end.date().toString("yyyyMMdd");
   if (!all_day_) date_string = end.toUTC().toString("yyyyMMdd'T'hhmmss'Z'");
   if (type_ == "VEVENT")
+  {
     setProperty("DTEND", date_string);
+    removeProperty("DUE");
+  }
   else
+  {
+    removeProperty("DTEND");
     setProperty("DUE", date_string);
+  }
 }
 
 QString ICalendarComponent::getUID() {

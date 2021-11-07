@@ -11,7 +11,6 @@
     <message>
         <location filename="widgets/createeventform.ui" line="47"/>
         <source>Aggiungi titolo</source>
-        <oldsource>Aggiungi Titolo</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -65,6 +64,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="widgets/createeventform.ui" line="210"/>
+        <source>Elimina</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="widgets/createeventform.ui" line="223"/>
         <source>Salva</source>
         <translation type="unfinished"></translation>
@@ -79,17 +83,17 @@
         <source>Attività</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="widgets/createeventform.ui" line="210"/>
-        <source>Elimina</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
         <location filename="mainwindow.ui" line="20"/>
         <source>Calendar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="55"/>
+        <source>Crea</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -118,6 +122,21 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="mainwindow.ui" line="232"/>
+        <source>Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="237"/>
+        <source>Giornaliera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="242"/>
+        <source>Settimanale</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="mainwindow.ui" line="247"/>
         <source>Sincronizza</source>
         <translation type="unfinished"></translation>
@@ -140,7 +159,6 @@
     <message>
         <location filename="mainwindow.ui" line="267"/>
         <source>Ogni 10 minuti</source>
-        <oldsource>Ogni ora</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -158,26 +176,6 @@
         <source>Mostra task senza data</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="mainwindow.ui" line="55"/>
-        <source>Crea</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="232"/>
-        <source>Login</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="237"/>
-        <source>Giornaliera</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.ui" line="242"/>
-        <source>Settimanale</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>UserCalendarsChoice</name>
@@ -189,7 +187,6 @@
     <message>
         <location filename="widgets/usercalendarschoice.ui" line="45"/>
         <source>Scegli calendario:</source>
-        <oldsource>Calendario:</oldsource>
         <translation type="unfinished"></translation>
     </message>
 </context>
