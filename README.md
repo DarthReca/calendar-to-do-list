@@ -70,7 +70,7 @@ The interface really needs a more expert person than us, so if you want to contr
 
 ## Authors & contributors
 
-For a full list of all authors and contributors, see [the contributors page](https://gitlab.com/DarthReca/calendar-to-do-list/-/project_members).
+For a full list of all authors and contributors, see [the contributors page](https://gitlab.com/DarthReca/calendar-to-do-list/-/graphs/main).
 
 ## License
 
