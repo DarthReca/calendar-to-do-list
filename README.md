@@ -21,6 +21,8 @@
 
 ## About
 
+**This is only a port from our original repo on [GitLab](https://gitlab.com/DarthReca/calendar-to-do-list)**
+
 The project was built for the course Programming System attended at Polytechnic University of Turin. 
 
 The application is intended to let an user interact with a personal calendar, located in a third-party server, which must be compatible with the CalDAV standard protocol.
